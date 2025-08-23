@@ -1,0 +1,59 @@
+{
+  "Noteminds View Content": {
+    "prefix": "view_content",
+    "body": [
+      "part of '${TM_FILENAME_BASE/(.*)_content/$1/}_view.dart';",
+      "",
+      "class _${TM_FILENAME_BASE/(.*)/${1:/pascalcase}/} extends StatelessWidget {",
+      "  const _${TM_FILENAME_BASE/(.*)/${1:/pascalcase}/}(this.viewModel);",
+      "",
+      "  final ${TM_FILENAME_BASE/(.*)_content/${1:/pascalcase}/}ViewModel viewModel;",
+      "",
+      "  @override",
+      "  Widget build(BuildContext context) {",
+      "    return const Placeholder();",
+      "  }",
+      "}",
+      "",
+    ]
+  },
+  "Noteminds View Model": {
+    "prefix": "view_model",
+    "body": [
+      "import 'package:noteminds/core/base/base_view_model.dart';",
+      "",
+      "class ${TM_FILENAME_BASE/(.*)/${1:/pascalcase}/} extends BaseViewModel {}",
+      "",
+    ]
+  },
+  "Noteminds View": {
+    "prefix": "view",
+    "body": [
+      "library ${TM_FILENAME_BASE};",
+      "",
+      "import 'package:auto_route/auto_route.dart';",
+      "import 'package:noteminds/core/base/view_model_provider.dart';",
+      "import 'package:flutter/material.dart';",
+      "",
+      "import '${TM_FILENAME_BASE/_view/_view_model/}.dart';",
+      "",
+      "part '${TM_FILENAME_BASE/_view/_content/}.dart';",
+      "",
+      "@RoutePage()",
+      "class ${TM_FILENAME_BASE/(.*)/${1:/pascalcase}/} extends StatelessWidget {",
+      "  const ${TM_FILENAME_BASE/(.*)/${1:/pascalcase}/}({super.key});",
+      "",
+      "  @override",
+      "  Widget build(BuildContext context) {",
+      "    return ViewModelProvider<${TM_FILENAME_BASE/(.*)_view/${1:/pascalcase}/}ViewModel>(",
+      "      create: (context) => ${TM_FILENAME_BASE/(.*)_view/${1:/pascalcase}/}ViewModel(),",
+      "      builder: (context, viewModel, child) {",
+      "        return _${TM_FILENAME_BASE/(.*)_view/${1:/pascalcase}/}Content(viewModel);",
+      "      },",
+      "    );",
+      "  }",
+      "}",
+      "",
+    ]
+  },
+}

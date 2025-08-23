@@ -1,0 +1,97 @@
+import 'package:flutter/material.dart';
+import 'package:noteminds/constants/date_format.dart';
+import 'package:noteminds/core/services/text_parser_service.dart';
+import 'package:noteminds/models/note.dart';
+
+class NoteCard extends StatelessWidget {
+  const NoteCard({
+    super.key,
+    required this.note,
+    required this.onTap,
+    required this.onLongPress,
+    required this.onToggleFavorite,
+  });
+
+  final Note note;
+  final VoidCallback onTap;
+  final VoidCallback onLongPress;
+  final VoidCallback onToggleFavorite;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    margin: const EdgeInsets.only(bottom: 12),
+    child: Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onTap,
+        onLongPress: onLongPress,
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Theme.of(context).colorScheme.outlineVariant, width: 1),
+            boxShadow: [
+              BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8, offset: const Offset(0, 2)),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      note.title,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  IconButton(
+                    icon: Icon(
+                      note.isFavorite ? Icons.favorite : Icons.favorite_border,
+                      size: 20,
+                      color: note.isFavorite ? Colors.red : Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    onPressed: onToggleFavorite,
+                    tooltip: note.isFavorite ? 'Remove from favorites' : 'Add to favorites',
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                  ),
+                ],
+              ),
+              if (note.contentJson.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Text(
+                  TextParserService.getPreviewText(note.contentJson),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Icon(Icons.access_time, size: 14, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Created: ${_formatDate(note.createdAt)} • ${DateFormat.formatRelativeDate(note.createdAt)}',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
+
+  String _formatDate(DateTime date) => '${date.day}/${date.month}/${date.year}';
+}
