@@ -17,10 +17,11 @@ class _NotesContent extends StatelessWidget {
       return _buildEmptyState(context);
     }
 
-    return RefreshIndicator(
+    return NmRefreshIndicator(
       onRefresh: () => viewModel.refreshNotes(),
       child: CustomScrollView(
         controller: viewModel.scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
         slivers: [_buildAppBar(context), _buildNotesList(context)],
       ),
     );
