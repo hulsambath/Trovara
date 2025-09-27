@@ -251,7 +251,9 @@ class SettingViewModel extends BaseViewModel {
       SnackBar(
         content: Text(
           message,
-          style: TextStyle(color: !isError ? Colors.white : Theme.of(context).colorScheme.onError),
+          style: TextStyle(
+            color: !isError ? Theme.of(context).colorScheme.onSurface : Theme.of(context).colorScheme.onError,
+          ),
         ),
         behavior: SnackBarBehavior.floating,
         dismissDirection: DismissDirection.horizontal,
