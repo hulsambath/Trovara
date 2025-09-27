@@ -47,7 +47,7 @@ class ThemeConfig {
           splashFactory: splashFactory(themeData.platform),
         ),
       ),
-      iconTheme: themeData.iconTheme.copyWith(color: Colors.white),
+      iconTheme: themeData.iconTheme.copyWith(color: colorScheme.onSurface),
     );
   }
 
