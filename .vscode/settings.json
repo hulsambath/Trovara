@@ -1,23 +1,11 @@
 {
   "dart.lineLength": 120,
-  "dart.enableSdkFormatter": true,
-  "dart.formatOnSave": true,
-  "dart.formatOnType": true,
-  "dart.insertArgumentPlaceholders": true,
-  "dart.previewFlutterUiGuides": true,
-  "dart.previewFlutterUiGuidesCustomTracking": true,
   "editor.formatOnSave": true,
   "editor.rulers": [120],
   "editor.tabSize": 2,
   "editor.indentSize": 2,
   "editor.detectIndentation": false,
   "xml.format.maxLineWidth": 120,
-  "[dart]": {
-    "editor.defaultFormatter": "Dart-Code.dart-code",
-    "editor.formatOnSave": true,
-    "editor.formatOnType": true,
-    "editor.rulers": [120]
-  },
   "[xml]": {
     "editor.indentSize": 4,
     "editor.defaultFormatter": "redhat.vscode-xml"
@@ -31,7 +19,12 @@
   "[html]": {
     "editor.defaultFormatter": "vscode.html-language-features"
   },
+  "liveServer.settings.root": "/build/web",
+  "files.associations": {
+    "*.css": "tailwindcss"
+  },
   "search.exclude": {
     "**/.pub-cache/*": true
-  }
+  },
+  "terminal.integrated.scrollback": 100000
 }
