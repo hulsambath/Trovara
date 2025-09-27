@@ -1,0 +1,65 @@
+name: NoteMinds
+
+on: [pull_request]
+jobs:
+  execute:
+    name: Code Quality
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        flutter_version: [3.35.4]
+        flutter_path: ["/opt/hostedtoolcache/flutter"]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Load Flutter SDK from Cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ matrix.flutter_path }}
+          key: ${{ runner.os }}-flutter-${{ matrix.flutter_version }}
+
+      - name: Setup Flutter SDK
+        uses: subosito/flutter-action@v2.18.0
+        with:
+          flutter-version: ${{ matrix.flutter_version }}
+
+      - name: Ensure only asdf is used
+        run: |
+          set -e
+
+          for file in .nvmrc .ruby-version .fvmrc app/.fvmrc core/.fvmrc app/.tool-versions; do
+            if [ -f "$file" ]; then
+              echo "Error: $file exists. Please remove it before proceeding."
+              exit 1
+            else
+              echo "$file does not exist. All good!"
+            fi
+          done
+        shell: bash
+
+      - name: Install Packages
+        run: |
+          (flutter pub get)
+        shell: bash
+
+      - name: Check Code Formats
+        run: |
+          (dart format $(find lib -name "*.dart" -not \( -name "*.g.dart" -o -name "*.gr.dart" \)) --set-exit-if-changed --line-length 120)
+        shell: bash
+
+      - name: Check Linters
+        run: |
+          (dart analyze lib)
+        shell: bash
+
+      # ignore app_router build for now, as it inconsistently generate file.
+      - name: Execute Build Runner
+        run: |
+          dart run build_runner build -d
+        shell: bash
+
+      - name: Execute Tests
+        run: |
+          (flutter test)
