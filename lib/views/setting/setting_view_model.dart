@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:file_picker/file_picker.dart';
@@ -7,13 +8,17 @@ import 'package:flutter/material.dart';
 import 'package:noteminds/core/base/base_view_model.dart';
 import 'package:noteminds/core/di/service_locator.dart';
 import 'package:noteminds/core/services/google_drive_service.dart';
+import 'package:noteminds/core/services/google_drive_sync_service.dart';
 import 'package:noteminds/core/services/note_service.dart';
 import 'package:noteminds/core/storage/google_drive_auth_storage.dart';
+import 'package:noteminds/widgets/nm_loading_overlay.dart';
+import 'package:noteminds/widgets/nm_toast.dart';
 import 'package:path_provider/path_provider.dart';
 
 class SettingViewModel extends BaseViewModel {
   final GoogleDriveService _driveService = ServiceLocator().googleDriveService;
   final NoteService _noteService = ServiceLocator().noteService;
+  final GoogleDriveSyncService _syncService = ServiceLocator().googleDriveSyncService;
 
   bool get isSignedIn => _driveService.isSignedIn;
   String? _accountName;
@@ -45,7 +50,7 @@ class SettingViewModel extends BaseViewModel {
   Future<void> signInGoogle(BuildContext context) async {
     try {
       await _driveService.signIn();
-      _toast(context, 'Google sign-in complete', false);
+      NmToast.success(context, 'Google sign-in complete');
       await _refreshAccount();
       // Automatically sync data after successful sign-in
       await _autoSyncAfterSignIn(context);
@@ -60,7 +65,7 @@ class SettingViewModel extends BaseViewModel {
         errorMessage = 'Sign-in failed: ${e.toString().split(':').last.trim()}';
       }
 
-      _toast(context, errorMessage, true);
+      NmToast.error(context, errorMessage);
     }
   }
 
@@ -82,13 +87,13 @@ class SettingViewModel extends BaseViewModel {
         // Step 3: Push merged data to Google Drive
         await _driveService.uploadJsonToAppData(fileName: 'noteminds_backup.json', json: mergedData);
 
-        _toast(context, 'Data automatically synced from Google Drive', false);
+        NmToast.success(context, 'Data automatically synced from Google Drive');
       } else {
         // No remote data exists, backup local data
         final localData = _noteService.exportAllToJson();
         await _driveService.uploadJsonToAppData(fileName: 'noteminds_backup.json', json: localData);
 
-        _toast(context, 'Local data backed up to Google Drive', false);
+        NmToast.success(context, 'Local data backed up to Google Drive');
       }
     } catch (e) {
       // Log the error but don't show to user for auto-sync failures
@@ -98,79 +103,31 @@ class SettingViewModel extends BaseViewModel {
   }
 
   Future<void> syncWithGoogleDrive(BuildContext context) async {
-    await _withLoading(context, () async {
-      try {
-        // Handle authentication - sign in if not signed in, or re-authenticate if needed
-        if (!isSignedIn) {
-          await _driveService.signIn();
-          await _refreshAccount();
-        }
+    // Use the dedicated sync service with loading overlay and toast
+    final result = await _syncService.syncWithLoadingOverlay(context);
 
-        // Step 1: Pull data from Google Drive
-        final driveData = await _driveService.downloadJsonFromAppData('noteminds_backup.json');
+    // Refresh account info after sync
+    await _refreshAccount();
 
-        // Step 2: Merge local and remote data
-        Map<String, dynamic> mergedData;
-        if (driveData != null) {
-          // Merge local and remote data
-          mergedData = await _noteService.mergeWithRemoteData(driveData);
-
-          // Apply the merged data locally
-          await _noteService.importAllFromJson(mergedData);
-        } else {
-          // No remote data exists, use local data
-          mergedData = _noteService.exportAllToJson();
-        }
-
-        // Step 3: Push merged data to Google Drive
-        await _driveService.uploadJsonToAppData(fileName: 'noteminds_backup.json', json: mergedData);
-
-        // Step 4: Provide user feedback
-        if (driveData != null) {
-          _toast(context, 'Synced with Google Drive (data merged and synchronized)', false);
-        } else {
-          _toast(context, 'Synced with Google Drive (data backed up to cloud)', false);
-        }
-      } catch (e) {
-        String errorMessage = 'Sync failed';
-
-        // Handle different types of errors with more specific messages
-        if (e.toString().contains('401') || e.toString().contains('authentication')) {
-          errorMessage = 'Authentication failed. Please try signing in again.';
-        } else if (e.toString().contains('403') || e.toString().contains('permission')) {
-          errorMessage = 'Access denied. Please check your Google Drive permissions.';
-        } else if (e.toString().contains('network') ||
-            e.toString().contains('connection') ||
-            e.toString().contains('timeout')) {
-          errorMessage = 'Network error. Please check your internet connection.';
-        } else if (e.toString().contains('cancelled') || e.toString().contains('user_cancelled')) {
-          errorMessage = 'Sync was cancelled.';
-        } else if (e.toString().contains('quota') || e.toString().contains('storage')) {
-          errorMessage = 'Google Drive storage quota exceeded. Please free up space.';
-        } else {
-          // Extract the most relevant part of the error message
-          final errorParts = e.toString().split(':');
-          final lastPart = errorParts.last.trim();
-          errorMessage = 'Sync failed: ${lastPart.length > 50 ? '${lastPart.substring(0, 50)}...' : lastPart}';
-        }
-
-        _toast(context, errorMessage, true);
-      }
-    });
+    // Show result toast
+    _syncService.showSyncResultToast(context, result);
   }
 
   Future<void> signOutGoogle(BuildContext context) async {
     try {
       await _driveService.signOut();
-      _toast(context, 'Signed out', false);
+      NmToast.success(context, 'Signed out');
       await _refreshAccount();
     } catch (e) {
-      _toast(context, 'Sign out failed: $e', true);
+      NmToast.error(context, 'Sign out failed: $e');
     }
   }
 
   Future<void> exportToFile(BuildContext context) async {
-    await _withLoading(context, () async {
+    String? successMessage;
+    String? errorMessage;
+
+    await NmLoadingOverlay.showProcessing(context, () async {
       try {
         String? targetPath;
         // Prefer native save dialog on desktop/web
@@ -194,15 +151,25 @@ class SettingViewModel extends BaseViewModel {
         final data = utf8.encode(jsonEncode(jsonMap));
         final file = XFile.fromData(data, name: 'noteminds_export.json', mimeType: 'application/json');
         await file.saveTo(targetPath);
-        _toast(context, 'Exported to $targetPath', false);
+        successMessage = 'Exported to $targetPath';
       } catch (e) {
-        _toast(context, 'Export failed: $e', true);
+        errorMessage = 'Export failed: $e';
       }
     });
+
+    // Show toast after loading dialog is dismissed
+    if (successMessage != null) {
+      NmToast.success(context, successMessage!);
+    } else if (errorMessage != null) {
+      NmToast.error(context, errorMessage!);
+    }
   }
 
   Future<void> importFromFile(BuildContext context) async {
-    await _withLoading(context, () async {
+    String? successMessage;
+    String? errorMessage;
+
+    await NmLoadingOverlay.showProcessing(context, () async {
       try {
         String? path;
         try {
@@ -223,50 +190,17 @@ class SettingViewModel extends BaseViewModel {
         final text = await XFile(path).readAsString();
         final jsonMap = jsonDecode(text) as Map<String, dynamic>;
         await _noteService.importAllFromJson(jsonMap);
-        _toast(context, 'Import complete', false);
+        successMessage = 'Import complete';
       } catch (e) {
-        _toast(context, 'Import failed: $e', true);
+        errorMessage = 'Import failed: $e';
       }
     });
-  }
 
-  Future<void> _withLoading(BuildContext context, Future<void> Function() action) async {
-    // Show blocking loading dialog
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => const Center(child: CircularProgressIndicator()),
-    );
-    try {
-      await action();
-    } finally {
-      if (Navigator.of(context).canPop()) {
-        Navigator.of(context).pop();
-      }
+    // Show toast after loading dialog is dismissed
+    if (successMessage != null) {
+      NmToast.success(context, successMessage!);
+    } else if (errorMessage != null) {
+      NmToast.error(context, errorMessage!);
     }
-  }
-
-  void _toast(BuildContext context, String message, bool isError) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          message,
-          style: TextStyle(
-            color: !isError ? Theme.of(context).colorScheme.onSurface : Theme.of(context).colorScheme.onError,
-          ),
-        ),
-        behavior: SnackBarBehavior.floating,
-        dismissDirection: DismissDirection.horizontal,
-        backgroundColor: isError
-            ? Theme.of(context).colorScheme.error
-            : Theme.of(context).colorScheme.surfaceContainerHighest,
-        action: SnackBarAction(
-          label: 'Close',
-          onPressed: () {
-            ScaffoldMessenger.of(context).clearSnackBars();
-          },
-        ),
-      ),
-    );
   }
 }

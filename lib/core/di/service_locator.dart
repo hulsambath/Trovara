@@ -7,6 +7,7 @@ import 'package:noteminds/core/repository/interfaces/folder_repository.dart';
 import 'package:noteminds/core/repository/interfaces/note_repository.dart';
 import 'package:noteminds/core/services/custom_tag_service.dart';
 import 'package:noteminds/core/services/google_drive_service.dart';
+import 'package:noteminds/core/services/google_drive_sync_service.dart';
 import 'package:noteminds/core/services/note_service.dart';
 
 /// Service Locator for dependency injection
@@ -23,6 +24,7 @@ class ServiceLocator {
   NoteService? _noteService;
   CustomTagService? _customTagService;
   GoogleDriveService? _googleDriveService;
+  GoogleDriveSyncService? _googleDriveSyncService;
 
   /// Get the note repository instance
   INoteRepository get noteRepository {
@@ -59,6 +61,12 @@ class ServiceLocator {
     return _googleDriveService!;
   }
 
+  /// Get the Google Drive sync service instance
+  GoogleDriveSyncService get googleDriveSyncService {
+    _googleDriveSyncService ??= GoogleDriveSyncService();
+    return _googleDriveSyncService!;
+  }
+
   /// Initialize all services
   Future<void> initialize() async {
     await noteService.initialize();
@@ -71,6 +79,7 @@ class ServiceLocator {
     _noteRepository?.dispose();
     _folderRepository?.dispose();
     _googleDriveService = null;
+    _googleDriveSyncService = null;
 
     // Close the shared ObjectBox Store
     ObjectBoxStoreManager().close();

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:noteminds/core/base/base_view_model.dart';
 import 'package:noteminds/core/di/service_locator.dart';
+import 'package:noteminds/core/services/google_drive_sync_service.dart';
 import 'package:noteminds/core/services/note_service.dart';
 import 'package:noteminds/models/note.dart';
 
@@ -10,7 +11,7 @@ class NotesViewModel extends BaseViewModel {
   static NotesViewModel? get instance => _instance;
 
   final NoteService _noteService = ServiceLocator().noteService;
-  // Google Drive actions moved to Setting screen
+  final GoogleDriveSyncService _syncService = ServiceLocator().googleDriveSyncService;
 
   List<Note> _notes = [];
   bool _isLoading = true;
@@ -87,18 +88,6 @@ class NotesViewModel extends BaseViewModel {
     });
   }
 
-  void showSearch(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Search coming soon!')));
-  }
-
-  void showMenu(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Open Settings for backup/restore')));
-  }
-
-  void openSettings(BuildContext context) {
-    context.push('/setting');
-  }
-
   void showNoteOptions(BuildContext context, Note note) {
     showModalBottomSheet(context: context, builder: (context) => _buildNoteOptionsSheet(context, note));
   }
@@ -165,6 +154,20 @@ class NotesViewModel extends BaseViewModel {
     if (confirmed == true) {
       await _noteService.deleteNote(note.id);
       // No need to manually refresh - listener will handle it
+    }
+  }
+
+  /// Syncs data with Google Drive
+  Future<void> syncWithGoogleDrive(BuildContext context) async {
+    // Use the dedicated sync service with loading overlay and toast
+    final result = await _syncService.syncWithLoadingOverlay(context);
+
+    // Show result toast
+    _syncService.showSyncResultToast(context, result);
+
+    // Refresh notes after sync to show any changes
+    if (result.isSuccess) {
+      await refreshNotes();
     }
   }
 
