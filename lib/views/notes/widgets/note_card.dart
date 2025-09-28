@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:noteminds/core/services/text_parser_service.dart';
 import 'package:noteminds/models/note.dart';
+import 'package:noteminds/widgets/activity_chips.dart';
 import 'package:noteminds/widgets/mood_chips.dart';
 
 class NoteCard extends StatelessWidget {
@@ -73,9 +74,17 @@ class NoteCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
-              if (note.moodTags.isNotEmpty) ...[
+              if (note.moodTags.isNotEmpty || note.activityTags.isNotEmpty) ...[
                 const SizedBox(height: 8),
-                CompactMoodChips(selectedMoodIds: note.moodTags),
+                Row(
+                  children: [
+                    if (note.moodTags.isNotEmpty) ...[
+                      CompactMoodChips(selectedMoodIds: note.moodTags),
+                      if (note.activityTags.isNotEmpty) const SizedBox(width: 8),
+                    ],
+                    if (note.activityTags.isNotEmpty) CompactActivityChips(selectedActivityIds: note.activityTags),
+                  ],
+                ),
               ],
               const SizedBox(height: 12),
               Row(

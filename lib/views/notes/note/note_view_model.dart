@@ -251,6 +251,14 @@ class NoteViewModel extends BaseViewModel {
     }
   }
 
+  void updateActivityTags(List<String> activityTagIds) {
+    if (_currentNote != null) {
+      _hasUnsavedChanges = true;
+      _currentNote!.setActivityTags(activityTagIds);
+      notifyListeners();
+    }
+  }
+
   Future<void> saveNote() async {
     if (_currentNote != null) {
       try {
