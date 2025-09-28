@@ -7,12 +7,14 @@ import 'package:flutter_quill/flutter_quill.dart';
 import 'package:noteminds/core/base/base_view_model.dart';
 import 'package:noteminds/core/di/service_locator.dart';
 import 'package:noteminds/core/route/app_router.gr.dart';
+import 'package:noteminds/core/services/custom_tag_service.dart';
 import 'package:noteminds/core/services/note_service.dart';
 import 'package:noteminds/models/note.dart';
 
 class NoteViewModel extends BaseViewModel {
   final NoteRouteArgs args;
   final NoteService _noteService = ServiceLocator().noteService;
+  final CustomTagService _customTagService = ServiceLocator().customTagService;
 
   late QuillController quillController;
   late ScrollController scrollController;
@@ -275,6 +277,31 @@ class NoteViewModel extends BaseViewModel {
     }
   }
 
+  Future<void> updateCustomTags(List<String> customTags) async {
+    if (_currentNote != null) {
+      _hasUnsavedChanges = true;
+
+      // Create or get custom tags and collect their IDs
+      final List<int> customTagIds = [];
+
+      for (final tagName in customTags) {
+        try {
+          // Create or get the custom tag
+          final customTag = await _customTagService.createOrGetCustomTag(tagName);
+          customTagIds.add(customTag.id);
+        } catch (e) {
+          // Handle error - could show a snackbar or log the error
+          // TODO: Show user-friendly error message
+          debugPrint('Error creating custom tag "$tagName": $e');
+        }
+      }
+
+      // Update the note with the custom tag IDs
+      _currentNote!.setCustomTags(customTagIds);
+      notifyListeners();
+    }
+  }
+
   Future<void> saveNote() async {
     if (_currentNote != null) {
       try {
@@ -284,7 +311,7 @@ class NoteViewModel extends BaseViewModel {
             title: titleController.text,
             contentJson: jsonEncode(quillController.document.toDelta().toJson()),
             folderId: _currentNote!.folderId,
-            tags: _currentNote!.tags,
+            customTagIds: _currentNote!.customTagIds,
           );
 
           // Now update the note with all tag information (moodTags, activityTags, timeTags, personalGrowthTags)

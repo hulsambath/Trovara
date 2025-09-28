@@ -13,14 +13,14 @@ abstract class INoteRepository {
   Note? getNoteById(int id);
 
   /// Create a new note
-  Future<Note> createNote({String? title, String? contentJson, String? folderId, List<String> tags});
+  Future<Note> createNote({String? title, String? contentJson, String? folderId, List<int> customTagIds});
 
   /// Create a new note with preserved timestamps (for import operations)
   Future<Note> createNoteWithTimestamps({
     String? title,
     String? contentJson,
     String? folderId,
-    List<String> tags,
+    List<int> customTagIds,
     DateTime? createdAt,
     DateTime? updatedAt,
     bool isFavorite,

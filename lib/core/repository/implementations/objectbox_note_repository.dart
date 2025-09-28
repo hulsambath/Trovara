@@ -26,12 +26,17 @@ class ObjectBoxNoteRepository extends BaseRepository implements INoteRepository 
   Note? getNoteById(int id) => _noteBox.get(id);
 
   @override
-  Future<Note> createNote({String? title, String? contentJson, String? folderId, List<String> tags = const []}) async {
+  Future<Note> createNote({
+    String? title,
+    String? contentJson,
+    String? folderId,
+    List<int> customTagIds = const [],
+  }) async {
     final note = Note(
       title: title ?? 'Untitled',
       contentJson: contentJson ?? '{"ops":[{"insert":"\\n"}]}',
       folderId: folderId ?? 'default',
-      tags: tags,
+      customTagIds: customTagIds,
     );
 
     final id = _noteBox.put(note);
@@ -47,7 +52,7 @@ class ObjectBoxNoteRepository extends BaseRepository implements INoteRepository 
     String? title,
     String? contentJson,
     String? folderId,
-    List<String> tags = const [],
+    List<int> customTagIds = const [],
     DateTime? createdAt,
     DateTime? updatedAt,
     bool isFavorite = false,
@@ -57,7 +62,7 @@ class ObjectBoxNoteRepository extends BaseRepository implements INoteRepository 
       title: title ?? 'Untitled',
       contentJson: contentJson ?? '{"ops":[{"insert":"\\n"}]}',
       folderId: folderId ?? 'default',
-      tags: tags,
+      customTagIds: customTagIds,
       createdAt: createdAt,
       updatedAt: updatedAt,
       isFavorite: isFavorite,
@@ -95,7 +100,7 @@ class ObjectBoxNoteRepository extends BaseRepository implements INoteRepository 
           (note) =>
               note.title.toLowerCase().contains(lowercaseQuery) ||
               note.contentJson.toLowerCase().contains(lowercaseQuery) ||
-              note.tags.any((tag) => tag.toLowerCase().contains(lowercaseQuery)),
+              note.customTagIds.any((tagId) => tagId.toString().contains(lowercaseQuery)),
         )
         .toList();
   }
@@ -110,16 +115,10 @@ class ObjectBoxNoteRepository extends BaseRepository implements INoteRepository 
   List<Note> getArchivedNotes() => _noteBox.query(Note_.isArchived.equals(true)).build().find();
 
   @override
-  List<Note> getNotesByTag(String tag) => _noteBox.getAll().where((note) => note.tags.contains(tag)).toList();
+  List<Note> getNotesByTag(String tag) => [];
 
   @override
-  List<String> getAllTags() {
-    final allTags = <String>{};
-    for (final note in _noteBox.getAll()) {
-      allTags.addAll(note.tags);
-    }
-    return allTags.toList()..sort();
-  }
+  List<String> getAllTags() => [];
 
   @override
   int get totalNotes => _noteBox.count();

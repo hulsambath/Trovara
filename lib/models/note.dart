@@ -1,5 +1,6 @@
 import 'package:noteminds/core/services/text_parser_service.dart';
 import 'package:noteminds/models/activity_tag.dart';
+import 'package:noteminds/models/custom_tag.dart';
 import 'package:noteminds/models/mood_tag.dart';
 import 'package:noteminds/models/personal_growth_tag.dart';
 import 'package:noteminds/models/time_tag.dart';
@@ -15,7 +16,7 @@ class Note {
   bool isFavorite;
   bool isArchived;
   String folderId;
-  List<String> tags;
+  List<int> customTagIds;
   List<String> moodTags;
   List<String> activityTags;
   List<String> timeTags;
@@ -30,14 +31,14 @@ class Note {
     this.isFavorite = false,
     this.isArchived = false,
     this.folderId = 'default',
-    List<String>? tags,
+    List<int>? customTagIds,
     List<String>? moodTags,
     List<String>? activityTags,
     List<String>? timeTags,
     List<String>? personalGrowthTags,
   }) : createdAt = createdAt ?? DateTime.now(),
        updatedAt = updatedAt ?? DateTime.now(),
-       tags = tags ?? [],
+       customTagIds = customTagIds ?? [],
        moodTags = moodTags ?? [],
        activityTags = activityTags ?? [],
        timeTags = timeTags ?? [],
@@ -62,18 +63,25 @@ class Note {
     updatedAt = DateTime.now();
   }
 
-  void addTag(String tag) {
-    if (!tags.contains(tag)) {
-      tags.add(tag);
+  void addCustomTag(int customTagId) {
+    if (!customTagIds.contains(customTagId)) {
+      customTagIds.add(customTagId);
       updatedAt = DateTime.now();
     }
   }
 
-  void removeTag(String tag) {
-    if (tags.remove(tag)) {
+  void removeCustomTag(int customTagId) {
+    if (customTagIds.remove(customTagId)) {
       updatedAt = DateTime.now();
     }
   }
+
+  void setCustomTags(List<int> newCustomTagIds) {
+    customTagIds = newCustomTagIds;
+    updatedAt = DateTime.now();
+  }
+
+  List<CustomTag> get customTagObjects => CustomTags.getByIds(customTagIds);
 
   void addMoodTag(String moodTagId) {
     if (!moodTags.contains(moodTagId) && MoodTags.exists(moodTagId)) {
@@ -174,7 +182,7 @@ class Note {
     'isFavorite': isFavorite,
     'isArchived': isArchived,
     'folderId': folderId,
-    'tags': tags,
+    'customTagIds': customTagIds,
     'moodTags': moodTags,
     'activityTags': activityTags,
     'timeTags': timeTags,
@@ -190,7 +198,7 @@ class Note {
     isFavorite: json['isFavorite'] as bool? ?? false,
     isArchived: json['isArchived'] as bool? ?? false,
     folderId: json['folderId'] as String? ?? 'default',
-    tags: List<String>.from(json['tags'] as List? ?? []),
+    customTagIds: List<int>.from(json['customTagIds'] as List? ?? []),
     moodTags: List<String>.from(json['moodTags'] as List? ?? []),
     activityTags: List<String>.from(json['activityTags'] as List? ?? []),
     timeTags: List<String>.from(json['timeTags'] as List? ?? []),
