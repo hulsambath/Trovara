@@ -29,6 +29,10 @@ class _NoteContent extends StatelessWidget {
           selectedPersonalGrowthIds: viewModel.currentNote?.personalGrowthTags ?? [],
           onSelectionChanged: viewModel.updatePersonalGrowthTags,
         ),
+        CustomTagsIconButton(
+          selectedTags: viewModel.currentNote?.customTagObjects.map((tag) => tag.name).toList() ?? [],
+          onSelectionChanged: viewModel.updateCustomTags,
+        ),
         if (viewModel.hasUnsavedChanges)
           IconButton(icon: const Icon(Icons.save), onPressed: () => viewModel.saveNote(), tooltip: 'Save'),
       ],

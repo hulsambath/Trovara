@@ -79,7 +79,7 @@ class NoteService {
           title: importNote.title,
           contentJson: importNote.contentJson,
           folderId: importNote.folderId,
-          tags: importNote.tags,
+          customTagIds: importNote.customTagIds,
           createdAt: importNote.createdAt,
           updatedAt: importNote.updatedAt,
           isFavorite: importNote.isFavorite,
@@ -204,12 +204,17 @@ class NoteService {
     return mergedData;
   }
 
-  Future<Note> createNote({String? title, String? contentJson, String? folderId, List<String> tags = const []}) async {
+  Future<Note> createNote({
+    String? title,
+    String? contentJson,
+    String? folderId,
+    List<int> customTagIds = const [],
+  }) async {
     final note = await _noteRepository.createNote(
       title: title,
       contentJson: contentJson,
       folderId: folderId,
-      tags: tags,
+      customTagIds: customTagIds,
     );
 
     // Update folder note count
@@ -227,7 +232,7 @@ class NoteService {
     String? title,
     String? contentJson,
     String? folderId,
-    List<String> tags = const [],
+    List<int> customTagIds = const [],
     DateTime? createdAt,
     DateTime? updatedAt,
     bool isFavorite = false,
@@ -237,7 +242,7 @@ class NoteService {
       title: title,
       contentJson: contentJson,
       folderId: folderId,
-      tags: tags,
+      customTagIds: customTagIds,
       createdAt: createdAt,
       updatedAt: updatedAt,
       isFavorite: isFavorite,

@@ -1,8 +1,11 @@
 import 'package:noteminds/core/repository/base/objectbox_store_manager.dart';
+import 'package:noteminds/core/repository/implementations/objectbox_custom_tag_repository.dart';
 import 'package:noteminds/core/repository/implementations/objectbox_folder_repository.dart';
 import 'package:noteminds/core/repository/implementations/objectbox_note_repository.dart';
+import 'package:noteminds/core/repository/interfaces/custom_tag_repository.dart';
 import 'package:noteminds/core/repository/interfaces/folder_repository.dart';
 import 'package:noteminds/core/repository/interfaces/note_repository.dart';
+import 'package:noteminds/core/services/custom_tag_service.dart';
 import 'package:noteminds/core/services/google_drive_service.dart';
 import 'package:noteminds/core/services/note_service.dart';
 
@@ -16,7 +19,9 @@ class ServiceLocator {
   // Lazy initialization of services
   INoteRepository? _noteRepository;
   IFolderRepository? _folderRepository;
+  ICustomTagRepository? _customTagRepository;
   NoteService? _noteService;
+  CustomTagService? _customTagService;
   GoogleDriveService? _googleDriveService;
 
   /// Get the note repository instance
@@ -31,10 +36,22 @@ class ServiceLocator {
     return _folderRepository!;
   }
 
+  /// Get the custom tag repository instance
+  ICustomTagRepository get customTagRepository {
+    _customTagRepository ??= ObjectBoxCustomTagRepository();
+    return _customTagRepository!;
+  }
+
   /// Get the note service instance
   NoteService get noteService {
     _noteService ??= NoteService(noteRepository: noteRepository, folderRepository: folderRepository);
     return _noteService!;
+  }
+
+  /// Get the custom tag service instance
+  CustomTagService get customTagService {
+    _customTagService ??= CustomTagService(customTagRepository: customTagRepository);
+    return _customTagService!;
   }
 
   GoogleDriveService get googleDriveService {
@@ -45,6 +62,7 @@ class ServiceLocator {
   /// Initialize all services
   Future<void> initialize() async {
     await noteService.initialize();
+    await customTagService.initialize();
   }
 
   /// Dispose all services

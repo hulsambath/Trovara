@@ -14,6 +14,7 @@ import 'package:objectbox/internal.dart'
 import 'package:objectbox/objectbox.dart' as obx;
 import 'package:objectbox_flutter_libs/objectbox_flutter_libs.dart';
 
+import 'models/custom_tag.dart';
 import 'models/folder.dart';
 import 'models/note.dart';
 
@@ -87,7 +88,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(3, 6317312537730891446),
     name: 'Note',
-    lastPropertyId: const obx_int.IdUid(13, 331697692445163464),
+    lastPropertyId: const obx_int.IdUid(14, 4965465751400095188),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -139,12 +140,6 @@ final _entities = <obx_int.ModelEntity>[
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(9, 4069527587680502698),
-        name: 'tags',
-        type: 30,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
         id: const obx_int.IdUid(10, 2939021045952335524),
         name: 'moodTags',
         type: 30,
@@ -166,6 +161,58 @@ final _entities = <obx_int.ModelEntity>[
         id: const obx_int.IdUid(13, 331697692445163464),
         name: 'personalGrowthTags',
         type: 30,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(14, 4965465751400095188),
+        name: 'customTagIds',
+        type: 27,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(4, 8381765124324137753),
+    name: 'CustomTag',
+    lastPropertyId: const obx_int.IdUid(6, 7889005941927855266),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 678180135470757018),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 7435738613559352555),
+        name: 'name',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 8321865262008596766),
+        name: 'color',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 8416602076697062203),
+        name: 'createdAt',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 4686622472031572441),
+        name: 'updatedAt',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(6, 7889005941927855266),
+        name: 'usageCount',
+        type: 6,
         flags: 0,
       ),
     ],
@@ -212,7 +259,7 @@ Future<obx.Store> openStore({
 obx_int.ModelDefinition getObjectBoxModel() {
   final model = obx_int.ModelInfo(
     entities: _entities,
-    lastEntityId: const obx_int.IdUid(3, 6317312537730891446),
+    lastEntityId: const obx_int.IdUid(4, 8381765124324137753),
     lastIndexId: const obx_int.IdUid(0, 0),
     lastRelationId: const obx_int.IdUid(0, 0),
     lastSequenceId: const obx_int.IdUid(0, 0),
@@ -228,6 +275,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
       1413894492597862715,
       7561191491581535928,
       3139239441195315295,
+      4069527587680502698,
     ],
     retiredRelationUids: const [],
     modelVersion: 5,
@@ -332,9 +380,6 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final titleOffset = fbb.writeString(object.title);
         final contentJsonOffset = fbb.writeString(object.contentJson);
         final folderIdOffset = fbb.writeString(object.folderId);
-        final tagsOffset = fbb.writeList(
-          object.tags.map(fbb.writeString).toList(growable: false),
-        );
         final moodTagsOffset = fbb.writeList(
           object.moodTags.map(fbb.writeString).toList(growable: false),
         );
@@ -349,7 +394,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
               .map(fbb.writeString)
               .toList(growable: false),
         );
-        fbb.startTable(14);
+        final customTagIdsOffset = fbb.writeListInt64(object.customTagIds);
+        fbb.startTable(15);
         fbb.addInt64(0, object.id);
         fbb.addOffset(1, titleOffset);
         fbb.addOffset(2, contentJsonOffset);
@@ -358,11 +404,11 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addBool(5, object.isFavorite);
         fbb.addBool(6, object.isArchived);
         fbb.addOffset(7, folderIdOffset);
-        fbb.addOffset(8, tagsOffset);
         fbb.addOffset(9, moodTagsOffset);
         fbb.addOffset(10, activityTagsOffset);
         fbb.addOffset(11, timeTagsOffset);
         fbb.addOffset(12, personalGrowthTagsOffset);
+        fbb.addOffset(13, customTagIdsOffset);
         fbb.finish(fbb.endTable());
         return object.id;
       },
@@ -402,10 +448,10 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final folderIdParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 18, '');
-        final tagsParam = const fb.ListReader<String>(
-          fb.StringReader(asciiOptimization: true),
+        final customTagIdsParam = const fb.ListReader<int>(
+          fb.Int64Reader(),
           lazy: false,
-        ).vTableGet(buffer, rootOffset, 20, []);
+        ).vTableGet(buffer, rootOffset, 30, []);
         final moodTagsParam = const fb.ListReader<String>(
           fb.StringReader(asciiOptimization: true),
           lazy: false,
@@ -431,11 +477,71 @@ obx_int.ModelDefinition getObjectBoxModel() {
           isFavorite: isFavoriteParam,
           isArchived: isArchivedParam,
           folderId: folderIdParam,
-          tags: tagsParam,
+          customTagIds: customTagIdsParam,
           moodTags: moodTagsParam,
           activityTags: activityTagsParam,
           timeTags: timeTagsParam,
           personalGrowthTags: personalGrowthTagsParam,
+        );
+
+        return object;
+      },
+    ),
+    CustomTag: obx_int.EntityDefinition<CustomTag>(
+      model: _entities[2],
+      toOneRelations: (CustomTag object) => [],
+      toManyRelations: (CustomTag object) => {},
+      getId: (CustomTag object) => object.id,
+      setId: (CustomTag object, int id) {
+        object.id = id;
+      },
+      objectToFB: (CustomTag object, fb.Builder fbb) {
+        final nameOffset = fbb.writeString(object.name);
+        final colorOffset = fbb.writeString(object.color);
+        fbb.startTable(7);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, nameOffset);
+        fbb.addOffset(2, colorOffset);
+        fbb.addInt64(3, object.createdAt.millisecondsSinceEpoch);
+        fbb.addInt64(4, object.updatedAt.millisecondsSinceEpoch);
+        fbb.addInt64(5, object.usageCount);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final idParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          4,
+          0,
+        );
+        final nameParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 6, '');
+        final colorParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 8, '');
+        final createdAtParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 10, 0),
+        );
+        final updatedAtParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 12, 0),
+        );
+        final usageCountParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          14,
+          0,
+        );
+        final object = CustomTag(
+          id: idParam,
+          name: nameParam,
+          color: colorParam,
+          createdAt: createdAtParam,
+          updatedAt: updatedAtParam,
+          usageCount: usageCountParam,
         );
 
         return object;
@@ -534,28 +640,61 @@ class Note_ {
     _entities[1].properties[7],
   );
 
-  /// See [Note.tags].
-  static final tags = obx.QueryStringVectorProperty<Note>(
-    _entities[1].properties[8],
-  );
-
   /// See [Note.moodTags].
   static final moodTags = obx.QueryStringVectorProperty<Note>(
-    _entities[1].properties[9],
+    _entities[1].properties[8],
   );
 
   /// See [Note.activityTags].
   static final activityTags = obx.QueryStringVectorProperty<Note>(
-    _entities[1].properties[10],
+    _entities[1].properties[9],
   );
 
   /// See [Note.timeTags].
   static final timeTags = obx.QueryStringVectorProperty<Note>(
-    _entities[1].properties[11],
+    _entities[1].properties[10],
   );
 
   /// See [Note.personalGrowthTags].
   static final personalGrowthTags = obx.QueryStringVectorProperty<Note>(
+    _entities[1].properties[11],
+  );
+
+  /// See [Note.customTagIds].
+  static final customTagIds = obx.QueryIntegerVectorProperty<Note>(
     _entities[1].properties[12],
+  );
+}
+
+/// [CustomTag] entity fields to define ObjectBox queries.
+class CustomTag_ {
+  /// See [CustomTag.id].
+  static final id = obx.QueryIntegerProperty<CustomTag>(
+    _entities[2].properties[0],
+  );
+
+  /// See [CustomTag.name].
+  static final name = obx.QueryStringProperty<CustomTag>(
+    _entities[2].properties[1],
+  );
+
+  /// See [CustomTag.color].
+  static final color = obx.QueryStringProperty<CustomTag>(
+    _entities[2].properties[2],
+  );
+
+  /// See [CustomTag.createdAt].
+  static final createdAt = obx.QueryDateProperty<CustomTag>(
+    _entities[2].properties[3],
+  );
+
+  /// See [CustomTag.updatedAt].
+  static final updatedAt = obx.QueryDateProperty<CustomTag>(
+    _entities[2].properties[4],
+  );
+
+  /// See [CustomTag.usageCount].
+  static final usageCount = obx.QueryIntegerProperty<CustomTag>(
+    _entities[2].properties[5],
   );
 }
