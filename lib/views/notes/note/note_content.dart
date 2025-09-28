@@ -25,6 +25,10 @@ class _NoteContent extends StatelessWidget {
           selectedMoodIds: viewModel.currentNote?.moodTags ?? [],
           onSelectionChanged: viewModel.updateMoodTags,
         ),
+        PersonalGrowthIconButton(
+          selectedPersonalGrowthIds: viewModel.currentNote?.personalGrowthTags ?? [],
+          onSelectionChanged: viewModel.updatePersonalGrowthTags,
+        ),
         if (viewModel.hasUnsavedChanges)
           IconButton(icon: const Icon(Icons.save), onPressed: () => viewModel.saveNote(), tooltip: 'Save'),
       ],
@@ -46,6 +50,7 @@ class _NoteContent extends StatelessWidget {
       borderRadius: BorderRadius.circular(16),
     ),
     child: Column(
+      spacing: 16,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         TextFormField(
@@ -58,7 +63,6 @@ class _NoteContent extends StatelessWidget {
           ),
           onTapOutside: (_) => FocusScope.of(context).unfocus(),
         ),
-        const SizedBox(height: 16),
         Expanded(
           child: QuillEditor(
             controller: viewModel.quillController,

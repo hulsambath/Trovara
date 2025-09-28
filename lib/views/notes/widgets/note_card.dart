@@ -3,6 +3,7 @@ import 'package:noteminds/core/services/text_parser_service.dart';
 import 'package:noteminds/models/note.dart';
 import 'package:noteminds/widgets/tages/activity/activity_chips.dart';
 import 'package:noteminds/widgets/tages/mood/mood_chips.dart';
+import 'package:noteminds/widgets/tages/personal_growth/personal_growth_chips.dart';
 import 'package:noteminds/widgets/tages/time/time_chips.dart';
 
 class NoteCard extends StatelessWidget {
@@ -75,7 +76,10 @@ class NoteCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
-              if (note.moodTags.isNotEmpty || note.activityTags.isNotEmpty || note.timeTags.isNotEmpty) ...[
+              if (note.moodTags.isNotEmpty ||
+                  note.activityTags.isNotEmpty ||
+                  note.timeTags.isNotEmpty ||
+                  note.personalGrowthTags.isNotEmpty) ...[
                 const SizedBox(height: 8),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -84,13 +88,21 @@ class NoteCard extends StatelessWidget {
                       children: [
                         if (note.moodTags.isNotEmpty) ...[
                           CompactMoodChips(selectedMoodIds: note.moodTags),
-                          if (note.activityTags.isNotEmpty || note.timeTags.isNotEmpty) const SizedBox(width: 8),
+                          if (note.activityTags.isNotEmpty ||
+                              note.timeTags.isNotEmpty ||
+                              note.personalGrowthTags.isNotEmpty)
+                            const SizedBox(width: 8),
                         ],
                         if (note.activityTags.isNotEmpty) ...[
                           CompactActivityChips(selectedActivityIds: note.activityTags),
-                          if (note.timeTags.isNotEmpty) const SizedBox(width: 8),
+                          if (note.timeTags.isNotEmpty || note.personalGrowthTags.isNotEmpty) const SizedBox(width: 8),
                         ],
-                        if (note.timeTags.isNotEmpty) CompactTimeChips(selectedTimeIds: note.timeTags),
+                        if (note.timeTags.isNotEmpty) ...[
+                          CompactTimeChips(selectedTimeIds: note.timeTags),
+                          if (note.personalGrowthTags.isNotEmpty) const SizedBox(width: 8),
+                        ],
+                        if (note.personalGrowthTags.isNotEmpty)
+                          CompactPersonalGrowthChips(selectedPersonalGrowthIds: note.personalGrowthTags),
                       ],
                     ),
                   ],
