@@ -32,9 +32,11 @@ class _NotesContent extends StatelessWidget {
     snap: true,
     title: Text('NoteMinds', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600)),
     actions: [
-      IconButton(icon: const Icon(Icons.refresh), onPressed: () => viewModel.refreshNotes(), tooltip: 'Refresh'),
-      IconButton(icon: const Icon(Icons.search), onPressed: () => viewModel.showSearch(context)),
-      IconButton(icon: const Icon(Icons.settings), onPressed: () {}, tooltip: 'Settings'),
+      IconButton(
+        icon: const Icon(Icons.sync),
+        onPressed: () => viewModel.syncWithGoogleDrive(context),
+        tooltip: 'Sync with Google Drive',
+      ),
     ],
     bottom: PreferredSize(
       preferredSize: const Size.fromHeight(1),
