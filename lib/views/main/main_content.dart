@@ -1,20 +1,17 @@
 part of 'main_view.dart';
 
 class _MainContent extends StatelessWidget {
-  const _MainContent(this.viewModel);
+  const _MainContent(this.viewModel, this.child);
 
   final MainViewModel viewModel;
+  final Widget child;
 
   @override
-  Widget build(BuildContext context) => AutoTabsRouter(
-    routes: const [NotesRoute(), SearchRoute(), SettingRoute()],
-    transitionBuilder: (context, child, animation) => FadeTransition(opacity: animation, child: child),
-    builder: (context, child) => Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
-      primary: true,
-      bottomNavigationBar: _buildBottomNavBar(context),
-      body: buildBody(context, child),
-    ),
+  Widget build(BuildContext context) => Scaffold(
+    backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
+    primary: true,
+    bottomNavigationBar: _buildBottomNavBar(context),
+    body: buildBody(context, child),
   );
 
   Widget buildBody(BuildContext context, Widget child) => Stack(
@@ -25,23 +22,40 @@ class _MainContent extends StatelessWidget {
   );
 
   Widget _buildBottomNavBar(BuildContext context) {
-    final tabsRouter = AutoTabsRouter.of(context);
+    final location = GoRouterState.of(context).uri.path;
+
+    int currentIndex = 0;
+    if (location == '/search') {
+      currentIndex = 1;
+    } else if (location == '/setting') {
+      currentIndex = 2;
+    }
 
     return BottomNavigationBar(
       elevation: 0,
       useLegacyColorScheme: false,
-      currentIndex: tabsRouter.activeIndex,
+      currentIndex: currentIndex,
       backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
       selectedItemColor: Theme.of(context).colorScheme.primary,
       unselectedItemColor: Theme.of(context).colorScheme.onSurface,
       onTap: (value) {
         // Check if tapping on the same tab (Notes tab)
-        if (value == 0 && tabsRouter.activeIndex == 0) {
+        if (value == 0 && currentIndex == 0) {
           // If already on Notes tab, scroll to top
           viewModel.onTabTap(context, value);
         } else {
           // Otherwise, switch to the new tab
-          tabsRouter.setActiveIndex(value);
+          switch (value) {
+            case 0:
+              context.go('/');
+              break;
+            case 1:
+              context.go('/search');
+              break;
+            case 2:
+              context.go('/setting');
+              break;
+          }
         }
       },
       items: const [

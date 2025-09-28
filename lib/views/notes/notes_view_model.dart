@@ -1,8 +1,7 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:noteminds/core/base/base_view_model.dart';
 import 'package:noteminds/core/di/service_locator.dart';
-import 'package:noteminds/core/route/app_router.gr.dart';
 import 'package:noteminds/core/services/note_service.dart';
 import 'package:noteminds/models/note.dart';
 
@@ -75,14 +74,14 @@ class NotesViewModel extends BaseViewModel {
   }
 
   void createNewNote(BuildContext context) {
-    context.router.push(NoteRoute()).then((_) {
+    context.push('/note').then((_) {
       // Refresh notes when returning from creating a new note
       refreshNotes();
     });
   }
 
   void openNote(BuildContext context, Note note) {
-    context.router.push(NoteRoute(title: note.title)).then((_) {
+    context.push('/note?title=${Uri.encodeComponent(note.title)}').then((_) {
       // Refresh notes when returning from editing a note
       refreshNotes();
     });
@@ -97,7 +96,7 @@ class NotesViewModel extends BaseViewModel {
   }
 
   void openSettings(BuildContext context) {
-    context.router.push(const SettingRoute());
+    context.push('/setting');
   }
 
   void showNoteOptions(BuildContext context, Note note) {

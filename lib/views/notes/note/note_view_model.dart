@@ -6,13 +6,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:noteminds/core/base/base_view_model.dart';
 import 'package:noteminds/core/di/service_locator.dart';
-import 'package:noteminds/core/route/app_router.gr.dart';
 import 'package:noteminds/core/services/custom_tag_service.dart';
 import 'package:noteminds/core/services/note_service.dart';
 import 'package:noteminds/models/note.dart';
 
 class NoteViewModel extends BaseViewModel {
-  final NoteRouteArgs args;
+  final String? title;
   final NoteService _noteService = ServiceLocator().noteService;
   final CustomTagService _customTagService = ServiceLocator().customTagService;
 
@@ -39,7 +38,7 @@ class NoteViewModel extends BaseViewModel {
   bool get isNewNote => _isNewNote;
   bool get hasUnsavedChanges => _hasUnsavedChanges;
 
-  NoteViewModel(this.args) {
+  NoteViewModel({this.title}) {
     _initializeControllers();
     _initializeNote();
     _startAutoSaveTimer();
@@ -183,8 +182,8 @@ class NoteViewModel extends BaseViewModel {
   }
 
   Future<void> _initializeNote() async {
-    if (args.title != null && args.title!.isNotEmpty) {
-      final existingNotes = _noteService.searchNotes(args.title!);
+    if (title != null && title!.isNotEmpty) {
+      final existingNotes = _noteService.searchNotes(title!);
       if (existingNotes.isNotEmpty) {
         _currentNote = existingNotes.first;
         _isNewNote = false;

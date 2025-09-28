@@ -1,4 +1,3 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:noteminds/core/base/base_view_model.dart';
 import 'package:provider/provider.dart';
@@ -40,8 +39,6 @@ class ViewModelProvider<T extends BaseViewModel> extends StatelessWidget {
 
   Widget buildTitle({required BuildContext context, required T viewModel, required Widget child}) {
     if (root) return child;
-
-    if (context.findAncestorWidgetOfExactType<RouteDataScope>() == null) return child;
 
     return Title(color: ColorScheme.of(context).primary, title: 'NoteMinds', child: child);
   }
