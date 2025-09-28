@@ -195,95 +195,91 @@ class _CustomTagsWidgetState extends State<CustomTagsWidget> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    debugPrint('widget.availableTags: ${widget.availableTags} hasAvailableTags: $_hasAvailableTags');
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Existing tags section (only for CustomTag mode)
-        if (_hasAvailableTags) ...[_buildExistingTagsSection(context), const SizedBox(height: 16)],
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      if (_hasAvailableTags) ...[_buildExistingTagsSection(context), const SizedBox(height: 16)],
 
-        // Text input for adding new tags
-        if (widget.enabled) ...[
-          TextField(
-            controller: _textController,
-            focusNode: _focusNode,
-            enabled: widget.enabled,
-            decoration: InputDecoration(
-              hintText: widget.hintText ?? 'Add custom tag...',
-              border: const OutlineInputBorder(),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              suffixIcon: IconButton(
-                icon: const Icon(Icons.add),
-                onPressed: () => _addTag(_textController.text),
-                tooltip: 'Add tag',
-              ),
+      if (widget.enabled) ...[
+        TextField(
+          controller: _textController,
+          focusNode: _focusNode,
+          enabled: widget.enabled,
+          decoration: InputDecoration(
+            hintText: widget.hintText ?? 'Add custom tag...',
+            contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            suffixIcon: IconButton(
+              icon: const Icon(Icons.add),
+              onPressed: () => _addTag(_textController.text),
+
+              tooltip: 'Add tag',
             ),
-            onSubmitted: _addTag,
-            onChanged: _updateSuggestions,
-            onTap: () {
-              if (_textController.text.isNotEmpty) {
-                _updateSuggestions(_textController.text);
-              }
-            },
-            textInputAction: TextInputAction.done,
-            maxLength: 50,
-            buildCounter: (context, {required currentLength, maxLength, required isFocused}) => Text(
-              '$currentLength/$maxLength',
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
-            ),
+            border: const OutlineInputBorder(),
           ),
+          onTapUpOutside: (event) => _focusNode.unfocus(),
+          onSubmitted: _addTag,
+          onChanged: _updateSuggestions,
+          onTap: () {
+            if (_textController.text.isNotEmpty) {
+              _updateSuggestions(_textController.text);
+            }
+          },
 
-          // Suggestions dropdown (only for CustomTag mode)
-          if (_isCustomTagMode && _showSuggestions && _suggestions.isNotEmpty) ...[
-            const SizedBox(height: 4),
-            Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Column(
-                children: _suggestions
-                    .map(
-                      (tag) => ListTile(
-                        leading: Container(
-                          width: 12,
-                          height: 12,
-                          decoration: BoxDecoration(color: tag.displayColor, shape: BoxShape.circle),
-                        ),
-                        title: Text(tag.name),
-                        subtitle: tag.usageCount > 0 ? Text('Used ${tag.usageCount} times') : null,
-                        onTap: () => _selectSuggestion(tag),
-                        dense: true,
+          textInputAction: TextInputAction.done,
+          maxLength: 50,
+          buildCounter: (context, {required currentLength, maxLength, required isFocused}) => Text(
+            '$currentLength/$maxLength',
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+          ),
+        ),
+
+        if (_isCustomTagMode && _showSuggestions && _suggestions.isNotEmpty) ...[
+          const SizedBox(height: 4),
+          Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Column(
+              children: _suggestions
+                  .map(
+                    (tag) => ListTile(
+                      leading: Container(
+                        width: 12,
+                        height: 12,
+                        decoration: BoxDecoration(color: tag.displayColor, shape: BoxShape.circle),
                       ),
-                    )
-                    .toList(),
-              ),
-            ),
-          ],
-
-          const SizedBox(height: 8),
-        ],
-
-        // Display selected tags as removable chips
-        if (_hasSelectedTags) ...[
-          _buildSelectedTagsSection(context),
-        ] else if (widget.enabled) ...[
-          Text(
-            'No custom tags added yet',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-              fontStyle: FontStyle.italic,
+                      title: Text(tag.name),
+                      subtitle: tag.usageCount > 0 ? Text('Used ${tag.usageCount} times') : null,
+                      onTap: () => _selectSuggestion(tag),
+                      dense: true,
+                    ),
+                  )
+                  .toList(),
             ),
           ),
         ],
+
+        const SizedBox(height: 8),
       ],
-    );
-  }
+
+      if (_hasSelectedTags) ...[
+        _buildSelectedTagsSection(context),
+      ] else if (widget.enabled) ...[
+        Text(
+          'No custom tags added yet',
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            fontStyle: FontStyle.italic,
+          ),
+        ),
+      ],
+    ],
+  );
 
   bool get _hasSelectedTags {
     if (_isCustomTagMode) {
