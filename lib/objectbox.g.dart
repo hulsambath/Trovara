@@ -87,7 +87,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(3, 6317312537730891446),
     name: 'Note',
-    lastPropertyId: const obx_int.IdUid(11, 6279445950454810107),
+    lastPropertyId: const obx_int.IdUid(12, 8967983358329417601),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -153,6 +153,12 @@ final _entities = <obx_int.ModelEntity>[
       obx_int.ModelProperty(
         id: const obx_int.IdUid(11, 6279445950454810107),
         name: 'activityTags',
+        type: 30,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(12, 8967983358329417601),
+        name: 'timeTags',
         type: 30,
         flags: 0,
       ),
@@ -329,7 +335,10 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final activityTagsOffset = fbb.writeList(
           object.activityTags.map(fbb.writeString).toList(growable: false),
         );
-        fbb.startTable(12);
+        final timeTagsOffset = fbb.writeList(
+          object.timeTags.map(fbb.writeString).toList(growable: false),
+        );
+        fbb.startTable(13);
         fbb.addInt64(0, object.id);
         fbb.addOffset(1, titleOffset);
         fbb.addOffset(2, contentJsonOffset);
@@ -341,6 +350,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addOffset(8, tagsOffset);
         fbb.addOffset(9, moodTagsOffset);
         fbb.addOffset(10, activityTagsOffset);
+        fbb.addOffset(11, timeTagsOffset);
         fbb.finish(fbb.endTable());
         return object.id;
       },
@@ -392,6 +402,10 @@ obx_int.ModelDefinition getObjectBoxModel() {
           fb.StringReader(asciiOptimization: true),
           lazy: false,
         ).vTableGet(buffer, rootOffset, 24, []);
+        final timeTagsParam = const fb.ListReader<String>(
+          fb.StringReader(asciiOptimization: true),
+          lazy: false,
+        ).vTableGet(buffer, rootOffset, 26, []);
         final object = Note(
           id: idParam,
           title: titleParam,
@@ -404,6 +418,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
           tags: tagsParam,
           moodTags: moodTagsParam,
           activityTags: activityTagsParam,
+          timeTags: timeTagsParam,
         );
 
         return object;
@@ -515,5 +530,10 @@ class Note_ {
   /// See [Note.activityTags].
   static final activityTags = obx.QueryStringVectorProperty<Note>(
     _entities[1].properties[10],
+  );
+
+  /// See [Note.timeTags].
+  static final timeTags = obx.QueryStringVectorProperty<Note>(
+    _entities[1].properties[11],
   );
 }

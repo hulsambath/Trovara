@@ -1,6 +1,7 @@
 import 'package:noteminds/core/services/text_parser_service.dart';
 import 'package:noteminds/models/activity_tag.dart';
 import 'package:noteminds/models/mood_tag.dart';
+import 'package:noteminds/models/time_tag.dart';
 import 'package:objectbox/objectbox.dart';
 
 @Entity()
@@ -16,6 +17,7 @@ class Note {
   List<String> tags;
   List<String> moodTags;
   List<String> activityTags;
+  List<String> timeTags;
 
   Note({
     this.id = 0,
@@ -29,11 +31,13 @@ class Note {
     List<String>? tags,
     List<String>? moodTags,
     List<String>? activityTags,
+    List<String>? timeTags,
   }) : createdAt = createdAt ?? DateTime.now(),
        updatedAt = updatedAt ?? DateTime.now(),
        tags = tags ?? [],
        moodTags = moodTags ?? [],
-       activityTags = activityTags ?? [];
+       activityTags = activityTags ?? [],
+       timeTags = timeTags ?? [];
 
   String get content => TextParserService.parseQuillContent(contentJson);
   int get wordCount => TextParserService.calculateWordCount(contentJson);
@@ -107,6 +111,26 @@ class Note {
 
   List<ActivityTag> get activityTagObjects => ActivityTags.getByIds(activityTags);
 
+  void addTimeTag(String timeTagId) {
+    if (!timeTags.contains(timeTagId) && TimeTags.exists(timeTagId)) {
+      timeTags.add(timeTagId);
+      updatedAt = DateTime.now();
+    }
+  }
+
+  void removeTimeTag(String timeTagId) {
+    if (timeTags.remove(timeTagId)) {
+      updatedAt = DateTime.now();
+    }
+  }
+
+  void setTimeTags(List<String> newTimeTags) {
+    timeTags = newTimeTags.where((id) => TimeTags.exists(id)).toList();
+    updatedAt = DateTime.now();
+  }
+
+  List<TimeTag> get timeTagObjects => TimeTags.getByIds(timeTags);
+
   void updateContent(String newContentJson) {
     contentJson = newContentJson;
     updatedAt = DateTime.now();
@@ -129,6 +153,7 @@ class Note {
     'tags': tags,
     'moodTags': moodTags,
     'activityTags': activityTags,
+    'timeTags': timeTags,
   };
 
   factory Note.fromJson(Map<String, dynamic> json) => Note(
@@ -143,6 +168,7 @@ class Note {
     tags: List<String>.from(json['tags'] as List? ?? []),
     moodTags: List<String>.from(json['moodTags'] as List? ?? []),
     activityTags: List<String>.from(json['activityTags'] as List? ?? []),
+    timeTags: List<String>.from(json['timeTags'] as List? ?? []),
   );
 
   @override

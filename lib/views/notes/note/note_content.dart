@@ -11,6 +11,12 @@ class _NoteContent extends StatelessWidget {
       title: Text(viewModel.currentNote?.title ?? 'Untitled'),
       surfaceTintColor: Colors.transparent,
       actions: [
+        TimeIconButton(
+          selectedTimeIds: viewModel.currentNote?.timeTags ?? [],
+          onSelectionChanged: viewModel.updateTimeTags,
+          creationTime: viewModel.currentNote?.createdAt,
+          showSuggestions: viewModel.isNewNote,
+        ),
         ActivityIconButton(
           selectedActivityIds: viewModel.currentNote?.activityTags ?? [],
           onSelectionChanged: viewModel.updateActivityTags,
