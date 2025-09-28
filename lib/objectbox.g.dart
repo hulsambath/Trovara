@@ -21,70 +21,6 @@ export 'package:objectbox/objectbox.dart'; // so that callers only have to impor
 
 final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
-    id: const obx_int.IdUid(1, 7373197808855322801),
-    name: 'Note',
-    lastPropertyId: const obx_int.IdUid(9, 3139239441195315295),
-    flags: 0,
-    properties: <obx_int.ModelProperty>[
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(1, 5283507406653816762),
-        name: 'id',
-        type: 6,
-        flags: 1,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(2, 3314551958061198889),
-        name: 'title',
-        type: 9,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(3, 8724772223041090710),
-        name: 'contentJson',
-        type: 9,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(4, 8872389228672845766),
-        name: 'createdAt',
-        type: 10,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(5, 7348620165083816641),
-        name: 'updatedAt',
-        type: 10,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(6, 2376944311313385175),
-        name: 'isFavorite',
-        type: 1,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(7, 1413894492597862715),
-        name: 'isArchived',
-        type: 1,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(8, 7561191491581535928),
-        name: 'folderId',
-        type: 9,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(9, 3139239441195315295),
-        name: 'tags',
-        type: 30,
-        flags: 0,
-      ),
-    ],
-    relations: <obx_int.ModelRelation>[],
-    backlinks: <obx_int.ModelBacklink>[],
-  ),
-  obx_int.ModelEntity(
     id: const obx_int.IdUid(2, 7853034309261988721),
     name: 'Folder',
     lastPropertyId: const obx_int.IdUid(9, 4257404690156523047),
@@ -148,6 +84,76 @@ final _entities = <obx_int.ModelEntity>[
     relations: <obx_int.ModelRelation>[],
     backlinks: <obx_int.ModelBacklink>[],
   ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(3, 6317312537730891446),
+    name: 'Note',
+    lastPropertyId: const obx_int.IdUid(10, 2939021045952335524),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 1772686458885544547),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 1276794422088069564),
+        name: 'title',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 1947789243324082101),
+        name: 'contentJson',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 6385277195119888875),
+        name: 'createdAt',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 8830280099423111436),
+        name: 'updatedAt',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(6, 8405630537741859686),
+        name: 'isFavorite',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(7, 1838127307021453792),
+        name: 'isArchived',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(8, 3956461929789338485),
+        name: 'folderId',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(9, 4069527587680502698),
+        name: 'tags',
+        type: 30,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(10, 2939021045952335524),
+        name: 'moodTags',
+        type: 30,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
 ];
 
 /// Shortcut for [obx.Store.new] that passes [getObjectBoxModel] and for Flutter
@@ -188,13 +194,23 @@ Future<obx.Store> openStore({
 obx_int.ModelDefinition getObjectBoxModel() {
   final model = obx_int.ModelInfo(
     entities: _entities,
-    lastEntityId: const obx_int.IdUid(2, 7853034309261988721),
+    lastEntityId: const obx_int.IdUid(3, 6317312537730891446),
     lastIndexId: const obx_int.IdUid(0, 0),
     lastRelationId: const obx_int.IdUid(0, 0),
     lastSequenceId: const obx_int.IdUid(0, 0),
-    retiredEntityUids: const [],
+    retiredEntityUids: const [7373197808855322801],
     retiredIndexUids: const [],
-    retiredPropertyUids: const [],
+    retiredPropertyUids: const [
+      5283507406653816762,
+      3314551958061198889,
+      8724772223041090710,
+      8872389228672845766,
+      7348620165083816641,
+      2376944311313385175,
+      1413894492597862715,
+      7561191491581535928,
+      3139239441195315295,
+    ],
     retiredRelationUids: const [],
     modelVersion: 5,
     modelVersionParserMinimum: 5,
@@ -202,91 +218,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
   );
 
   final bindings = <Type, obx_int.EntityDefinition>{
-    Note: obx_int.EntityDefinition<Note>(
-      model: _entities[0],
-      toOneRelations: (Note object) => [],
-      toManyRelations: (Note object) => {},
-      getId: (Note object) => object.id,
-      setId: (Note object, int id) {
-        object.id = id;
-      },
-      objectToFB: (Note object, fb.Builder fbb) {
-        final titleOffset = fbb.writeString(object.title);
-        final contentJsonOffset = fbb.writeString(object.contentJson);
-        final folderIdOffset = fbb.writeString(object.folderId);
-        final tagsOffset = fbb.writeList(
-          object.tags.map(fbb.writeString).toList(growable: false),
-        );
-        fbb.startTable(10);
-        fbb.addInt64(0, object.id);
-        fbb.addOffset(1, titleOffset);
-        fbb.addOffset(2, contentJsonOffset);
-        fbb.addInt64(3, object.createdAt.millisecondsSinceEpoch);
-        fbb.addInt64(4, object.updatedAt.millisecondsSinceEpoch);
-        fbb.addBool(5, object.isFavorite);
-        fbb.addBool(6, object.isArchived);
-        fbb.addOffset(7, folderIdOffset);
-        fbb.addOffset(8, tagsOffset);
-        fbb.finish(fbb.endTable());
-        return object.id;
-      },
-      objectFromFB: (obx.Store store, ByteData fbData) {
-        final buffer = fb.BufferContext(fbData);
-        final rootOffset = buffer.derefObject(0);
-        final idParam = const fb.Int64Reader().vTableGet(
-          buffer,
-          rootOffset,
-          4,
-          0,
-        );
-        final titleParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 6, '');
-        final contentJsonParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 8, '');
-        final createdAtParam = DateTime.fromMillisecondsSinceEpoch(
-          const fb.Int64Reader().vTableGet(buffer, rootOffset, 10, 0),
-        );
-        final updatedAtParam = DateTime.fromMillisecondsSinceEpoch(
-          const fb.Int64Reader().vTableGet(buffer, rootOffset, 12, 0),
-        );
-        final isFavoriteParam = const fb.BoolReader().vTableGet(
-          buffer,
-          rootOffset,
-          14,
-          false,
-        );
-        final isArchivedParam = const fb.BoolReader().vTableGet(
-          buffer,
-          rootOffset,
-          16,
-          false,
-        );
-        final folderIdParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 18, '');
-        final tagsParam = const fb.ListReader<String>(
-          fb.StringReader(asciiOptimization: true),
-          lazy: false,
-        ).vTableGet(buffer, rootOffset, 20, []);
-        final object = Note(
-          id: idParam,
-          title: titleParam,
-          contentJson: contentJsonParam,
-          createdAt: createdAtParam,
-          updatedAt: updatedAtParam,
-          isFavorite: isFavoriteParam,
-          isArchived: isArchivedParam,
-          folderId: folderIdParam,
-          tags: tagsParam,
-        );
-
-        return object;
-      },
-    ),
     Folder: obx_int.EntityDefinition<Folder>(
-      model: _entities[1],
+      model: _entities[0],
       toOneRelations: (Folder object) => [],
       toManyRelations: (Folder object) => {},
       getId: (Folder object) => object.id,
@@ -369,101 +302,198 @@ obx_int.ModelDefinition getObjectBoxModel() {
         return object;
       },
     ),
+    Note: obx_int.EntityDefinition<Note>(
+      model: _entities[1],
+      toOneRelations: (Note object) => [],
+      toManyRelations: (Note object) => {},
+      getId: (Note object) => object.id,
+      setId: (Note object, int id) {
+        object.id = id;
+      },
+      objectToFB: (Note object, fb.Builder fbb) {
+        final titleOffset = fbb.writeString(object.title);
+        final contentJsonOffset = fbb.writeString(object.contentJson);
+        final folderIdOffset = fbb.writeString(object.folderId);
+        final tagsOffset = fbb.writeList(
+          object.tags.map(fbb.writeString).toList(growable: false),
+        );
+        final moodTagsOffset = fbb.writeList(
+          object.moodTags.map(fbb.writeString).toList(growable: false),
+        );
+        fbb.startTable(11);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, titleOffset);
+        fbb.addOffset(2, contentJsonOffset);
+        fbb.addInt64(3, object.createdAt.millisecondsSinceEpoch);
+        fbb.addInt64(4, object.updatedAt.millisecondsSinceEpoch);
+        fbb.addBool(5, object.isFavorite);
+        fbb.addBool(6, object.isArchived);
+        fbb.addOffset(7, folderIdOffset);
+        fbb.addOffset(8, tagsOffset);
+        fbb.addOffset(9, moodTagsOffset);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final idParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          4,
+          0,
+        );
+        final titleParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 6, '');
+        final contentJsonParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 8, '');
+        final createdAtParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 10, 0),
+        );
+        final updatedAtParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 12, 0),
+        );
+        final isFavoriteParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          14,
+          false,
+        );
+        final isArchivedParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          16,
+          false,
+        );
+        final folderIdParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 18, '');
+        final tagsParam = const fb.ListReader<String>(
+          fb.StringReader(asciiOptimization: true),
+          lazy: false,
+        ).vTableGet(buffer, rootOffset, 20, []);
+        final moodTagsParam = const fb.ListReader<String>(
+          fb.StringReader(asciiOptimization: true),
+          lazy: false,
+        ).vTableGet(buffer, rootOffset, 22, []);
+        final object = Note(
+          id: idParam,
+          title: titleParam,
+          contentJson: contentJsonParam,
+          createdAt: createdAtParam,
+          updatedAt: updatedAtParam,
+          isFavorite: isFavoriteParam,
+          isArchived: isArchivedParam,
+          folderId: folderIdParam,
+          tags: tagsParam,
+          moodTags: moodTagsParam,
+        );
+
+        return object;
+      },
+    ),
   };
 
   return obx_int.ModelDefinition(model, bindings);
-}
-
-/// [Note] entity fields to define ObjectBox queries.
-class Note_ {
-  /// See [Note.id].
-  static final id = obx.QueryIntegerProperty<Note>(_entities[0].properties[0]);
-
-  /// See [Note.title].
-  static final title = obx.QueryStringProperty<Note>(
-    _entities[0].properties[1],
-  );
-
-  /// See [Note.contentJson].
-  static final contentJson = obx.QueryStringProperty<Note>(
-    _entities[0].properties[2],
-  );
-
-  /// See [Note.createdAt].
-  static final createdAt = obx.QueryDateProperty<Note>(
-    _entities[0].properties[3],
-  );
-
-  /// See [Note.updatedAt].
-  static final updatedAt = obx.QueryDateProperty<Note>(
-    _entities[0].properties[4],
-  );
-
-  /// See [Note.isFavorite].
-  static final isFavorite = obx.QueryBooleanProperty<Note>(
-    _entities[0].properties[5],
-  );
-
-  /// See [Note.isArchived].
-  static final isArchived = obx.QueryBooleanProperty<Note>(
-    _entities[0].properties[6],
-  );
-
-  /// See [Note.folderId].
-  static final folderId = obx.QueryStringProperty<Note>(
-    _entities[0].properties[7],
-  );
-
-  /// See [Note.tags].
-  static final tags = obx.QueryStringVectorProperty<Note>(
-    _entities[0].properties[8],
-  );
 }
 
 /// [Folder] entity fields to define ObjectBox queries.
 class Folder_ {
   /// See [Folder.id].
   static final id = obx.QueryIntegerProperty<Folder>(
-    _entities[1].properties[0],
+    _entities[0].properties[0],
   );
 
   /// See [Folder.folderId].
   static final folderId = obx.QueryStringProperty<Folder>(
-    _entities[1].properties[1],
+    _entities[0].properties[1],
   );
 
   /// See [Folder.name].
   static final name = obx.QueryStringProperty<Folder>(
-    _entities[1].properties[2],
+    _entities[0].properties[2],
   );
 
   /// See [Folder.description].
   static final description = obx.QueryStringProperty<Folder>(
-    _entities[1].properties[3],
+    _entities[0].properties[3],
   );
 
   /// See [Folder.color].
   static final color = obx.QueryStringProperty<Folder>(
-    _entities[1].properties[4],
+    _entities[0].properties[4],
   );
 
   /// See [Folder.createdAt].
   static final createdAt = obx.QueryDateProperty<Folder>(
-    _entities[1].properties[5],
+    _entities[0].properties[5],
   );
 
   /// See [Folder.updatedAt].
   static final updatedAt = obx.QueryDateProperty<Folder>(
-    _entities[1].properties[6],
+    _entities[0].properties[6],
   );
 
   /// See [Folder.isDefault].
   static final isDefault = obx.QueryBooleanProperty<Folder>(
-    _entities[1].properties[7],
+    _entities[0].properties[7],
   );
 
   /// See [Folder.noteCount].
   static final noteCount = obx.QueryIntegerProperty<Folder>(
+    _entities[0].properties[8],
+  );
+}
+
+/// [Note] entity fields to define ObjectBox queries.
+class Note_ {
+  /// See [Note.id].
+  static final id = obx.QueryIntegerProperty<Note>(_entities[1].properties[0]);
+
+  /// See [Note.title].
+  static final title = obx.QueryStringProperty<Note>(
+    _entities[1].properties[1],
+  );
+
+  /// See [Note.contentJson].
+  static final contentJson = obx.QueryStringProperty<Note>(
+    _entities[1].properties[2],
+  );
+
+  /// See [Note.createdAt].
+  static final createdAt = obx.QueryDateProperty<Note>(
+    _entities[1].properties[3],
+  );
+
+  /// See [Note.updatedAt].
+  static final updatedAt = obx.QueryDateProperty<Note>(
+    _entities[1].properties[4],
+  );
+
+  /// See [Note.isFavorite].
+  static final isFavorite = obx.QueryBooleanProperty<Note>(
+    _entities[1].properties[5],
+  );
+
+  /// See [Note.isArchived].
+  static final isArchived = obx.QueryBooleanProperty<Note>(
+    _entities[1].properties[6],
+  );
+
+  /// See [Note.folderId].
+  static final folderId = obx.QueryStringProperty<Note>(
+    _entities[1].properties[7],
+  );
+
+  /// See [Note.tags].
+  static final tags = obx.QueryStringVectorProperty<Note>(
     _entities[1].properties[8],
+  );
+
+  /// See [Note.moodTags].
+  static final moodTags = obx.QueryStringVectorProperty<Note>(
+    _entities[1].properties[9],
   );
 }

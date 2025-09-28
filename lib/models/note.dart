@@ -1,4 +1,5 @@
 import 'package:noteminds/core/services/text_parser_service.dart';
+import 'package:noteminds/models/mood_tag.dart';
 import 'package:objectbox/objectbox.dart';
 
 @Entity()
@@ -12,6 +13,7 @@ class Note {
   bool isArchived;
   String folderId;
   List<String> tags;
+  List<String> moodTags;
 
   Note({
     this.id = 0,
@@ -23,9 +25,11 @@ class Note {
     this.isArchived = false,
     this.folderId = 'default',
     List<String>? tags,
+    List<String>? moodTags,
   }) : createdAt = createdAt ?? DateTime.now(),
        updatedAt = updatedAt ?? DateTime.now(),
-       tags = tags ?? [];
+       tags = tags ?? [],
+       moodTags = moodTags ?? [];
 
   String get content => TextParserService.parseQuillContent(contentJson);
   int get wordCount => TextParserService.calculateWordCount(contentJson);
@@ -59,6 +63,26 @@ class Note {
     }
   }
 
+  void addMoodTag(String moodTagId) {
+    if (!moodTags.contains(moodTagId) && MoodTags.exists(moodTagId)) {
+      moodTags.add(moodTagId);
+      updatedAt = DateTime.now();
+    }
+  }
+
+  void removeMoodTag(String moodTagId) {
+    if (moodTags.remove(moodTagId)) {
+      updatedAt = DateTime.now();
+    }
+  }
+
+  void setMoodTags(List<String> newMoodTags) {
+    moodTags = newMoodTags.where((id) => MoodTags.exists(id)).toList();
+    updatedAt = DateTime.now();
+  }
+
+  List<MoodTag> get moodTagObjects => MoodTags.getByIds(moodTags);
+
   void updateContent(String newContentJson) {
     contentJson = newContentJson;
     updatedAt = DateTime.now();
@@ -79,6 +103,7 @@ class Note {
     'isArchived': isArchived,
     'folderId': folderId,
     'tags': tags,
+    'moodTags': moodTags,
   };
 
   factory Note.fromJson(Map<String, dynamic> json) => Note(
@@ -91,6 +116,7 @@ class Note {
     isArchived: json['isArchived'] as bool? ?? false,
     folderId: json['folderId'] as String? ?? 'default',
     tags: List<String>.from(json['tags'] as List? ?? []),
+    moodTags: List<String>.from(json['moodTags'] as List? ?? []),
   );
 
   @override

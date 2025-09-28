@@ -196,7 +196,7 @@ class NoteViewModel extends BaseViewModel {
   }
 
   void _createNewNote() {
-    _currentNote = Note(title: 'Untitled', contentJson: '{"ops":[{"insert":"\\n"}]}');
+    _currentNote = Note(title: 'Untitled', contentJson: '[{"insert":"\\n"}]');
     _isNewNote = true;
     _loadNoteContent();
   }
@@ -207,10 +207,18 @@ class NoteViewModel extends BaseViewModel {
 
       try {
         final jsonData = jsonDecode(_currentNote!.contentJson);
-        final document = Document.fromJson(jsonData);
+        List<dynamic> ops;
+        if (jsonData is Map<String, dynamic> && jsonData.containsKey('ops')) {
+          ops = jsonData['ops'] as List<dynamic>;
+        } else if (jsonData is List<dynamic>) {
+          ops = jsonData;
+        } else {
+          throw Exception('Invalid document format');
+        }
+        final document = Document.fromJson(ops);
         quillController.document = document;
       } catch (e) {
-        final emptyDoc = jsonDecode('{"ops":[{"insert":"\\n"}]}');
+        final emptyDoc = jsonDecode('[{"insert":"\\n"}]');
         quillController.document = Document.fromJson(emptyDoc);
       }
 
@@ -231,6 +239,14 @@ class NoteViewModel extends BaseViewModel {
     if (_currentNote != null) {
       _hasUnsavedChanges = true;
       _currentNote!.updateContent(jsonEncode(quillController.document.toDelta().toJson()));
+      notifyListeners();
+    }
+  }
+
+  void updateMoodTags(List<String> moodTagIds) {
+    if (_currentNote != null) {
+      _hasUnsavedChanges = true;
+      _currentNote!.setMoodTags(moodTagIds);
       notifyListeners();
     }
   }
