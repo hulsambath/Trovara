@@ -1,12 +1,11 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:noteminds/core/base/base_view_model.dart';
-import 'package:noteminds/core/route/app_router.gr.dart';
 import 'package:noteminds/views/notes/notes_view_model.dart';
 
 class MainViewModel extends BaseViewModel {
   void newNote(BuildContext context) {
-    context.router.push(NoteRoute());
+    context.push('/note');
   }
 
   void onTabTap(BuildContext context, int index) {

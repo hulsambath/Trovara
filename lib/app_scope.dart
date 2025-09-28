@@ -1,22 +1,21 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:noteminds/app_localization_loader.dart';
 import 'package:noteminds/constants/app_constants.dart';
 import 'package:noteminds/core/route/app_router.dart';
 import 'package:noteminds/provider_scope.dart';
 
 class AppScope extends StatefulWidget {
-  static BuildContext? get globalContext => _AppScopeState.instance._router.navigatorKey.currentContext;
-  static AppRouter get router => _AppScopeState.instance._router;
+  static BuildContext? get globalContext => _AppScopeState.instance._router.routerDelegate.navigatorKey.currentContext;
 
   const AppScope({super.key, required this.builder});
 
-  final Widget Function(BuildContext context, AppRouter router) builder;
+  final Widget Function(BuildContext context) builder;
 
   static void rebirth(BuildContext context) async {
     try {
-      context.router.pushPath('/');
+      context.go('/');
     } catch (e) {
       // handle in case current page is not a router.
     }
@@ -34,19 +33,17 @@ class _AppScopeState extends State<AppScope> {
   static final _AppScopeState instance = _AppScopeState._();
 
   late Key _key;
-  late AppRouter _router;
+  final GoRouter _router = AppRouter.router;
 
   @override
   void initState() {
     _key = UniqueKey();
-    _router = AppRouter();
     super.initState();
   }
 
   void restartApp() {
     setState(() {
       _key = UniqueKey();
-      _router = AppRouter();
     });
   }
 
@@ -62,7 +59,7 @@ class _AppScopeState extends State<AppScope> {
         fallbackLocale: AppConstants.fallbackLocale,
         assetLoader: AppLocalizationLoader(),
         startLocale: AppConstants.fallbackLocale,
-        child: widget.builder(context, _router),
+        child: widget.builder(context),
       ),
     ),
   );
