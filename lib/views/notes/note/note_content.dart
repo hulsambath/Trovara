@@ -11,27 +11,19 @@ class _NoteContent extends StatelessWidget {
       title: Text(viewModel.currentNote?.title ?? 'Untitled'),
       surfaceTintColor: Colors.transparent,
       actions: [
-        TimeIconButton(
-          selectedTimeIds: viewModel.currentNote?.timeTags ?? [],
-          onSelectionChanged: viewModel.updateTimeTags,
-          creationTime: viewModel.currentNote?.createdAt,
-          showSuggestions: viewModel.isNewNote,
-        ),
-        ActivityIconButton(
+        UnifiedTagsIconButton(
           selectedActivityIds: viewModel.currentNote?.activityTags ?? [],
-          onSelectionChanged: viewModel.updateActivityTags,
-        ),
-        MoodIconButton(
           selectedMoodIds: viewModel.currentNote?.moodTags ?? [],
-          onSelectionChanged: viewModel.updateMoodTags,
-        ),
-        PersonalGrowthIconButton(
+          selectedTimeIds: viewModel.currentNote?.timeTags ?? [],
           selectedPersonalGrowthIds: viewModel.currentNote?.personalGrowthTags ?? [],
-          onSelectionChanged: viewModel.updatePersonalGrowthTags,
-        ),
-        CustomTagsIconButton(
-          selectedTags: viewModel.currentNote?.customTagObjects.map((tag) => tag.name).toList() ?? [],
-          onSelectionChanged: viewModel.updateCustomTags,
+          selectedCustomTags: viewModel.currentNote?.customTagObjects.map((tag) => tag.name).toList() ?? [],
+          onActivityChanged: viewModel.updateActivityTags,
+          onMoodChanged: viewModel.updateMoodTags,
+          onTimeChanged: viewModel.updateTimeTags,
+          onPersonalGrowthChanged: viewModel.updatePersonalGrowthTags,
+          onCustomTagsChanged: viewModel.updateCustomTags,
+          creationTime: viewModel.currentNote?.createdAt,
+          showTimeSuggestions: viewModel.isNewNote,
         ),
         if (viewModel.hasUnsavedChanges)
           IconButton(icon: const Icon(Icons.save), onPressed: () => viewModel.saveNote(), tooltip: 'Save'),
