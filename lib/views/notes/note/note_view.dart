@@ -5,8 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:noteminds/core/base/view_model_provider.dart';
 import 'package:noteminds/core/route/app_router.gr.dart';
-import 'package:noteminds/widgets/activity_icon_button.dart';
-import 'package:noteminds/widgets/mood_icon_button.dart';
+import 'package:noteminds/widgets/tages/activity/activity_icon_button.dart';
+import 'package:noteminds/widgets/tages/mood/mood_icon_button.dart';
+import 'package:noteminds/widgets/tages/time/time_icon_button.dart';
 
 import 'note_view_model.dart';
 

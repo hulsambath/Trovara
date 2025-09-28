@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:noteminds/core/services/text_parser_service.dart';
 import 'package:noteminds/models/note.dart';
-import 'package:noteminds/widgets/activity_chips.dart';
-import 'package:noteminds/widgets/mood_chips.dart';
+import 'package:noteminds/widgets/tages/activity/activity_chips.dart';
+import 'package:noteminds/widgets/tages/mood/mood_chips.dart';
+import 'package:noteminds/widgets/tages/time/time_chips.dart';
 
 class NoteCard extends StatelessWidget {
   const NoteCard({
@@ -74,15 +75,24 @@ class NoteCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
-              if (note.moodTags.isNotEmpty || note.activityTags.isNotEmpty) ...[
+              if (note.moodTags.isNotEmpty || note.activityTags.isNotEmpty || note.timeTags.isNotEmpty) ...[
                 const SizedBox(height: 8),
-                Row(
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (note.moodTags.isNotEmpty) ...[
-                      CompactMoodChips(selectedMoodIds: note.moodTags),
-                      if (note.activityTags.isNotEmpty) const SizedBox(width: 8),
-                    ],
-                    if (note.activityTags.isNotEmpty) CompactActivityChips(selectedActivityIds: note.activityTags),
+                    Row(
+                      children: [
+                        if (note.moodTags.isNotEmpty) ...[
+                          CompactMoodChips(selectedMoodIds: note.moodTags),
+                          if (note.activityTags.isNotEmpty || note.timeTags.isNotEmpty) const SizedBox(width: 8),
+                        ],
+                        if (note.activityTags.isNotEmpty) ...[
+                          CompactActivityChips(selectedActivityIds: note.activityTags),
+                          if (note.timeTags.isNotEmpty) const SizedBox(width: 8),
+                        ],
+                        if (note.timeTags.isNotEmpty) CompactTimeChips(selectedTimeIds: note.timeTags),
+                      ],
+                    ),
                   ],
                 ),
               ],

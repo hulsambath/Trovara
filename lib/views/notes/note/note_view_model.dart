@@ -259,6 +259,14 @@ class NoteViewModel extends BaseViewModel {
     }
   }
 
+  void updateTimeTags(List<String> timeTagIds) {
+    if (_currentNote != null) {
+      _hasUnsavedChanges = true;
+      _currentNote!.setTimeTags(timeTagIds);
+      notifyListeners();
+    }
+  }
+
   Future<void> saveNote() async {
     if (_currentNote != null) {
       try {
