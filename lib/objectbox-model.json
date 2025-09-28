@@ -59,7 +59,7 @@
     },
     {
       "id": "3:6317312537730891446",
-      "lastPropertyId": "12:8967983358329417601",
+      "lastPropertyId": "13:331697692445163464",
       "name": "Note",
       "properties": [
         {
@@ -121,6 +121,11 @@
         {
           "id": "12:8967983358329417601",
           "name": "timeTags",
+          "type": 30
+        },
+        {
+          "id": "13:331697692445163464",
+          "name": "personalGrowthTags",
           "type": 30
         }
       ],

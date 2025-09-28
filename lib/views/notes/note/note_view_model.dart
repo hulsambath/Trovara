@@ -267,14 +267,29 @@ class NoteViewModel extends BaseViewModel {
     }
   }
 
+  void updatePersonalGrowthTags(List<String> personalGrowthTagIds) {
+    if (_currentNote != null) {
+      _hasUnsavedChanges = true;
+      _currentNote!.setPersonalGrowthTags(personalGrowthTagIds);
+      notifyListeners();
+    }
+  }
+
   Future<void> saveNote() async {
     if (_currentNote != null) {
       try {
         if (_isNewNote) {
+          // Create a new note with basic information first
           _currentNote = await _noteService.createNote(
             title: titleController.text,
             contentJson: jsonEncode(quillController.document.toDelta().toJson()),
+            folderId: _currentNote!.folderId,
+            tags: _currentNote!.tags,
           );
+
+          // Now update the note with all tag information (moodTags, activityTags, timeTags, personalGrowthTags)
+          // This ensures all tag types are properly saved
+          await _noteService.updateNote(_currentNote!);
           _isNewNote = false;
         } else {
           await _noteService.updateNote(_currentNote!);

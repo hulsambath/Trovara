@@ -1,6 +1,7 @@
 import 'package:noteminds/core/services/text_parser_service.dart';
 import 'package:noteminds/models/activity_tag.dart';
 import 'package:noteminds/models/mood_tag.dart';
+import 'package:noteminds/models/personal_growth_tag.dart';
 import 'package:noteminds/models/time_tag.dart';
 import 'package:objectbox/objectbox.dart';
 
@@ -18,6 +19,7 @@ class Note {
   List<String> moodTags;
   List<String> activityTags;
   List<String> timeTags;
+  List<String> personalGrowthTags;
 
   Note({
     this.id = 0,
@@ -32,12 +34,14 @@ class Note {
     List<String>? moodTags,
     List<String>? activityTags,
     List<String>? timeTags,
+    List<String>? personalGrowthTags,
   }) : createdAt = createdAt ?? DateTime.now(),
        updatedAt = updatedAt ?? DateTime.now(),
        tags = tags ?? [],
        moodTags = moodTags ?? [],
        activityTags = activityTags ?? [],
-       timeTags = timeTags ?? [];
+       timeTags = timeTags ?? [],
+       personalGrowthTags = personalGrowthTags ?? [];
 
   String get content => TextParserService.parseQuillContent(contentJson);
   int get wordCount => TextParserService.calculateWordCount(contentJson);
@@ -131,6 +135,26 @@ class Note {
 
   List<TimeTag> get timeTagObjects => TimeTags.getByIds(timeTags);
 
+  void addPersonalGrowthTag(String personalGrowthTagId) {
+    if (!personalGrowthTags.contains(personalGrowthTagId) && PersonalGrowthTags.exists(personalGrowthTagId)) {
+      personalGrowthTags.add(personalGrowthTagId);
+      updatedAt = DateTime.now();
+    }
+  }
+
+  void removePersonalGrowthTag(String personalGrowthTagId) {
+    if (personalGrowthTags.remove(personalGrowthTagId)) {
+      updatedAt = DateTime.now();
+    }
+  }
+
+  void setPersonalGrowthTags(List<String> newPersonalGrowthTags) {
+    personalGrowthTags = newPersonalGrowthTags.where((id) => PersonalGrowthTags.exists(id)).toList();
+    updatedAt = DateTime.now();
+  }
+
+  List<PersonalGrowthTag> get personalGrowthTagObjects => PersonalGrowthTags.getByIds(personalGrowthTags);
+
   void updateContent(String newContentJson) {
     contentJson = newContentJson;
     updatedAt = DateTime.now();
@@ -154,6 +178,7 @@ class Note {
     'moodTags': moodTags,
     'activityTags': activityTags,
     'timeTags': timeTags,
+    'personalGrowthTags': personalGrowthTags,
   };
 
   factory Note.fromJson(Map<String, dynamic> json) => Note(
@@ -169,6 +194,7 @@ class Note {
     moodTags: List<String>.from(json['moodTags'] as List? ?? []),
     activityTags: List<String>.from(json['activityTags'] as List? ?? []),
     timeTags: List<String>.from(json['timeTags'] as List? ?? []),
+    personalGrowthTags: List<String>.from(json['personalGrowthTags'] as List? ?? []),
   );
 
   @override
