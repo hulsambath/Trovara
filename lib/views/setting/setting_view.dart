@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:noteminds/core/base/view_model_provider.dart';
 import 'package:noteminds/core/provider/theme_provider.dart';
+import 'package:noteminds/gen/assets.gen.dart';
 import 'package:provider/provider.dart';
 
 import 'setting_view_model.dart';
