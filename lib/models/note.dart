@@ -1,4 +1,5 @@
 import 'package:noteminds/core/services/text_parser_service.dart';
+import 'package:noteminds/models/activity_tag.dart';
 import 'package:noteminds/models/mood_tag.dart';
 import 'package:objectbox/objectbox.dart';
 
@@ -14,6 +15,7 @@ class Note {
   String folderId;
   List<String> tags;
   List<String> moodTags;
+  List<String> activityTags;
 
   Note({
     this.id = 0,
@@ -26,10 +28,12 @@ class Note {
     this.folderId = 'default',
     List<String>? tags,
     List<String>? moodTags,
+    List<String>? activityTags,
   }) : createdAt = createdAt ?? DateTime.now(),
        updatedAt = updatedAt ?? DateTime.now(),
        tags = tags ?? [],
-       moodTags = moodTags ?? [];
+       moodTags = moodTags ?? [],
+       activityTags = activityTags ?? [];
 
   String get content => TextParserService.parseQuillContent(contentJson);
   int get wordCount => TextParserService.calculateWordCount(contentJson);
@@ -83,6 +87,26 @@ class Note {
 
   List<MoodTag> get moodTagObjects => MoodTags.getByIds(moodTags);
 
+  void addActivityTag(String activityTagId) {
+    if (!activityTags.contains(activityTagId) && ActivityTags.exists(activityTagId)) {
+      activityTags.add(activityTagId);
+      updatedAt = DateTime.now();
+    }
+  }
+
+  void removeActivityTag(String activityTagId) {
+    if (activityTags.remove(activityTagId)) {
+      updatedAt = DateTime.now();
+    }
+  }
+
+  void setActivityTags(List<String> newActivityTags) {
+    activityTags = newActivityTags.where((id) => ActivityTags.exists(id)).toList();
+    updatedAt = DateTime.now();
+  }
+
+  List<ActivityTag> get activityTagObjects => ActivityTags.getByIds(activityTags);
+
   void updateContent(String newContentJson) {
     contentJson = newContentJson;
     updatedAt = DateTime.now();
@@ -104,6 +128,7 @@ class Note {
     'folderId': folderId,
     'tags': tags,
     'moodTags': moodTags,
+    'activityTags': activityTags,
   };
 
   factory Note.fromJson(Map<String, dynamic> json) => Note(
@@ -117,6 +142,7 @@ class Note {
     folderId: json['folderId'] as String? ?? 'default',
     tags: List<String>.from(json['tags'] as List? ?? []),
     moodTags: List<String>.from(json['moodTags'] as List? ?? []),
+    activityTags: List<String>.from(json['activityTags'] as List? ?? []),
   );
 
   @override
