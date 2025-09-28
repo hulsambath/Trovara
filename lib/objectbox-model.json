@@ -4,60 +4,6 @@
   "_note3": "If you have VCS merge conflicts, you must resolve them according to ObjectBox docs.",
   "entities": [
     {
-      "id": "1:7373197808855322801",
-      "lastPropertyId": "9:3139239441195315295",
-      "name": "Note",
-      "properties": [
-        {
-          "id": "1:5283507406653816762",
-          "name": "id",
-          "type": 6,
-          "flags": 1
-        },
-        {
-          "id": "2:3314551958061198889",
-          "name": "title",
-          "type": 9
-        },
-        {
-          "id": "3:8724772223041090710",
-          "name": "contentJson",
-          "type": 9
-        },
-        {
-          "id": "4:8872389228672845766",
-          "name": "createdAt",
-          "type": 10
-        },
-        {
-          "id": "5:7348620165083816641",
-          "name": "updatedAt",
-          "type": 10
-        },
-        {
-          "id": "6:2376944311313385175",
-          "name": "isFavorite",
-          "type": 1
-        },
-        {
-          "id": "7:1413894492597862715",
-          "name": "isArchived",
-          "type": 1
-        },
-        {
-          "id": "8:7561191491581535928",
-          "name": "folderId",
-          "type": 9
-        },
-        {
-          "id": "9:3139239441195315295",
-          "name": "tags",
-          "type": 30
-        }
-      ],
-      "relations": []
-    },
-    {
       "id": "2:7853034309261988721",
       "lastPropertyId": "9:4257404690156523047",
       "name": "Folder",
@@ -110,17 +56,88 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "3:6317312537730891446",
+      "lastPropertyId": "10:2939021045952335524",
+      "name": "Note",
+      "properties": [
+        {
+          "id": "1:1772686458885544547",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:1276794422088069564",
+          "name": "title",
+          "type": 9
+        },
+        {
+          "id": "3:1947789243324082101",
+          "name": "contentJson",
+          "type": 9
+        },
+        {
+          "id": "4:6385277195119888875",
+          "name": "createdAt",
+          "type": 10
+        },
+        {
+          "id": "5:8830280099423111436",
+          "name": "updatedAt",
+          "type": 10
+        },
+        {
+          "id": "6:8405630537741859686",
+          "name": "isFavorite",
+          "type": 1
+        },
+        {
+          "id": "7:1838127307021453792",
+          "name": "isArchived",
+          "type": 1
+        },
+        {
+          "id": "8:3956461929789338485",
+          "name": "folderId",
+          "type": 9
+        },
+        {
+          "id": "9:4069527587680502698",
+          "name": "tags",
+          "type": 30
+        },
+        {
+          "id": "10:2939021045952335524",
+          "name": "moodTags",
+          "type": 30
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "2:7853034309261988721",
+  "lastEntityId": "3:6317312537730891446",
   "lastIndexId": "0:0",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",
   "modelVersion": 5,
   "modelVersionParserMinimum": 5,
-  "retiredEntityUids": [],
+  "retiredEntityUids": [
+    7373197808855322801
+  ],
   "retiredIndexUids": [],
-  "retiredPropertyUids": [],
+  "retiredPropertyUids": [
+    5283507406653816762,
+    3314551958061198889,
+    8724772223041090710,
+    8872389228672845766,
+    7348620165083816641,
+    2376944311313385175,
+    1413894492597862715,
+    7561191491581535928,
+    3139239441195315295
+  ],
   "retiredRelationUids": [],
   "version": 1
 }

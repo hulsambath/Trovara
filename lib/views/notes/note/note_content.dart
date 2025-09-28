@@ -11,6 +11,10 @@ class _NoteContent extends StatelessWidget {
       title: Text(viewModel.currentNote?.title ?? 'Untitled'),
       surfaceTintColor: Colors.transparent,
       actions: [
+        MoodIconButton(
+          selectedMoodIds: viewModel.currentNote?.moodTags ?? [],
+          onSelectionChanged: viewModel.updateMoodTags,
+        ),
         if (viewModel.hasUnsavedChanges)
           IconButton(icon: const Icon(Icons.save), onPressed: () => viewModel.saveNote(), tooltip: 'Save'),
       ],
@@ -44,6 +48,7 @@ class _NoteContent extends StatelessWidget {
           ),
           onTapOutside: (_) => FocusScope.of(context).unfocus(),
         ),
+        const SizedBox(height: 16),
         Expanded(
           child: QuillEditor(
             controller: viewModel.quillController,

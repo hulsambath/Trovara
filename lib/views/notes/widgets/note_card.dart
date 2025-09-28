@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:noteminds/constants/date_format.dart';
 import 'package:noteminds/core/services/text_parser_service.dart';
 import 'package:noteminds/models/note.dart';
+import 'package:noteminds/widgets/mood_chips.dart';
 
 class NoteCard extends StatelessWidget {
   const NoteCard({
@@ -73,13 +73,17 @@ class NoteCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
+              if (note.moodTags.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                CompactMoodChips(selectedMoodIds: note.moodTags),
+              ],
               const SizedBox(height: 12),
               Row(
                 children: [
                   Icon(Icons.access_time, size: 14, color: Theme.of(context).colorScheme.onSurfaceVariant),
                   const SizedBox(width: 4),
                   Text(
-                    'Created: ${_formatDate(note.createdAt)} • ${DateFormat.formatRelativeDate(note.createdAt)}',
+                    'Created: ${_formatDate(note.createdAt)} • Updated: ${_formatDate(note.updatedAt)}',
                     style: Theme.of(
                       context,
                     ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
