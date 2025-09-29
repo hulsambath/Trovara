@@ -15,7 +15,7 @@ class _SettingContent extends StatelessWidget {
         if (viewModel.isSignedIn) ...[
           Card(
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(12),
               child: Row(
                 children: [
                   viewModel.accountPhotoUrl != null
@@ -83,22 +83,25 @@ class _SettingContent extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-        Card(
-          child: Column(
-            spacing: 8,
-            children: [
-              if (viewModel.isSignedIn) ...[
-                Text('Google Drive', style: Theme.of(context).textTheme.titleMedium),
-                ListTile(
-                  leading: const Icon(Icons.sync),
-                  title: const Text('Sync with Google Drive'),
-                  subtitle: const Text('Backup and restore data'),
-                  onTap: () => viewModel.syncWithGoogleDrive(context),
-                ),
-              ],
-            ],
+        if (viewModel.isSignedIn) ...[
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ListTile(
+                    leading: SvgPicture.asset(Assets.icons.googleDrive, width: 24, height: 24),
+                    title: const Text('Sync with Google Drive'),
+                    subtitle: const Text('Backup and restore data'),
+                    trailing: const Icon(Icons.sync),
+                    onTap: () => viewModel.syncWithGoogleDrive(context),
+                  ),
+                ],
+              ),
+            ),
           ),
-        ),
+        ],
         const SizedBox(height: 16),
         Text('Local Export/Import', style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 8),

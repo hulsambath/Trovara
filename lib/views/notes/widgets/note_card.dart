@@ -7,7 +7,7 @@ import 'package:noteminds/widgets/tages/mood/mood_chips.dart';
 import 'package:noteminds/widgets/tages/personal_growth/personal_growth_chips.dart';
 import 'package:noteminds/widgets/tages/time/time_chips.dart';
 
-class NoteCard extends StatelessWidget {
+class NoteCard extends StatefulWidget {
   const NoteCard({
     super.key,
     required this.note,
@@ -22,14 +22,21 @@ class NoteCard extends StatelessWidget {
   final VoidCallback onToggleFavorite;
 
   @override
+  State<NoteCard> createState() => _NoteCardState();
+}
+
+class _NoteCardState extends State<NoteCard> {
+  bool _isExpanded = false;
+
+  @override
   Widget build(BuildContext context) => Container(
-    margin: const EdgeInsets.only(bottom: 12),
+    margin: const EdgeInsets.only(bottom: 8),
     child: Material(
       color: Colors.transparent,
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        onTap: onTap,
-        onLongPress: onLongPress,
+        onTap: widget.onTap,
+        onLongPress: widget.onLongPress,
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -41,91 +48,117 @@ class NoteCard extends StatelessWidget {
             ],
           ),
           child: Column(
+            spacing: 8,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
                   Expanded(
                     child: Text(
-                      note.title,
+                      widget.note.title,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
+                  if (widget.note.contentJson.isNotEmpty) ...[
+                    IconButton(
+                      icon: Icon(
+                        _isExpanded ? Icons.expand_less : Icons.expand_more,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _isExpanded = !_isExpanded;
+                        });
+                      },
+                      tooltip: _isExpanded ? 'Collapse content' : 'Expand content',
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                    ),
+                  ],
                   IconButton(
                     icon: Icon(
-                      note.isFavorite ? Icons.favorite : Icons.favorite_border,
+                      widget.note.isFavorite ? Icons.favorite : Icons.favorite_border,
                       size: 20,
-                      color: note.isFavorite ? Colors.red : Theme.of(context).colorScheme.onSurfaceVariant,
+                      color: widget.note.isFavorite ? Colors.red : Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
-                    onPressed: onToggleFavorite,
-                    tooltip: note.isFavorite ? 'Remove from favorites' : 'Add to favorites',
+                    onPressed: widget.onToggleFavorite,
+                    tooltip: widget.note.isFavorite ? 'Remove from favorites' : 'Add to favorites',
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                   ),
                 ],
               ),
-              if (note.contentJson.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                Text(
-                  TextParserService.getPreviewText(note.contentJson),
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
+              if (widget.note.contentJson.isNotEmpty) ...[
+                AnimatedCrossFade(
+                  firstChild: Text(
+                    TextParserService.getPreviewText(widget.note.contentJson),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  secondChild: Text(
+                    TextParserService.parseQuillContent(widget.note.contentJson),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  ),
+                  crossFadeState: _isExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+                  duration: const Duration(milliseconds: 200),
                 ),
               ],
-              if (note.moodTags.isNotEmpty ||
-                  note.activityTags.isNotEmpty ||
-                  note.timeTags.isNotEmpty ||
-                  note.personalGrowthTags.isNotEmpty ||
-                  note.customTagObjects.isNotEmpty) ...[
-                const SizedBox(height: 8),
+              if (widget.note.moodTags.isNotEmpty ||
+                  widget.note.activityTags.isNotEmpty ||
+                  widget.note.timeTags.isNotEmpty ||
+                  widget.note.personalGrowthTags.isNotEmpty ||
+                  widget.note.customTagObjects.isNotEmpty) ...[
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        if (note.moodTags.isNotEmpty) ...[
-                          CompactMoodChips(selectedMoodIds: note.moodTags),
-                          if (note.activityTags.isNotEmpty ||
-                              note.timeTags.isNotEmpty ||
-                              note.personalGrowthTags.isNotEmpty ||
-                              note.customTagObjects.isNotEmpty)
+                        if (widget.note.moodTags.isNotEmpty) ...[
+                          CompactMoodChips(selectedMoodIds: widget.note.moodTags),
+                          if (widget.note.activityTags.isNotEmpty ||
+                              widget.note.timeTags.isNotEmpty ||
+                              widget.note.personalGrowthTags.isNotEmpty ||
+                              widget.note.customTagObjects.isNotEmpty)
                             const SizedBox(width: 8),
                         ],
-                        if (note.activityTags.isNotEmpty) ...[
-                          CompactActivityChips(selectedActivityIds: note.activityTags),
-                          if (note.timeTags.isNotEmpty ||
-                              note.personalGrowthTags.isNotEmpty ||
-                              note.customTagObjects.isNotEmpty)
+                        if (widget.note.activityTags.isNotEmpty) ...[
+                          CompactActivityChips(selectedActivityIds: widget.note.activityTags),
+                          if (widget.note.timeTags.isNotEmpty ||
+                              widget.note.personalGrowthTags.isNotEmpty ||
+                              widget.note.customTagObjects.isNotEmpty)
                             const SizedBox(width: 8),
                         ],
-                        if (note.timeTags.isNotEmpty) ...[
-                          CompactTimeChips(selectedTimeIds: note.timeTags),
-                          if (note.personalGrowthTags.isNotEmpty || note.customTagObjects.isNotEmpty)
+                        if (widget.note.timeTags.isNotEmpty) ...[
+                          CompactTimeChips(selectedTimeIds: widget.note.timeTags),
+                          if (widget.note.personalGrowthTags.isNotEmpty || widget.note.customTagObjects.isNotEmpty)
                             const SizedBox(width: 8),
                         ],
-                        if (note.personalGrowthTags.isNotEmpty) ...[
-                          CompactPersonalGrowthChips(selectedPersonalGrowthIds: note.personalGrowthTags),
-                          if (note.customTagObjects.isNotEmpty) const SizedBox(width: 8),
+                        if (widget.note.personalGrowthTags.isNotEmpty) ...[
+                          CompactPersonalGrowthChips(selectedPersonalGrowthIds: widget.note.personalGrowthTags),
+                          if (widget.note.customTagObjects.isNotEmpty) const SizedBox(width: 8),
                         ],
-                        if (note.customTagObjects.isNotEmpty)
-                          CompactCustomTagsWidget(selectedTags: note.customTagObjects.map((tag) => tag.name).toList()),
+                        if (widget.note.customTagObjects.isNotEmpty)
+                          CompactCustomTagsWidget(
+                            selectedTags: widget.note.customTagObjects.map((tag) => tag.name).toList(),
+                          ),
                       ],
                     ),
                   ],
                 ),
               ],
-              const SizedBox(height: 12),
               Row(
                 children: [
                   Icon(Icons.access_time, size: 14, color: Theme.of(context).colorScheme.onSurfaceVariant),
                   const SizedBox(width: 4),
                   Text(
-                    'Created: ${_formatDate(note.createdAt)} • Updated: ${_formatDate(note.updatedAt)}',
+                    'Created: ${_formatDate(widget.note.createdAt)} • Updated: ${_formatDate(widget.note.updatedAt)}',
                     style: Theme.of(
                       context,
                     ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
