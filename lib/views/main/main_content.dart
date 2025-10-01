@@ -25,7 +25,7 @@ class _MainContent extends StatelessWidget {
     final location = GoRouterState.of(context).uri.path;
 
     int currentIndex = 0;
-    if (location == '/search') {
+    if (location == '/insights') {
       currentIndex = 1;
     } else if (location == '/setting') {
       currentIndex = 2;
@@ -50,7 +50,7 @@ class _MainContent extends StatelessWidget {
               context.go('/');
               break;
             case 1:
-              context.go('/search');
+              context.go('/insights');
               break;
             case 2:
               context.go('/setting');
@@ -65,7 +65,12 @@ class _MainContent extends StatelessWidget {
           label: '',
           activeIcon: Icon(Icons.note_add),
         ),
-        BottomNavigationBarItem(tooltip: 'Search', icon: Icon(Icons.search), label: '', activeIcon: Icon(Icons.search)),
+        BottomNavigationBarItem(
+          tooltip: 'Insights',
+          icon: Icon(Icons.insights),
+          label: '',
+          activeIcon: Icon(Icons.insights),
+        ),
         BottomNavigationBarItem(
           tooltip: 'Setting',
           icon: Icon(Icons.settings),
