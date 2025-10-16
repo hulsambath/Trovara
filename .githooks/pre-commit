@@ -1,0 +1,158 @@
+#!/bin/bash
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+echo -e "${BLUE}🔍 Analyzing changes for commit description...${NC}"
+
+# Get the staged files
+staged_files=$(git diff --cached --name-only)
+
+# Skip if no files are staged
+if [ -z "$staged_files" ]; then
+    echo -e "${RED}No files staged for commit${NC}"
+    exit 1
+fi
+
+# Create a temporary file for the commit message
+temp_msg_file=".git/COMMIT_EDITMSG.tmp"
+
+# Start building the commit message
+echo "# Commit Summary" > $temp_msg_file
+echo "" >> $temp_msg_file
+
+# Function to categorize changes
+categorize_changes() {
+    local file="$1"
+    if [[ $file == lib/* ]]; then
+        if [[ $file == lib/views/* ]]; then
+            echo "UI_CHANGES"
+        elif [[ $file == lib/models/* ]]; then
+            echo "MODEL_CHANGES"
+        elif [[ $file == lib/core/* ]]; then
+            echo "CORE_CHANGES"
+        elif [[ $file == lib/widgets/* ]]; then
+            echo "WIDGET_CHANGES"
+        else
+            echo "CODE_CHANGES"
+        fi
+    elif [[ $file == test/* ]]; then
+        echo "TEST_CHANGES"
+    elif [[ $file == assets/* ]]; then
+        echo "ASSET_CHANGES"
+    elif [[ $file == docs/* ]]; then
+        echo "DOC_CHANGES"
+    else
+        echo "OTHER_CHANGES"
+    fi
+}
+
+# Initialize category arrays
+declare -A categories
+declare -A files_by_category
+
+# Categorize changes
+for file in $staged_files; do
+    category=$(categorize_changes "$file")
+    categories["$category"]=1
+    files_by_category["$category"]+="$file"$'\n'
+done
+
+# Function to get change type (added, modified, deleted)
+get_change_type() {
+    local file="$1"
+    if [ ! -f "$file" ]; then
+        echo "🗑️ Deleted"
+    elif git rev-parse --verify HEAD >/dev/null 2>&1; then
+        if git ls-files --error-unmatch "$file" >/dev/null 2>&1; then
+            echo "📝 Modified"
+        else
+            echo "✨ Added"
+        fi
+    else
+        echo "✨ Added"
+    fi
+}
+
+# Function to get brief diff stats
+get_diff_stats() {
+    local file="$1"
+    if [ -f "$file" ]; then
+        local added=$(git diff --cached "$file" | grep -e "^+" | wc -l)
+        local removed=$(git diff --cached "$file" | grep -e "^-" | wc -l)
+        echo "(+$added/-$removed)"
+    fi
+}
+
+# Add category summaries to commit message
+for category in "${!categories[@]}"; do
+    case $category in
+        "UI_CHANGES")
+            echo "## 🎨 UI Changes" >> $temp_msg_file
+            ;;
+        "MODEL_CHANGES")
+            echo "## 🔧 Model Changes" >> $temp_msg_file
+            ;;
+        "CORE_CHANGES")
+            echo "## ⚙️ Core Changes" >> $temp_msg_file
+            ;;
+        "WIDGET_CHANGES")
+            echo "## 🧩 Widget Changes" >> $temp_msg_file
+            ;;
+        "TEST_CHANGES")
+            echo "## 🧪 Test Changes" >> $temp_msg_file
+            ;;
+        "ASSET_CHANGES")
+            echo "## 🖼️ Asset Changes" >> $temp_msg_file
+            ;;
+        "DOC_CHANGES")
+            echo "## 📚 Documentation Changes" >> $temp_msg_file
+            ;;
+        *)
+            echo "## 📦 Other Changes" >> $temp_msg_file
+            ;;
+    esac
+    
+    echo "" >> $temp_msg_file
+    
+    # Add files under each category with their change type and stats
+    while IFS= read -r file; do
+        if [ ! -z "$file" ]; then
+            change_type=$(get_change_type "$file")
+            diff_stats=$(get_diff_stats "$file")
+            echo "- ${change_type} \`${file}\` ${diff_stats}" >> $temp_msg_file
+        fi
+    done <<< "${files_by_category[$category]}"
+    
+    echo "" >> $temp_msg_file
+done
+
+# Add commit guidelines
+echo "# Commit Guidelines" >> $temp_msg_file
+echo "" >> $temp_msg_file
+echo "## Type" >> $temp_msg_file
+echo "- feat: New feature" >> $temp_msg_file
+echo "- fix: Bug fix" >> $temp_msg_file
+echo "- docs: Documentation changes" >> $temp_msg_file
+echo "- style: Code style/formatting" >> $temp_msg_file
+echo "- refactor: Code refactoring" >> $temp_msg_file
+echo "- test: Adding/updating tests" >> $temp_msg_file
+echo "- chore: Maintenance tasks" >> $temp_msg_file
+echo "" >> $temp_msg_file
+echo "## Format" >> $temp_msg_file
+echo "<type>(<scope>): <subject>" >> $temp_msg_file
+echo "" >> $temp_msg_file
+echo "Example: feat(notes): add tag filtering" >> $temp_msg_file
+echo "" >> $temp_msg_file
+echo "# ------------------------ >8 ------------------------" >> $temp_msg_file
+echo "# Everything below this line will be removed." >> $temp_msg_file
+echo "# Please enter the commit message for your changes above." >> $temp_msg_file
+
+# Move temporary message to actual commit message file
+mv $temp_msg_file .git/COMMIT_EDITMSG
+
+echo -e "${GREEN}✅ Commit description generated${NC}"
+echo -e "${BLUE}📝 Review and edit the commit message...${NC}"

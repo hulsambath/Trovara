@@ -1,0 +1,23 @@
+{
+  "projectName": "NoteMinds",
+  "repositoryContext": {
+    "owner": "hulsambath",
+    "repository": "noteminds",
+    "defaultBranch": "develop"
+  },
+  "contextSources": [
+    ".copilot/context/project.md",
+    ".copilot/context/architecture.md",
+    ".copilot/context/workflows.md"
+  ],
+  "instructionSources": [
+    ".copilot/instructions/coding.md",
+    ".copilot/instructions/testing.md",
+    ".copilot/instructions/style.md"
+  ],
+  "settings": {
+    "enableAutomaticContext": true,
+    "enableLearningContext": true,
+    "languagePreferences": ["dart", "flutter"]
+  }
+}

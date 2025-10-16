@@ -7,16 +7,49 @@ plugins {
 
 import java.util.Properties
 import java.io.FileInputStream
+import org.gradle.api.Project
 
-// Load keystore properties from android/key.properties (preferred) or Gradle properties
-val keystoreProps = Properties()
-val keyPropsFile = rootProject.file("android/key.properties")
-if (keyPropsFile.exists()) {
-    FileInputStream(keyPropsFile).use { fis -> keystoreProps.load(fis) }
+// Function to determine credentials directory based on flavor
+fun Project.getCredentialsDir(flavorName: String?): String {
+    val flavor = flavorName ?: "dev"
+    val credentialsBase = rootProject.file("../../credentials/android/notemyminds")
+    return when (flavor) {
+        "prod", "production", "release" -> credentialsBase.absolutePath + "/prod"
+        else -> credentialsBase.absolutePath + "/dev"
+    }
 }
 
-val storeFileProp = (keystoreProps.getProperty("storeFile")
-    ?: (project.findProperty("KEYSTORE_FILE") as String?))
+// Function to load keystore properties from credentials project
+fun Project.loadKeystoreFromCredentials(flavorName: String): Properties {
+    val credentialsDir = getCredentialsDir(flavorName)
+    val keystoreProps = Properties()
+
+    // Try to load from decrypted keystore.properties in credentials directory
+    val keystorePropsFile = file(credentialsDir + "/keystore.properties")
+    if (keystorePropsFile.exists()) {
+        println("🔐 Loading keystore properties from: " + keystorePropsFile.absolutePath)
+        FileInputStream(keystorePropsFile).use { fis -> keystoreProps.load(fis) }
+    } else {
+        println("⚠️  Keystore properties not found at: " + keystorePropsFile.absolutePath)
+        println("💡 Run: cd ../../credentials && ./scripts/generate-keystore.sh --project noteminds --env " + flavorName)
+    }
+
+    return keystoreProps
+}
+
+// Load keystore properties from credentials project
+val keystoreProps = project.loadKeystoreFromCredentials("prod")
+
+// Get the credentials directory based on flavor
+val flavorName = "prod"
+val credentialsDir = project.getCredentialsDir(flavorName)
+
+val storeFileProp = if (keystoreProps.getProperty("storeFile") != null) {
+    credentialsDir + "/" + keystoreProps.getProperty("storeFile")
+} else {
+    project.findProperty("KEYSTORE_FILE") as String?
+}
+
 val storePasswordProp = (keystoreProps.getProperty("storePassword")
     ?: (project.findProperty("KEYSTORE_PASSWORD") as String?))
 val keyAliasProp = (keystoreProps.getProperty("keyAlias")
@@ -26,28 +59,40 @@ val keyPasswordProp = (keystoreProps.getProperty("keyPassword")
 val hasKeystore = listOf(storeFileProp, storePasswordProp, keyAliasProp, keyPasswordProp).all { it != null }
 
 android {
-    namespace = "com.noteminds.app"
+    namespace = "com.notemyminds.app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = "29.0.13599879"
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_21.toString()
+        jvmTarget = "17"
     }
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.noteminds.app"
+        applicationId = "com.notemyminds.app"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+    }
+
+    flavorDimensions += "environment"
+    productFlavors {
+        create("dev") {
+            applicationIdSuffix = ".dev"
+            versionNameSuffix = "-dev"
+        }
+        create("prod") {
+            applicationIdSuffix = ""
+            versionNameSuffix = ""
+        }
     }
 
     signingConfigs {
@@ -59,13 +104,14 @@ android {
                 keyAlias = keyAliasProp!!
                 keyPassword = keyPasswordProp!!
             }
-            create("debug") {
-                storeFile = file(storeFileProp!!)
-                storePassword = storePasswordProp!!
-                keyAlias = keyAliasProp!!
-                keyPassword = keyPasswordProp!!
-            }
         }
+    }
+
+    // Print debug info about keystore loading
+    if (hasKeystore) {
+        println("🔐 Using keystore from: " + storeFileProp)
+        println("🔑 Key alias: " + keyAliasProp)
+        println("📁 Credentials directory: " + credentialsDir)
     }
 
     buildTypes {
@@ -73,7 +119,7 @@ android {
             signingConfig = if (hasKeystore) signingConfigs.getByName("release") else signingConfigs.getByName("debug")
         }
         debug {
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = if (hasKeystore) signingConfigs.getByName("release") else signingConfigs.getByName("debug")
         }
     }
 }

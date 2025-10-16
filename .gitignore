@@ -1,3 +1,11 @@
+# Secrets (plaintext) - NEVER commit
+android/app/upload.jks
+android/keystore.properties
+android/app/google-services.json
+
+# Local credentials working dir
+.local-credentials/
+
 # Miscellaneous
 *.class
 *.log

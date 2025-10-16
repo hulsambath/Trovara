@@ -1,77 +1,67 @@
-#!/bin/bash -e
-# Use this [bin/keystore.sh] to generate keystore in this project.
-# 
-# Commands:
-# bin/keystore.sh -nm || --noteminds
+#!/usr/bin/env bash
+set -euo pipefail
 
-function log_args() {
-  msg="=    $*    ="
-  edge=$(echo "$msg" | sed 's/./=/g')
+# Decrypt Android credentials for local development using local credentials project.
+# The build.gradle.kts now reads directly from the credentials project.
+# Usage:
+#   scripts/keystore.sh --env dev [--age-key-file ~/.config/sops/age/keys.txt]
 
-  echo -e "\n$edge"
-  echo -e "$msg"
-  echo -e "$edge\n"
-}
+ENVIRONMENT="dev"
+PROJECT="notemyminds"
+AGE_KEY_FILE="${HOME}/.config/sops/age/keys.txt"
+CREDENTIALS_DIR="../credentials"
 
-function run_command() {
-  echo -e "\n[EXECUTING] $*\n"
-  "$@"
-}
-
-function configure() {
-  ALIAS_NAME=$1
-  KEYSTORE_PASSWORD=$2
-  KEY_PASSWORD=$3
-  DNAME=$4
-  VALIDITY_DAYS=$5
-  KEY_ALG=$6
-  KEY_SIZE=$7
-
-  keystore_path="android/key-alias-$ALIAS_NAME.jks"
-
-  echo "[INFO] Creating keystore at: $keystore_path"
-
-  keytool -genkeypair \
-    -v \
-    -keystore "$keystore_path" \
-    -alias "key-alias-$ALIAS_NAME" \
-    -keyalg "$KEY_ALG" \
-    -keysize "$KEY_SIZE" \
-    -validity "$VALIDITY_DAYS" \
-    -storepass "$KEYSTORE_PASSWORD" \
-    -keypass "$KEY_PASSWORD" \
-    -dname "$DNAME"
-
-  if [ $? -eq 0 ]; then
-    echo "✅ Keystore successfully created at: $keystore_path"
-  else
-    echo "❌ Failed to create keystore"
-    exit 1
-  fi
-}
-
-function help() {
-  echo "Usage: $0 -nm | --noteminds"
-}
-
-function main() {
-  case $1 in
-    -nm | --noteminds)
-      configure \
-        'noteminds' \
-        '4s%_ctrB2F9' \
-        '4s%_ctrB2F9' \
-        'CN=Sambath HUL, OU=Developer, O=Reatrey, L=Phnom Penh, ST=Phnom Penh, C=KH' \
-        '10000' \
-        'RSA' \
-        '2048'
-      exit 0
-      ;;
-    *)
-      help
-      exit 0
-      ;;
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --env)
+      ENVIRONMENT="$2"; shift 2 ;;
+    --project)
+      PROJECT="$2"; shift 2 ;;
+    --age-key-file)
+      AGE_KEY_FILE="$2"; shift 2 ;;
+    *) echo "❌ Unknown arg: $1"; exit 1 ;;
   esac
-}
+done
 
-main "$@"
+# For now, skip SOPS setup and work with plaintext credentials
+# TODO: Set up SOPS encryption when ready
+
+# Check if credentials directory exists
+if [[ ! -d "${CREDENTIALS_DIR}" ]]; then
+  echo "❌ Credentials directory not found: ${CREDENTIALS_DIR}" >&2
+  echo "💡 Expected at: $(pwd)/${CREDENTIALS_DIR}" >&2
+  exit 1
+fi
+
+# For now, work with plaintext credentials (will be encrypted later)
+echo "📋 Working with plaintext credentials (SOPS encryption pending)..."
+
+pushd "${CREDENTIALS_DIR}" >/dev/null
+
+case "${ENVIRONMENT}" in
+  dev)
+    if [[ ! -f "android/${PROJECT}/dev/upload.jks" ]]; then
+      echo "❌ Keystore not found: android/${PROJECT}/dev/upload.jks" >&2
+      echo "💡 Generate keystore with: ./scripts/generate-keystore.sh --project ${PROJECT} --env dev" >&2
+      exit 1
+    fi
+    echo "✅ Dev credentials found and ready to use"
+    # Credentials are already in place, no decryption needed
+    ;;
+  prod)
+    if [[ ! -f "android/${PROJECT}/prod/upload.jks" ]]; then
+      echo "❌ Keystore not found: android/${PROJECT}/prod/upload.jks" >&2
+      echo "💡 Generate keystore with: ./scripts/generate-keystore.sh --project ${PROJECT} --env prod" >&2
+      exit 1
+    fi
+    echo "✅ Prod credentials found and ready to use"
+    # Credentials are already in place, no decryption needed
+    ;;
+  *) echo "❌ Unknown env: ${ENVIRONMENT}"; exit 1 ;;
+esac
+
+popd >/dev/null
+
+echo "✅ Credentials ready in $CREDENTIALS_DIR/android/${PROJECT}/$ENVIRONMENT/"
+echo "🔧 Build.gradle.kts will now read from the credentials directory"
+echo "🚀 You can now build with: flutter build apk --flavor $ENVIRONMENT"

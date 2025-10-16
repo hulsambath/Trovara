@@ -1,0 +1,49 @@
+name: "Setup Flutter SDK"
+description: "Setup Flutter SDK and restore dependencies cache"
+
+inputs:
+  flutter-version:
+    description: "Flutter version to use"
+    required: true
+    default: "3.38.0"
+  cache-key:
+    description: "Cache key for pub dependencies"
+    required: true
+  cache-hit:
+    description: "Whether cache was hit"
+    required: false
+    default: "false"
+
+outputs:
+  flutter-path:
+    description: "Path to Flutter SDK"
+    value: ${{ steps.flutter-setup.outputs.flutter-path }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Flutter SDK
+      id: flutter-setup
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: ${{ inputs.flutter-version }}
+        channel: "stable"
+        cache: true
+
+    - name: Restore Pub dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.pub-cache
+          .dart_tool
+        key: ${{ inputs.cache-key }}
+        restore-keys: |
+          ${{ runner.os }}-pub-
+
+    - name: Install dependencies (if needed)
+      if: inputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        echo "📦 Installing dependencies..."
+        flutter pub get
+        echo "✅ Dependencies installed"
