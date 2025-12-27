@@ -11,6 +11,7 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ThemeProvider themeProvider = Provider.of<ThemeProvider>(context);
+    Intl.defaultLocale = context.locale.languageCode;
 
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,

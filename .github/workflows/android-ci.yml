@@ -1,0 +1,148 @@
+name: Android CI (NoteMinds)
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to build"
+        required: false
+        default: "all"
+        type: choice
+        options:
+          - all
+          - dev
+          - prod
+  push:
+    branches: [develop, main]
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - android-env: dev
+            artifact-name: noteminds-apk-dev
+          - android-env: prod
+            artifact-name: noteminds-apk-prod
+    env:
+      ANDROID_ENV: ${{ matrix.android-env }}
+      CREDENTIALS_REPO: git@github.com:your-org/noteminds-credentials.git
+      CREDENTIALS_DIR: credentials
+    steps:
+      - name: Checkout repository
+        if: |
+          github.event_name == 'push' ||
+          github.event.inputs.environment == 'all' ||
+          github.event.inputs.environment == matrix.android-env
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        if: |
+          github.event_name == 'push' ||
+          github.event.inputs.environment == 'all' ||
+          github.event.inputs.environment == matrix.android-env
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Flutter
+        if: |
+          github.event_name == 'push' ||
+          github.event.inputs.environment == 'all' ||
+          github.event.inputs.environment == matrix.android-env
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+          cache: true
+
+      - name: Install sops
+        if: |
+          github.event_name == 'push' ||
+          github.event.inputs.environment == 'all' ||
+          github.event.inputs.environment == matrix.android-env
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends gnupg
+          curl -fsSL https://github.com/getsops/sops/releases/download/v3.9.0/sops-v3.9.0.linux.amd64 -o sops
+          sudo install -m 0755 sops /usr/local/bin/sops
+
+      - name: Verify credentials project exists
+        if: |
+          github.event_name == 'push' ||
+          github.event.inputs.environment == 'all' ||
+          github.event.inputs.environment == matrix.android-env
+        run: |
+          if [[ ! -d "../credentials" ]]; then
+            echo "❌ Credentials project not found at ../credentials"
+            exit 1
+          fi
+          if [[ ! -f "../credentials/.sops.yaml" ]]; then
+            echo "❌ SOPS config not found at ../credentials/.sops.yaml"
+            exit 1
+          fi
+
+      - name: Decrypt Android secrets (SOPS)
+        if: |
+          github.event_name == 'push' ||
+          github.event.inputs.environment == 'all' ||
+          github.event.inputs.environment == matrix.android-env
+        working-directory: ../credentials
+        env:
+          SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
+        run: |
+          set -euo pipefail
+          case "$ANDROID_ENV" in
+            dev)
+              if [[ ! -f "android/notemyminds/dev/upload.jks.enc" ]]; then
+                echo "❌ Encrypted keystore not found: android/notemyminds/dev/upload.jks.enc"
+                exit 1
+              fi
+              echo "🔓 Decrypting dev credentials to credentials directory..."
+              sops -d android/notemyminds/dev/upload.jks.enc > android/notemyminds/dev/upload.jks
+              sops -d android/notemyminds/dev/keystore.properties.enc > android/notemyminds/dev/keystore.properties
+              sops -d android/notemyminds/dev/google-services.json.enc > android/notemyminds/dev/google-services.json
+              ;;
+            prod)
+              if [[ ! -f "android/notemyminds/prod/upload.jks.enc" ]]; then
+                echo "❌ Encrypted keystore not found: android/notemyminds/prod/upload.jks.enc"
+                exit 1
+              fi
+              echo "🔓 Decrypting prod credentials to credentials directory..."
+              sops -d android/notemyminds/prod/upload.jks.enc > android/notemyminds/prod/upload.jks
+              sops -d android/notemyminds/prod/keystore.properties.enc > android/notemyminds/prod/keystore.properties
+              sops -d android/notemyminds/prod/google-services.json.enc > android/notemyminds/prod/google-services.json
+              ;;
+            *) echo "❌ Unknown ANDROID_ENV=$ANDROID_ENV" && exit 1 ;;
+          esac
+
+      - name: Flutter pub get
+        if: |
+          github.event_name == 'push' ||
+          github.event.inputs.environment == 'all' ||
+          github.event.inputs.environment == matrix.android-env
+        run: flutter pub get
+
+      - name: Build APK (NoteMinds)
+        if: |
+          github.event_name == 'push' ||
+          github.event.inputs.environment == 'all' ||
+          github.event.inputs.environment == matrix.android-env
+        run: |
+          chmod +x scripts/build_apk.sh
+          ./scripts/build_apk.sh --noteminds
+
+      - name: Upload APK artifact
+        if: |
+          github.event_name == 'push' ||
+          github.event.inputs.environment == 'all' ||
+          github.event.inputs.environment == matrix.android-env
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact-name }}
+          path: |
+            build/app/outputs/**/*.apk
