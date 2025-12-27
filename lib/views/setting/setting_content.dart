@@ -105,6 +105,7 @@ class _SettingContent extends StatelessWidget {
         const SizedBox(height: 16),
         Text('Local Export/Import', style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 8),
+        Text(viewModel.packageName ?? ''),
         Card(
           child: Column(
             children: [
