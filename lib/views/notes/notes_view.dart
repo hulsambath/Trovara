@@ -13,6 +13,7 @@ class NotesView extends StatelessWidget {
   @override
   Widget build(BuildContext context) => ViewModelProvider<NotesViewModel>(
     create: (context) => NotesViewModel(),
+    root: true,
     builder: (context, viewModel, child) => _NotesContent(viewModel),
   );
 }

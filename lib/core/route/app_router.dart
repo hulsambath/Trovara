@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:noteminds/views/insights/insights_view.dart';
 import 'package:noteminds/views/main/main_view.dart';
 import 'package:noteminds/views/notes/note/note_view.dart';
-import 'package:noteminds/views/notes/notes_view.dart';
-import 'package:noteminds/views/setting/setting_view.dart';
 
 class AppRouter {
   static final GoRouter _router = GoRouter(
@@ -15,32 +12,11 @@ class AppRouter {
       debugPrint('GoRouter exception: ${router.routerDelegate.currentConfiguration}');
     },
     routes: [
-      ShellRoute(
-        pageBuilder: (context, state, child) => MaterialPage(
-          key: state.pageKey,
-          restorationId: 'shell',
-          child: MainView(child: child),
-        ),
-        routes: [
-          GoRoute(
-            path: '/',
-            name: 'notes',
-            pageBuilder: (context, state) =>
-                MaterialPage(key: state.pageKey, restorationId: 'notes', child: const NotesView()),
-          ),
-          GoRoute(
-            path: '/insights',
-            name: 'insights',
-            pageBuilder: (context, state) =>
-                MaterialPage(key: state.pageKey, restorationId: 'insights', child: const InsightsView()),
-          ),
-          GoRoute(
-            path: '/setting',
-            name: 'setting',
-            pageBuilder: (context, state) =>
-                MaterialPage(key: state.pageKey, restorationId: 'setting', child: const SettingView()),
-          ),
-        ],
+      GoRoute(
+        path: '/',
+        name: 'main',
+        pageBuilder: (context, state) =>
+            MaterialPage(key: state.pageKey, restorationId: 'main', child: const MainView()),
       ),
       GoRoute(
         path: '/note',
