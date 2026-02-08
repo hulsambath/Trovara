@@ -13,7 +13,6 @@ import 'package:noteminds/core/services/note_service.dart';
 import 'package:noteminds/core/storage/google_drive_auth_storage.dart';
 import 'package:noteminds/widgets/nm_loading_overlay.dart';
 import 'package:noteminds/widgets/nm_toast.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 
 class SettingViewModel extends BaseViewModel {
@@ -28,17 +27,9 @@ class SettingViewModel extends BaseViewModel {
   String? get accountName => _accountName;
   String? get accountEmail => _accountEmail;
   String? get accountPhotoUrl => _accountPhotoUrl;
-  String? _packageName;
-  String? get packageName => _packageName;
 
   SettingViewModel() {
-    getPackageName();
     Future.microtask(() => _refreshAccount());
-  }
-
-  Future<void> getPackageName() async {
-    final packageInfo = await PackageInfo.fromPlatform();
-    _packageName = packageInfo.packageName;
   }
 
   Future<void> _refreshAccount() async {

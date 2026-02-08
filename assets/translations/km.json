@@ -1,23 +1,4 @@
 {
   "app_name": "NoteMinds",
-  "hello": "សួស្តីពិភពលោក!",
-  "msg": {
-    "connectivity": {
-      "no_internet": "មិនមានការតភ្ជាប់អ៊ីនធឺណិត",
-      "retrying": "កំពុងព្យាយាមតភ្ជាប់ម្តងទៀត... ({0})",
-      "connected": "បានតភ្ជាប់"
-    },
-    "update": {
-      "available": "មានការអាប់ដេត",
-      "downloading": "កំពុងទាញយកការអាប់ដេត...",
-      "ready_to_install": "ការអាប់ដេតរួចរាល់សម្រាប់ដំឡើង",
-      "new_version_available": "មានកំណែថ្មីអាចប្រើបាន"
-    }
-  },
-  "btn": {
-    "update": {
-      "install": "ដំឡើង",
-      "update": "អាប់ដេត"
-    }
-  }
+  "hello": "សួស្តីពិភពលោក!"
 }

@@ -1,23 +1,4 @@
 {
   "app_name": "NoteMinds",
-  "hello": "Hello World!",
-  "msg": {
-    "connectivity": {
-      "no_internet": "No internet connection",
-      "retrying": "Retrying connection... ({0})",
-      "connected": "Connected"
-    },
-    "update": {
-      "available": "Update Available",
-      "downloading": "Downloading update...",
-      "ready_to_install": "Update ready to install",
-      "new_version_available": "A new version is available"
-    }
-  },
-  "btn": {
-    "update": {
-      "install": "Install",
-      "update": "Update"
-    }
-  }
+  "hello": "Hello World!"
 }
