@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:noteminds/core/provider/in_app_update_provider.dart';
 import 'package:noteminds/core/provider/theme_provider.dart';
 import 'package:provider/provider.dart';
 
@@ -9,7 +10,10 @@ class ProviderScope extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => MultiProvider(
-    providers: [ChangeNotifierProvider(create: (context) => ThemeProvider())],
+    providers: [
+      ChangeNotifierProvider(create: (context) => ThemeProvider()),
+      ChangeNotifierProvider(create: (context) => InAppUpdateProvider()),
+    ],
     child: child,
   );
 }
