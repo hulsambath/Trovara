@@ -1,8 +1,9 @@
-# NoteMinds Architecture
+# notemyminds Architecture
 
 ## Core Architecture Patterns
 
 ### 1. MVVM Pattern
+
 ```dart
 // View
 class NotesView extends StatelessWidget {
@@ -21,6 +22,7 @@ class NotesViewModel extends BaseViewModel {
 ```
 
 ### 2. Repository Pattern
+
 ```dart
 abstract class INoteRepository {
   Stream<List<Note>> watchNotes();
@@ -35,11 +37,12 @@ class ObjectBoxNoteRepository implements INoteRepository {
 ```
 
 ### 3. Service Layer
+
 ```dart
 class NoteService {
   final INoteRepository _repository;
   final IGoogleDriveService _driveService;
-  
+
   Future<void> saveNote(Note note) async {
     await _repository.putNote(note);
     await _driveService.sync();
@@ -48,17 +51,20 @@ class NoteService {
 ```
 
 ## Navigation Architecture
+
 - Uses go_router for declarative routing
 - Shell route pattern for bottom navigation
 - URL-based navigation with parameters
 
 ## Data Architecture
+
 - ObjectBox for local storage
 - Google Drive for cloud sync
 - Repository pattern for data access
 - Service layer for business logic
 
 ## UI Architecture
+
 - Material Design 3 components
 - Responsive layouts
 - Custom widget library

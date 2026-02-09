@@ -1,8 +1,8 @@
-# NoteMinds Sync Strategy Documentation
+# notemyminds Sync Strategy Documentation
 
 ## Overview
 
-NoteMinds implements a Git-like sync strategy that ensures data integrity across multiple devices while automatically resolving conflicts. The sync process follows a **Pull → Merge → Push** workflow similar to version control systems.
+notemyminds implements a Git-like sync strategy that ensures data integrity across multiple devices while automatically resolving conflicts. The sync process follows a **Pull → Merge → Push** workflow similar to version control systems.
 
 ## Sync Workflow
 
@@ -234,7 +234,7 @@ Future<Map<String, dynamic>> mergeWithRemoteData(Map<String, dynamic> remoteData
 ```dart
 Future<void> syncWithGoogleDrive(BuildContext context) async {
   // Step 1: Pull data from Google Drive
-  final driveData = await _driveService.downloadJsonFromAppData('noteminds_backup.json');
+  final driveData = await _driveService.downloadJsonFromAppData('notemyminds_backup.json');
 
   // Step 2: Merge local and remote data
   Map<String, dynamic> mergedData;
@@ -246,7 +246,7 @@ Future<void> syncWithGoogleDrive(BuildContext context) async {
   }
 
   // Step 3: Push merged data to Google Drive
-  await _driveService.uploadJsonToAppData(fileName: 'noteminds_backup.json', json: mergedData);
+  await _driveService.uploadJsonToAppData(fileName: 'notemyminds_backup.json', json: mergedData);
 }
 ```
 
@@ -289,19 +289,15 @@ Future<void> syncWithGoogleDrive(BuildContext context) async {
 ### Common Issues
 
 1. **"Authentication failed"**
-
    - Solution: Re-authenticate with Google account
 
 2. **"Network error"**
-
    - Solution: Check internet connection and retry
 
 3. **"Access denied"**
-
    - Solution: Check Google Drive permissions in account settings
 
 4. **"Storage quota exceeded"**
-
    - Solution: Free up space in Google Drive
 
 5. **Data not syncing**

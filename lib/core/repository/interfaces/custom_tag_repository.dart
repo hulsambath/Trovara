@@ -1,4 +1,4 @@
-import 'package:noteminds/models/custom_tag.dart';
+import 'package:notemyminds/models/custom_tag.dart';
 
 /// Interface for custom tag repository operations
 abstract class ICustomTagRepository {

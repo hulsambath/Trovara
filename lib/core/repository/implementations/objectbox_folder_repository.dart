@@ -1,8 +1,8 @@
-import 'package:noteminds/core/repository/base/base_repository.dart';
-import 'package:noteminds/core/repository/base/objectbox_store_manager.dart';
-import 'package:noteminds/core/repository/interfaces/folder_repository.dart';
-import 'package:noteminds/models/folder.dart';
-import 'package:noteminds/objectbox.g.dart';
+import 'package:notemyminds/core/repository/base/base_repository.dart';
+import 'package:notemyminds/core/repository/base/objectbox_store_manager.dart';
+import 'package:notemyminds/core/repository/interfaces/folder_repository.dart';
+import 'package:notemyminds/models/folder.dart';
+import 'package:notemyminds/objectbox.g.dart';
 
 /// ObjectBox implementation of the folder repository
 /// Follows Dependency Inversion Principle - depends on abstraction, not concrete implementation

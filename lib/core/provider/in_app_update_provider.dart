@@ -1,7 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:in_app_update/in_app_update.dart';
 import 'package:logger/logger.dart';
-import 'package:noteminds/core/type/app_update_state.dart';
+import 'package:notemyminds/core/type/app_update_state.dart';
 
 class InAppUpdateProvider extends ChangeNotifier {
   final Logger _logger = Logger();
@@ -25,7 +27,17 @@ class InAppUpdateProvider extends ChangeNotifier {
   bool get isDownloaded => _state == AppUpdateState.downloaded;
 
   /// Check if an update is available
+  /// Note: in_app_update is Android only, returns false on iOS
   Future<bool> checkForUpdate() async {
+    // Skip update check on iOS as in_app_update is Android only
+    if (Platform.isIOS) {
+      _state = AppUpdateState.idle;
+      _availability = UpdateAvailability.unknown;
+      _logger.i('InAppUpdateProvider: Update check skipped on iOS');
+      notifyListeners();
+      return false;
+    }
+
     if (_state == AppUpdateState.checking) return false;
 
     _state = AppUpdateState.checking;
@@ -51,7 +63,13 @@ class InAppUpdateProvider extends ChangeNotifier {
   }
 
   /// Perform a flexible update (downloads in background, user can continue using app)
+  /// Note: in_app_update is Android only, returns false on iOS
   Future<bool> performFlexibleUpdate() async {
+    if (Platform.isIOS) {
+      _logger.i('InAppUpdateProvider: Flexible update skipped on iOS');
+      return false;
+    }
+
     if (_updateInfo == null || _availability != UpdateAvailability.updateAvailable) {
       final hasUpdate = await checkForUpdate();
       if (!hasUpdate) {
@@ -98,7 +116,13 @@ class InAppUpdateProvider extends ChangeNotifier {
   }
 
   /// Perform an immediate update (blocks app until update is complete)
+  /// Note: in_app_update is Android only, returns false on iOS
   Future<bool> performImmediateUpdate() async {
+    if (Platform.isIOS) {
+      _logger.i('InAppUpdateProvider: Immediate update skipped on iOS');
+      return false;
+    }
+
     if (_updateInfo == null || _availability != UpdateAvailability.updateAvailable) {
       final hasUpdate = await checkForUpdate();
       if (!hasUpdate) {
@@ -146,7 +170,13 @@ class InAppUpdateProvider extends ChangeNotifier {
   }
 
   /// Complete a flexible update (call this after downloading)
+  /// Note: in_app_update is Android only, no-op on iOS
   Future<void> completeFlexibleUpdate() async {
+    if (Platform.isIOS) {
+      _logger.i('InAppUpdateProvider: Complete flexible update skipped on iOS');
+      return;
+    }
+
     try {
       await InAppUpdate.completeFlexibleUpdate();
       _state = AppUpdateState.idle;

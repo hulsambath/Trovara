@@ -1,11 +1,17 @@
-import 'package:noteminds/core/repository/base/base_repository.dart';
-import 'package:noteminds/core/repository/base/objectbox_store_manager.dart';
-import 'package:noteminds/core/repository/interfaces/note_repository.dart';
-import 'package:noteminds/models/note.dart';
-import 'package:noteminds/objectbox.g.dart';
+import 'package:notemyminds/core/repository/base/base_repository.dart';
+import 'package:notemyminds/core/repository/base/objectbox_store_manager.dart';
+import 'package:notemyminds/core/repository/interfaces/note_repository.dart';
+import 'package:notemyminds/models/note.dart';
+import 'package:notemyminds/objectbox.g.dart';
 
-/// ObjectBox implementation of the note repository
-/// Follows Dependency Inversion Principle - depends on abstraction, not concrete implementation
+/// ObjectBox implementation of the note repository.
+///
+/// Every query method that returns "active" notes applies an
+/// `isDeleted == false` condition at the **database level** so the service
+/// layer never has to filter in memory.
+///
+/// Follows Dependency Inversion Principle - depends on abstraction, not
+/// concrete implementation.
 class ObjectBoxNoteRepository extends BaseRepository implements INoteRepository {
   late Box<Note> _noteBox;
   bool _isInitialized = false;
@@ -19,11 +25,56 @@ class ObjectBoxNoteRepository extends BaseRepository implements INoteRepository 
     _isInitialized = true;
   }
 
+  // ───────────────────── Active note queries ─────────────────────
+
+  @override
+  List<Note> getActiveNotes() => _noteBox.query(Note_.isDeleted.equals(false)).build().find();
+
   @override
   List<Note> getAllNotes() => _noteBox.getAll();
 
   @override
   Note? getNoteById(int id) => _noteBox.get(id);
+
+  @override
+  List<Note> searchNotes(String query) {
+    if (query.isEmpty) return getActiveNotes();
+
+    final lowercaseQuery = query.toLowerCase();
+    return getActiveNotes()
+        .where(
+          (note) =>
+              note.title.toLowerCase().contains(lowercaseQuery) ||
+              note.contentJson.toLowerCase().contains(lowercaseQuery) ||
+              note.customTagIds.any((tagId) => tagId.toString().contains(lowercaseQuery)),
+        )
+        .toList();
+  }
+
+  @override
+  List<Note> getNotesByFolder(String folderId) =>
+      _noteBox.query(Note_.folderId.equals(folderId) & Note_.isDeleted.equals(false)).build().find();
+
+  @override
+  List<Note> getFavoriteNotes() =>
+      _noteBox.query(Note_.isFavorite.equals(true) & Note_.isDeleted.equals(false)).build().find();
+
+  @override
+  List<Note> getArchivedNotes() =>
+      _noteBox.query(Note_.isArchived.equals(true) & Note_.isDeleted.equals(false)).build().find();
+
+  @override
+  List<Note> getNotesByTag(String tag) => [];
+
+  @override
+  List<String> getAllTags() => [];
+
+  // ───────────────────── Trash / soft-delete queries ─────────────────────
+
+  @override
+  List<Note> getDeletedNotes() => _noteBox.query(Note_.isDeleted.equals(true)).build().find();
+
+  // ───────────────────── Mutations ─────────────────────
 
   @override
   Future<Note> createNote({
@@ -46,7 +97,6 @@ class ObjectBoxNoteRepository extends BaseRepository implements INoteRepository 
     return note;
   }
 
-  /// Create a note with preserved timestamps (for import operations)
   @override
   Future<Note> createNoteWithTimestamps({
     String? title,
@@ -57,6 +107,8 @@ class ObjectBoxNoteRepository extends BaseRepository implements INoteRepository 
     DateTime? updatedAt,
     bool isFavorite = false,
     bool isArchived = false,
+    bool isDeleted = false,
+    DateTime? deletedAt,
   }) async {
     final note = Note(
       title: title ?? 'Untitled',
@@ -67,6 +119,8 @@ class ObjectBoxNoteRepository extends BaseRepository implements INoteRepository 
       updatedAt: updatedAt,
       isFavorite: isFavorite,
       isArchived: isArchived,
+      isDeleted: isDeleted,
+      deletedAt: deletedAt,
     );
 
     final id = _noteBox.put(note);
@@ -89,45 +143,18 @@ class ObjectBoxNoteRepository extends BaseRepository implements INoteRepository 
     notifyListeners();
   }
 
-  @override
-  List<Note> searchNotes(String query) {
-    if (query.isEmpty) return _noteBox.getAll();
-
-    final lowercaseQuery = query.toLowerCase();
-    return _noteBox
-        .getAll()
-        .where(
-          (note) =>
-              note.title.toLowerCase().contains(lowercaseQuery) ||
-              note.contentJson.toLowerCase().contains(lowercaseQuery) ||
-              note.customTagIds.any((tagId) => tagId.toString().contains(lowercaseQuery)),
-        )
-        .toList();
-  }
+  // ───────────────────── Statistics (active notes only) ─────────────────────
 
   @override
-  List<Note> getNotesByFolder(String folderId) => _noteBox.query(Note_.folderId.equals(folderId)).build().find();
+  int get totalNotes => _noteBox.query(Note_.isDeleted.equals(false)).build().count();
 
   @override
-  List<Note> getFavoriteNotes() => _noteBox.query(Note_.isFavorite.equals(true)).build().find();
+  int get totalWords => getActiveNotes().fold(0, (sum, note) => sum + note.wordCount);
 
   @override
-  List<Note> getArchivedNotes() => _noteBox.query(Note_.isArchived.equals(true)).build().find();
+  int get totalCharacters => getActiveNotes().fold(0, (sum, note) => sum + note.characterCount);
 
-  @override
-  List<Note> getNotesByTag(String tag) => [];
-
-  @override
-  List<String> getAllTags() => [];
-
-  @override
-  int get totalNotes => _noteBox.count();
-
-  @override
-  int get totalWords => _noteBox.getAll().fold(0, (sum, note) => sum + note.wordCount);
-
-  @override
-  int get totalCharacters => _noteBox.getAll().fold(0, (sum, note) => sum + note.characterCount);
+  // ───────────────────── Lifecycle ─────────────────────
 
   @override
   void dispose() {

@@ -1,8 +1,8 @@
 // ignore_for_file: avoid_function_literals_in_foreach_calls
 
 import 'package:flutter/material.dart';
-import 'package:noteminds/core/storage/theme_mode_storage.dart';
-import 'package:noteminds/core/theme/theme_config.dart';
+import 'package:notemyminds/core/storage/theme_mode_storage.dart';
+import 'package:notemyminds/core/theme/theme_config.dart';
 
 class ThemeProvider extends ChangeNotifier {
   ThemeData get lightTheme => ThemeConfig.light().themeData;

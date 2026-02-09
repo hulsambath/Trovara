@@ -1,9 +1,9 @@
-import 'package:noteminds/core/services/text_parser_service.dart';
-import 'package:noteminds/models/activity_tag.dart';
-import 'package:noteminds/models/custom_tag.dart';
-import 'package:noteminds/models/mood_tag.dart';
-import 'package:noteminds/models/personal_growth_tag.dart';
-import 'package:noteminds/models/time_tag.dart';
+import 'package:notemyminds/core/services/text_parser_service.dart';
+import 'package:notemyminds/models/activity_tag.dart';
+import 'package:notemyminds/models/custom_tag.dart';
+import 'package:notemyminds/models/mood_tag.dart';
+import 'package:notemyminds/models/personal_growth_tag.dart';
+import 'package:notemyminds/models/time_tag.dart';
 import 'package:objectbox/objectbox.dart';
 
 @Entity()
@@ -15,6 +15,19 @@ class Note {
   DateTime updatedAt;
   bool isFavorite;
   bool isArchived;
+
+  /// Soft delete flag. When true, the note is in the "Recently Deleted" list.
+  bool isDeleted;
+
+  /// Timestamp when the note was soft-deleted.
+  /// Used to automatically purge notes after 30 days.
+  DateTime? deletedAt;
+
+  /// Google Drive file ID for this note.
+  /// Used to sync trash state with Google Drive.
+  /// Can be null for notes that haven't been synced to Drive yet.
+  String? driveFileId;
+
   String folderId;
   List<int> customTagIds;
   List<String> moodTags;
@@ -30,6 +43,9 @@ class Note {
     DateTime? updatedAt,
     this.isFavorite = false,
     this.isArchived = false,
+    this.isDeleted = false,
+    this.deletedAt,
+    this.driveFileId,
     this.folderId = 'default',
     List<int>? customTagIds,
     List<String>? moodTags,
@@ -55,6 +71,23 @@ class Note {
 
   void toggleArchived() {
     isArchived = !isArchived;
+    updatedAt = DateTime.now();
+  }
+
+  /// Mark this note as softly deleted.
+  ///
+  /// The note will appear in the "Recently Deleted" list and can be restored
+  /// until it is permanently removed (e.g. after 30 days).
+  void softDelete() {
+    isDeleted = true;
+    deletedAt = DateTime.now();
+    updatedAt = DateTime.now();
+  }
+
+  /// Restore this note from the "Recently Deleted" list.
+  void restoreFromTrash() {
+    isDeleted = false;
+    deletedAt = null;
     updatedAt = DateTime.now();
   }
 
@@ -181,6 +214,9 @@ class Note {
     'updatedAt': updatedAt.toIso8601String(),
     'isFavorite': isFavorite,
     'isArchived': isArchived,
+    'isDeleted': isDeleted,
+    'deletedAt': deletedAt?.toIso8601String(),
+    'driveFileId': driveFileId,
     'folderId': folderId,
     'customTagIds': customTagIds,
     'moodTags': moodTags,
@@ -197,6 +233,11 @@ class Note {
     updatedAt: DateTime.parse(json['updatedAt'] as String),
     isFavorite: json['isFavorite'] as bool? ?? false,
     isArchived: json['isArchived'] as bool? ?? false,
+    isDeleted: json['isDeleted'] as bool? ?? false,
+    deletedAt: json['deletedAt'] != null && (json['deletedAt'] as String).isNotEmpty
+        ? DateTime.tryParse(json['deletedAt'] as String)
+        : null,
+    driveFileId: json['driveFileId'] as String?,
     folderId: json['folderId'] as String? ?? 'default',
     customTagIds: List<int>.from(json['customTagIds'] as List? ?? []),
     moodTags: List<String>.from(json['moodTags'] as List? ?? []),

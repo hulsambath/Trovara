@@ -82,6 +82,28 @@ class _SettingContent extends StatelessWidget {
             ),
           ),
         ),
+        FutureBuilder<bool>(
+          future: AppIconService.isSupported,
+          builder: (context, snapshot) {
+            if (snapshot.data != true) return const SizedBox.shrink();
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 16),
+                Card(
+                  child: ListTile(
+                    leading: Icon(Icons.palette_outlined, color: Theme.of(context).colorScheme.primary),
+                    title: const Text('App Icon'),
+                    subtitle: const Text('Change the app icon on your home screen'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => _showAppIconPicker(context),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
         const SizedBox(height: 16),
         if (viewModel.isSignedIn) ...[
           Card(
@@ -91,7 +113,7 @@ class _SettingContent extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   ListTile(
-                    leading: SvgPicture.asset(Assets.icons.googleDrive, width: 24, height: 24),
+                    leading: SvgPicture.asset('assets/icons/google drive.svg', width: 24, height: 24),
                     title: const Text('Sync with Google Drive'),
                     subtitle: const Text('Backup and restore data'),
                     trailing: const Icon(Icons.sync),
@@ -102,6 +124,21 @@ class _SettingContent extends StatelessWidget {
             ),
           ),
         ],
+        const SizedBox(height: 16),
+        Text('Notes', style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 8),
+        Card(
+          child: Column(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.delete_outline),
+                title: const Text('Recently deleted'),
+                subtitle: const Text('Notes here are kept for 30 days before being removed forever'),
+                onTap: () => viewModel.openRecentlyDeleted(context),
+              ),
+            ],
+          ),
+        ),
         const SizedBox(height: 16),
         Text('Local Export/Import', style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 8),
@@ -124,6 +161,64 @@ class _SettingContent extends StatelessWidget {
       ],
     ),
   );
+
+  void _showAppIconPicker(BuildContext context) {
+    final details = AppIconService.getIconDetails();
+
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: FutureBuilder<String>(
+          future: AppIconService.getCurrentIcon(),
+          builder: (context, snapshot) {
+            final currentIcon = snapshot.data ?? '';
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                    child: Text(
+                      'App Icon',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                  ...details.map((icon) {
+                    final identifier = icon['identifier'];
+                    final path = icon['path'];
+                    final label = icon['label'];
+                    final isSelected = identifier == currentIcon;
+                    return ListTile(
+                      leading: path != null && path.isNotEmpty
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.asset(path, width: 48, height: 48, fit: BoxFit.cover),
+                            )
+                          : const Icon(Icons.image),
+                      title: Text(label ?? identifier ?? ''),
+                      trailing: isSelected
+                          ? Icon(Icons.check_circle, color: Theme.of(context).colorScheme.primary)
+                          : null,
+                      onTap: () async {
+                        if (identifier != null) {
+                          await AppIconService.changeIcon(identifier);
+                          if (context.mounted) {
+                            Navigator.of(context).pop();
+                          }
+                        }
+                      },
+                    );
+                  }),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
 
   void _showLogoutConfirmationDialog(BuildContext context) {
     showDialog(

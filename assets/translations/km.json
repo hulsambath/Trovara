@@ -1,4 +1,22 @@
 {
-  "app_name": "NoteMinds",
+  "app_name": "notemyminds",
+  "msg": {
+    "connectivity": {
+      "connected": "បានភ្ជាប់ទៅអ៊ីនធឺណិត",
+      "disconnected": "គ្មានការតភ្ជាប់អ៊ីនធឺណិត"
+    },
+    "update": {
+      "available": "មានកំណែថ្មី",
+      "downloading": "កំពុងទាញយក...",
+      "ready_to_install": "កំណែថ្មីរួចរាល់សម្រាប់ការដំឡើង",
+      "new_version_available": "មានកំណែថ្មីនៃ notemyminds"
+    }
+  },
+  "btn": {
+    "update": {
+      "update": "ធ្វើបច្ចុប្បន្នភាព",
+      "install": "ដំឡើង"
+    }
+  },
   "hello": "សួស្តីពិភពលោក!"
 }

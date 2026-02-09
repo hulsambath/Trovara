@@ -17,21 +17,32 @@ class _NotesContent extends StatelessWidget {
       return _buildEmptyState(context);
     }
 
-    return NmRefreshIndicator(
-      onRefresh: () => viewModel.refreshNotes(),
-      child: CustomScrollView(
-        controller: viewModel.scrollController,
-        physics: const AlwaysScrollableScrollPhysics(),
-        slivers: [_buildAppBar(context), _buildNotesList(context)],
-      ),
+    return CustomScrollView(
+      controller: viewModel.scrollController,
+      physics: const AlwaysScrollableScrollPhysics(),
+      slivers: [
+        _buildAppBar(context),
+        CupertinoSliverRefreshControl(
+          onRefresh: () async {
+            HapticFeedback.heavyImpact();
+            await viewModel.refreshNotes();
+          },
+        ),
+        _buildNotesList(context),
+      ],
     );
   }
 
   Widget _buildAppBar(BuildContext context) => SliverAppBar(
     floating: true,
     snap: true,
-    title: Text('NoteMinds', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600)),
+    title: Text('notemyminds', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600)),
     actions: [
+      IconButton(
+        icon: const Icon(Icons.delete_outline),
+        onPressed: () => _openRecentlyDeleted(context),
+        tooltip: 'Recently Deleted',
+      ),
       IconButton(
         icon: const Icon(Icons.sync),
         onPressed: () => viewModel.syncWithGoogleDrive(context),
@@ -72,4 +83,8 @@ class _NotesContent extends StatelessWidget {
     onPressed: () => viewModel.createNewNote(context),
     child: const Icon(Icons.add),
   );
+
+  void _openRecentlyDeleted(BuildContext context) {
+    Navigator.of(context).push(MaterialPageRoute(builder: (context) => const TrashView()));
+  }
 }

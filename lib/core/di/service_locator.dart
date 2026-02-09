@@ -1,14 +1,14 @@
-import 'package:noteminds/core/repository/base/objectbox_store_manager.dart';
-import 'package:noteminds/core/repository/implementations/objectbox_custom_tag_repository.dart';
-import 'package:noteminds/core/repository/implementations/objectbox_folder_repository.dart';
-import 'package:noteminds/core/repository/implementations/objectbox_note_repository.dart';
-import 'package:noteminds/core/repository/interfaces/custom_tag_repository.dart';
-import 'package:noteminds/core/repository/interfaces/folder_repository.dart';
-import 'package:noteminds/core/repository/interfaces/note_repository.dart';
-import 'package:noteminds/core/services/custom_tag_service.dart';
-import 'package:noteminds/core/services/google_drive_service.dart';
-import 'package:noteminds/core/services/google_drive_sync_service.dart';
-import 'package:noteminds/core/services/note_service.dart';
+import 'package:notemyminds/core/repository/base/objectbox_store_manager.dart';
+import 'package:notemyminds/core/repository/implementations/objectbox_custom_tag_repository.dart';
+import 'package:notemyminds/core/repository/implementations/objectbox_folder_repository.dart';
+import 'package:notemyminds/core/repository/implementations/objectbox_note_repository.dart';
+import 'package:notemyminds/core/repository/interfaces/custom_tag_repository.dart';
+import 'package:notemyminds/core/repository/interfaces/folder_repository.dart';
+import 'package:notemyminds/core/repository/interfaces/note_repository.dart';
+import 'package:notemyminds/core/services/custom_tag_service.dart';
+import 'package:notemyminds/core/services/google_drive_service.dart';
+import 'package:notemyminds/core/services/google_drive_sync_service.dart';
+import 'package:notemyminds/core/services/note_service.dart';
 
 /// Service Locator for dependency injection
 /// Follows Dependency Inversion Principle - provides abstractions, not concrete implementations
@@ -46,7 +46,11 @@ class ServiceLocator {
 
   /// Get the note service instance
   NoteService get noteService {
-    _noteService ??= NoteService(noteRepository: noteRepository, folderRepository: folderRepository);
+    _noteService ??= NoteService(
+      noteRepository: noteRepository,
+      folderRepository: folderRepository,
+      driveService: googleDriveService,
+    );
     return _noteService!;
   }
 

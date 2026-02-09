@@ -61,8 +61,8 @@ syncService.showSyncResultToast(context, result);
 ### Basic Usage in Any Screen
 
 ```dart
-import 'package:noteminds/core/di/service_locator.dart';
-import 'package:noteminds/core/services/google_drive_sync_service.dart';
+import 'package:notemyminds/core/di/service_locator.dart';
+import 'package:notemyminds/core/services/google_drive_sync_service.dart';
 
 class MyScreen extends StatelessWidget {
   final GoogleDriveSyncService _syncService = ServiceLocator().googleDriveSyncService;

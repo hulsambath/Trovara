@@ -1,16 +1,18 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:noteminds/core/di/service_locator.dart';
-import 'package:noteminds/core/services/google_drive_service.dart';
-import 'package:noteminds/core/services/note_service.dart';
-import 'package:noteminds/widgets/nm_loading_overlay.dart';
-import 'package:noteminds/widgets/nm_toast.dart';
+import 'package:logger/logger.dart';
+import 'package:notemyminds/core/di/service_locator.dart';
+import 'package:notemyminds/core/services/google_drive_service.dart';
+import 'package:notemyminds/core/services/note_service.dart';
+import 'package:notemyminds/widgets/nm_loading_overlay.dart';
+import 'package:notemyminds/widgets/nm_toast.dart';
 
 /// Service for handling Google Drive synchronization operations
 class GoogleDriveSyncService {
   final GoogleDriveService _driveService = ServiceLocator().googleDriveService;
   final NoteService _noteService = ServiceLocator().noteService;
+  final Logger _logger = Logger();
 
   /// Syncs data with Google Drive
   ///
@@ -25,7 +27,7 @@ class GoogleDriveSyncService {
     try {
       // Step 1: Pull data from Google Drive (with timeout)
       final driveData = await _driveService
-          .downloadJsonFromAppData('noteminds_backup.json')
+          .downloadJsonFromAppData('notemyminds_backup.json')
           .timeout(
             const Duration(seconds: 30),
             onTimeout: () {
@@ -55,6 +57,15 @@ class GoogleDriveSyncService {
                 throw Exception('Data import timeout - data might be too large');
               },
             );
+
+        // Step 2b: Reconcile trash state with Drive
+        // Ensure local trash state matches Drive (Drive is source of truth)
+        await _reconcileTrashState(mergedData);
+
+        // Step 2c: Handle permanently deleted notes
+        // If a note exists on Drive but was permanently deleted locally,
+        // delete it from Drive if local deletion is more recent
+        await _handlePermanentlyDeletedNotes(driveData);
       } else {
         // No remote data exists, use local data
         mergedData = _noteService.exportAllToJson();
@@ -62,7 +73,7 @@ class GoogleDriveSyncService {
 
       // Step 3: Push merged data to Google Drive (with timeout)
       await _driveService
-          .uploadJsonToAppData(fileName: 'noteminds_backup.json', json: mergedData)
+          .uploadJsonToAppData(fileName: 'notemyminds_backup.json', json: mergedData)
           .timeout(
             const Duration(seconds: 30),
             onTimeout: () {
@@ -97,6 +108,78 @@ class GoogleDriveSyncService {
     } catch (e) {
       String errorMessage = _getErrorMessage(e);
       return SyncResult.error(errorMessage);
+    }
+  }
+
+  /// Reconcile local trash state with Drive state during sync.
+  ///
+  /// This ensures that Drive's trash state (isDeleted, deletedAt) is reflected
+  /// locally after sync. Drive is always the source of truth.
+  Future<void> _reconcileTrashState(Map<String, dynamic> mergedData) async {
+    try {
+      final notes = mergedData['notes'] as List<dynamic>? ?? [];
+      for (final noteJson in notes) {
+        final noteData = noteJson as Map<String, dynamic>;
+        await _noteService.reconcileTrashStateWithDrive(noteData);
+      }
+      _logger.i('Trash state reconciliation complete');
+    } catch (e) {
+      _logger.w('Error during trash state reconciliation: $e');
+      // Don't throw - this is optional reconciliation
+    }
+  }
+
+  /// Handle notes that were permanently deleted locally.
+  ///
+  /// This checks if a note exists on Drive but NOT locally (permanently deleted).
+  /// If the local deletion is more recent, the Drive file should be deleted too
+  /// to maintain consistency based on latest timestamp.
+  ///
+  /// This ensures:
+  /// - User deletes note locally and syncs
+  /// - Drive file is also deleted (based on latest deletedAt)
+  Future<void> _handlePermanentlyDeletedNotes(Map<String, dynamic> driveData) async {
+    try {
+      final driveNotes = driveData['notes'] as List<dynamic>? ?? [];
+      final localNotes = _noteService.exportAllToJson()['notes'] as List<dynamic>;
+
+      // Build set of local note IDs for quick lookup
+      final localNoteIds = <int>{};
+      for (final noteJson in localNotes) {
+        final noteData = noteJson as Map<String, dynamic>;
+        final id = noteData['id'] as int?;
+        if (id != null) {
+          localNoteIds.add(id);
+        }
+      }
+
+      // Check each Drive note
+      for (final noteJson in driveNotes) {
+        final driveNoteData = noteJson as Map<String, dynamic>;
+        final id = driveNoteData['id'] as int?;
+        final driveFileId = driveNoteData['driveFileId'] as String?;
+
+        if (id == null || driveFileId == null) continue;
+
+        // If note exists on Drive but NOT locally, it was permanently deleted
+        if (!localNoteIds.contains(id)) {
+          _logger.i('Note $id was permanently deleted locally, deleting from Drive');
+
+          try {
+            // Delete from Drive using the driveFileId
+            await _noteService.permanentlyDeleteNoteOnDrive(driveFileId);
+            _logger.i('Successfully deleted note $id from Drive');
+          } catch (e) {
+            _logger.w('Failed to delete note $id from Drive: $e');
+            // Don't throw - continue with other notes
+          }
+        }
+      }
+
+      _logger.i('Permanently deleted notes handling complete');
+    } catch (e) {
+      _logger.w('Error during permanently deleted notes handling: $e');
+      // Don't throw - this is optional cleanup
     }
   }
 

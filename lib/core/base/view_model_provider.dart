@@ -1,8 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:noteminds/core/base/base_view_model.dart';
-import 'package:noteminds/core/provider/in_app_update_provider.dart';
-import 'package:noteminds/core/type/app_update_state.dart';
+import 'package:notemyminds/core/base/base_view_model.dart';
+import 'package:notemyminds/core/provider/in_app_update_provider.dart';
+import 'package:notemyminds/core/type/app_update_state.dart';
 import 'package:provider/provider.dart';
 
 class ViewModelProvider<T extends BaseViewModel> extends StatelessWidget {
@@ -27,6 +27,9 @@ class ViewModelProvider<T extends BaseViewModel> extends StatelessWidget {
       assert(enableWaitingRoom == false, 'When root is true, enableWaitingRoom must be false');
     }
 
+    /// if the update is available, show the banner
+    final updateProvider = Provider.of<InAppUpdateProvider>(context, listen: false);
+
     return ChangeNotifierProvider<T>(
       create: (BuildContext context) => create(context),
       child: child,
@@ -34,8 +37,6 @@ class ViewModelProvider<T extends BaseViewModel> extends StatelessWidget {
         final viewModel = Provider.of<T>(context);
         final content = buildTitle(context: context, viewModel: viewModel, child: builder(context, viewModel, child));
 
-        /// if the update is available, show the banner
-        final updateProvider = Provider.of<InAppUpdateProvider>(context, listen: false);
         if (updateProvider.hasUpdate) {
           return Stack(
             children: [

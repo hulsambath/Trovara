@@ -1,6 +1,6 @@
-# NoteMinds Learning Resources
+# notemyminds Learning Resources
 
-Welcome to the NoteMinds learning documentation. This directory contains comprehensive guides about different aspects of the NoteMinds project.
+Welcome to the notemyminds learning documentation. This directory contains comprehensive guides about different aspects of the notemyminds project.
 
 ## Table of Contents
 
@@ -63,14 +63,16 @@ Welcome to the NoteMinds learning documentation. This directory contains compreh
 ## Getting Started
 
 1. Set up your development environment:
+
    ```bash
    flutter pub get
    ./scripts/build_runner.sh
    ```
 
 2. Run the app:
+
    ```bash
-   ./scripts/run_app.sh --noteminds
+   ./scripts/run_app.sh --notemyminds
    ```
 
 3. Start exploring the documentation based on your needs:

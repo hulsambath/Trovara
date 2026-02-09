@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:noteminds/core/base/base_view_model.dart';
-import 'package:noteminds/core/di/service_locator.dart';
-import 'package:noteminds/core/services/google_drive_sync_service.dart';
-import 'package:noteminds/core/services/note_service.dart';
-import 'package:noteminds/models/note.dart';
+import 'package:logger/logger.dart';
+import 'package:notemyminds/core/base/base_view_model.dart';
+import 'package:notemyminds/core/di/service_locator.dart';
+import 'package:notemyminds/core/services/google_drive_service.dart';
+import 'package:notemyminds/core/services/google_drive_sync_service.dart';
+import 'package:notemyminds/core/services/note_service.dart';
+import 'package:notemyminds/models/note.dart';
 
 class NotesViewModel extends BaseViewModel {
   static NotesViewModel? _instance;
@@ -12,6 +14,8 @@ class NotesViewModel extends BaseViewModel {
 
   final NoteService _noteService = ServiceLocator().noteService;
   final GoogleDriveSyncService _syncService = ServiceLocator().googleDriveSyncService;
+  final GoogleDriveService _driveService = ServiceLocator().googleDriveService;
+  final Logger _logger = Logger();
 
   List<Note> _notes = [];
   bool _isLoading = true;
@@ -32,6 +36,9 @@ class NotesViewModel extends BaseViewModel {
     try {
       _isLoading = true;
       notifyListeners();
+
+      // Clean up any notes that have been in the trash longer than 30 days.
+      await _noteService.purgeExpiredDeletedNotes();
 
       // Add listener for automatic refresh
       _noteService.addListener(_onDataChanged);
@@ -152,8 +159,30 @@ class NotesViewModel extends BaseViewModel {
     );
 
     if (confirmed == true) {
-      await _noteService.deleteNote(note.id);
-      // No need to manually refresh - listener will handle it
+      try {
+        if (note.driveFileId != null && _driveService.isSignedIn) {
+          // If we have a Drive file ID and signed in, use Drive-integrated method
+          await _noteService.softDeleteNoteWithDriveSync(note.id);
+        } else {
+          // Otherwise, just delete locally
+          await _noteService.softDeleteNote(note.id);
+        }
+        // No need to manually refresh - listener will handle it
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Note moved to Recently Deleted. It will be permanently removed after 30 days.'),
+            ),
+          );
+        }
+      } catch (e) {
+        _logger.e('Failed to delete note: $e');
+        if (context.mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Failed to delete note: $e'), backgroundColor: Colors.red));
+        }
+      }
     }
   }
 

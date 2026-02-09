@@ -1,21 +1,58 @@
-import 'package:noteminds/models/note.dart';
+import 'package:notemyminds/models/note.dart';
 
-/// Interface for note repository operations
-/// Follows Interface Segregation Principle - only note-related operations
+/// Interface for note repository operations.
+///
+/// All query methods that return "active" notes MUST exclude soft-deleted notes
+/// (isDeleted == true). Deleted notes are only returned through [getDeletedNotes].
+///
+/// Follows Interface Segregation Principle - only note-related operations.
 abstract class INoteRepository {
   /// Initialize the repository
   Future<void> initialize();
 
-  /// Get all notes
+  // ───────────────────── Active note queries ─────────────────────
+
+  /// Get all **active** (non-deleted) notes.
+  List<Note> getActiveNotes();
+
+  /// Get all notes **including** deleted ones.
+  ///
+  /// Use sparingly -- prefer [getActiveNotes] or [getDeletedNotes].
+  /// Mainly needed for export / sync operations.
   List<Note> getAllNotes();
 
-  /// Get a note by ID
+  /// Get a note by ID (regardless of deleted state).
   Note? getNoteById(int id);
 
-  /// Create a new note
+  /// Search **active** notes by query.
+  List<Note> searchNotes(String query);
+
+  /// Get **active** notes in a specific folder.
+  List<Note> getNotesByFolder(String folderId);
+
+  /// Get **active** favorite notes.
+  List<Note> getFavoriteNotes();
+
+  /// Get **active** archived notes.
+  List<Note> getArchivedNotes();
+
+  /// Get **active** notes by tag.
+  List<Note> getNotesByTag(String tag);
+
+  /// Get all unique tags (from active notes only).
+  List<String> getAllTags();
+
+  // ───────────────────── Trash / soft-delete queries ─────────────────────
+
+  /// Get all soft-deleted notes (the "Recently Deleted" / trash bin).
+  List<Note> getDeletedNotes();
+
+  // ───────────────────── Mutations ─────────────────────
+
+  /// Create a new note.
   Future<Note> createNote({String? title, String? contentJson, String? folderId, List<int> customTagIds});
 
-  /// Create a new note with preserved timestamps (for import operations)
+  /// Create a new note with preserved timestamps (for import operations).
   Future<Note> createNoteWithTimestamps({
     String? title,
     String? contentJson,
@@ -25,47 +62,35 @@ abstract class INoteRepository {
     DateTime? updatedAt,
     bool isFavorite,
     bool isArchived,
+    bool isDeleted,
+    DateTime? deletedAt,
   });
 
-  /// Update an existing note
+  /// Update an existing note.
   Future<void> updateNote(Note note);
 
-  /// Delete a note by ID
+  /// Permanently remove a note from the database.
   Future<void> deleteNote(int id);
 
-  /// Search notes by query
-  List<Note> searchNotes(String query);
+  // ───────────────────── Statistics (active notes only) ─────────────────────
 
-  /// Get notes by folder ID
-  List<Note> getNotesByFolder(String folderId);
-
-  /// Get favorite notes
-  List<Note> getFavoriteNotes();
-
-  /// Get archived notes
-  List<Note> getArchivedNotes();
-
-  /// Get notes by tag
-  List<Note> getNotesByTag(String tag);
-
-  /// Get all unique tags
-  List<String> getAllTags();
-
-  /// Get total note count
+  /// Total count of **active** notes.
   int get totalNotes;
 
-  /// Get total word count
+  /// Total word count across **active** notes.
   int get totalWords;
 
-  /// Get total character count
+  /// Total character count across **active** notes.
   int get totalCharacters;
 
-  /// Add a listener for data changes
+  // ───────────────────── Lifecycle ─────────────────────
+
+  /// Add a listener for data changes.
   void addListener(Function() listener);
 
-  /// Remove a listener
+  /// Remove a listener.
   void removeListener(Function() listener);
 
-  /// Dispose the repository
+  /// Dispose the repository.
   void dispose();
 }

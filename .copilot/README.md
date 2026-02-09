@@ -1,6 +1,6 @@
-# NoteMinds Copilot Configuration
+# notemyminds Copilot Configuration
 
-This directory contains configuration and instructions for GitHub Copilot to understand and work effectively with the NoteMinds project.
+This directory contains configuration and instructions for GitHub Copilot to understand and work effectively with the notemyminds project.
 
 ## Directory Structure
 
@@ -20,6 +20,7 @@ This directory contains configuration and instructions for GitHub Copilot to und
 ## Configuration
 
 The `config.json` file configures:
+
 - Project metadata
 - Context sources
 - Instruction sources
@@ -28,6 +29,7 @@ The `config.json` file configures:
 ## Context Files
 
 Context files provide Copilot with background information about:
+
 - Project structure and setup
 - Architecture patterns
 - Development workflows
@@ -37,6 +39,7 @@ Context files provide Copilot with background information about:
 ## Instruction Files
 
 Instruction files guide Copilot on:
+
 - Coding patterns and conventions
 - Testing approaches
 - Style guidelines
@@ -45,6 +48,7 @@ Instruction files guide Copilot on:
 ## Usage
 
 Copilot will automatically load this context when:
+
 - Starting a new chat session
 - Analyzing code
 - Making suggestions

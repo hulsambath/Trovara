@@ -1,5 +1,5 @@
-import 'package:noteminds/core/repository/interfaces/custom_tag_repository.dart';
-import 'package:noteminds/models/custom_tag.dart';
+import 'package:notemyminds/core/repository/interfaces/custom_tag_repository.dart';
+import 'package:notemyminds/models/custom_tag.dart';
 
 /// Service layer for custom tag operations
 class CustomTagService {

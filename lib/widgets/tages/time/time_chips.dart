@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:noteminds/models/time_tag.dart';
+import 'package:notemyminds/models/time_tag.dart';
 
 /// A widget that displays time-based tags with automatic suggestions
 class TimeChips extends StatefulWidget {

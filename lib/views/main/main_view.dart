@@ -1,10 +1,10 @@
 import 'package:cupertino_native_better/cupertino_native_better.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:noteminds/core/base/view_model_provider.dart';
-import 'package:noteminds/views/insights/insights_view.dart';
-import 'package:noteminds/views/notes/notes_view.dart';
-import 'package:noteminds/views/setting/setting_view.dart';
-import 'package:noteminds/widgets/util_widgets/connectivity_status.dart';
+import 'package:notemyminds/core/base/view_model_provider.dart';
+import 'package:notemyminds/views/insights/insights_view.dart';
+import 'package:notemyminds/views/notes/notes_view.dart';
+import 'package:notemyminds/views/setting/setting_view.dart';
+import 'package:notemyminds/widgets/util_widgets/connectivity_status.dart';
 
 import 'main_view_model.dart';
 

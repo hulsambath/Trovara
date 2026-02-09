@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:noteminds/views/insights/insights_view_model.dart';
-import 'package:noteminds/views/insights/widgets/month_and_heatmap.dart';
-import 'package:noteminds/views/insights/widgets/weekday_axis.dart';
-import 'package:noteminds/views/insights/widgets/year_axis.dart';
+import 'package:notemyminds/views/insights/insights_view_model.dart';
+import 'package:notemyminds/views/insights/widgets/month_and_heatmap.dart';
+import 'package:notemyminds/views/insights/widgets/weekday_axis.dart';
+import 'package:notemyminds/views/insights/widgets/year_axis.dart';
 
 class HeatmapWithAxes extends StatelessWidget {
   const HeatmapWithAxes({required this.viewModel, super.key});

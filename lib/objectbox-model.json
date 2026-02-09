@@ -59,7 +59,7 @@
     },
     {
       "id": "3:6317312537730891446",
-      "lastPropertyId": "14:4965465751400095188",
+      "lastPropertyId": "17:1193297639825137982",
       "name": "Note",
       "properties": [
         {
@@ -127,6 +127,21 @@
           "id": "14:4965465751400095188",
           "name": "customTagIds",
           "type": 27
+        },
+        {
+          "id": "15:706986872354415990",
+          "name": "isDeleted",
+          "type": 1
+        },
+        {
+          "id": "16:4605642928560755925",
+          "name": "deletedAt",
+          "type": 10
+        },
+        {
+          "id": "17:1193297639825137982",
+          "name": "driveFileId",
+          "type": 9
         }
       ],
       "relations": []

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:noteminds/views/insights/insights_view_model.dart';
-import 'package:noteminds/views/insights/widgets/util.dart';
+import 'package:notemyminds/views/insights/insights_view_model.dart';
+import 'package:notemyminds/views/insights/widgets/util.dart';
 
 class MonthAndHeatmap extends StatelessWidget {
   const MonthAndHeatmap({required this.viewModel, required this.cellSize, required this.cellSpacing, super.key});
