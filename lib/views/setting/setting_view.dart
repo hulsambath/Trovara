@@ -15,6 +15,7 @@ class SettingView extends StatelessWidget {
   @override
   Widget build(BuildContext context) => ViewModelProvider<SettingViewModel>(
     create: (context) => SettingViewModel(),
+    root: true,
     builder: (context, viewModel, child) => _SettingContent(viewModel),
   );
 }

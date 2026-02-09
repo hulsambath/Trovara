@@ -13,6 +13,7 @@ class InsightsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) => ViewModelProvider<InsightsViewModel>(
     create: (context) => InsightsViewModel(),
+    root: true,
     builder: (context, viewModel, child) => _InsightsContent(viewModel),
   );
 }
