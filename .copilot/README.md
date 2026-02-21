@@ -1,6 +1,6 @@
-# notemyminds Copilot Configuration
+# trovara Copilot Configuration
 
-This directory contains configuration and instructions for GitHub Copilot to understand and work effectively with the notemyminds project.
+This directory contains configuration and instructions for GitHub Copilot to understand and work effectively with the trovara project.
 
 ## Directory Structure
 

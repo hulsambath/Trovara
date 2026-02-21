@@ -2,7 +2,7 @@
 
 ## Overview
 
-The NoteMyMinds Trash Feature has been **fully implemented and enhanced** with intelligent timestamp-based sync resolution to ensure trash state is always based on the latest user action across devices.
+The Trovara Trash Feature has been **fully implemented and enhanced** with intelligent timestamp-based sync resolution to ensure trash state is always based on the latest user action across devices.
 
 ## What's Implemented
 

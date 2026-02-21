@@ -1,8 +1,8 @@
-# notemyminds Sync Strategy Documentation
+# trovara Sync Strategy Documentation
 
 ## Overview
 
-notemyminds implements a Git-like sync strategy that ensures data integrity across multiple devices while automatically resolving conflicts. The sync process follows a **Pull → Merge → Push** workflow similar to version control systems.
+trovara implements a Git-like sync strategy that ensures data integrity across multiple devices while automatically resolving conflicts. The sync process follows a **Pull → Merge → Push** workflow similar to version control systems.
 
 ## Sync Workflow
 
@@ -234,7 +234,7 @@ Future<Map<String, dynamic>> mergeWithRemoteData(Map<String, dynamic> remoteData
 ```dart
 Future<void> syncWithGoogleDrive(BuildContext context) async {
   // Step 1: Pull data from Google Drive
-  final driveData = await _driveService.downloadJsonFromAppData('notemyminds_backup.json');
+  final driveData = await _driveService.downloadJsonFromAppData('trovara_backup.json');
 
   // Step 2: Merge local and remote data
   Map<String, dynamic> mergedData;
@@ -246,7 +246,7 @@ Future<void> syncWithGoogleDrive(BuildContext context) async {
   }
 
   // Step 3: Push merged data to Google Drive
-  await _driveService.uploadJsonToAppData(fileName: 'notemyminds_backup.json', json: mergedData);
+  await _driveService.uploadJsonToAppData(fileName: 'trovara_backup.json', json: mergedData);
 }
 ```
 

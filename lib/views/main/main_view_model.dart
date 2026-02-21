@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:notemyminds/core/base/base_view_model.dart';
-import 'package:notemyminds/views/notes/notes_view_model.dart';
+import 'package:trovara/core/base/base_view_model.dart';
+import 'package:trovara/views/notes/notes_view_model.dart';
 
 class MainViewModel extends BaseViewModel {
   void newNote(BuildContext context) {

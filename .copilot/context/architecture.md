@@ -1,4 +1,4 @@
-# notemyminds Architecture
+# trovara Architecture
 
 ## Core Architecture Patterns
 

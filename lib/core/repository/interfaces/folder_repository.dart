@@ -1,4 +1,4 @@
-import 'package:notemyminds/models/folder.dart';
+import 'package:trovara/models/folder.dart';
 
 /// Interface for folder repository operations
 /// Follows Interface Segregation Principle - only folder-related operations

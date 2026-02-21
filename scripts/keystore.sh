@@ -7,7 +7,7 @@ set -euo pipefail
 #   scripts/keystore.sh --env dev [--age-key-file ~/.config/sops/age/keys.txt]
 
 ENVIRONMENT="dev"
-PROJECT="notemyminds"
+PROJECT="trovara"
 AGE_KEY_FILE="${HOME}/.config/sops/age/keys.txt"
 CREDENTIALS_DIR="../credentials"
 

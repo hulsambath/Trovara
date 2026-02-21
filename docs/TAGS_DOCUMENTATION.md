@@ -1,6 +1,6 @@
-# notemyminds Tags System Documentation
+# trovara Tags System Documentation
 
-This document provides comprehensive documentation for the tag system in the notemyminds Flutter application. The app supports four types of tags: Activity, Mood, Time, and Personal Growth tags.
+This document provides comprehensive documentation for the tag system in the trovara Flutter application. The app supports four types of tags: Activity, Mood, Time, and Personal Growth tags.
 
 ## Table of Contents
 
@@ -17,7 +17,7 @@ This document provides comprehensive documentation for the tag system in the not
 
 ## Overview
 
-The notemyminds tag system allows users to categorize and organize their notes using predefined tags. Each tag type serves a specific purpose and provides different ways to filter and organize content.
+The trovara tag system allows users to categorize and organize their notes using predefined tags. Each tag type serves a specific purpose and provides different ways to filter and organize content.
 
 ### Key Features
 
@@ -204,10 +204,10 @@ Smaller versions of chips for use in note cards and lists.
 1. **Import the required widgets**:
 
 ```dart
-import 'package:notemyminds/widgets/tages/activity/activity_icon_button.dart';
-import 'package:notemyminds/widgets/tages/mood/mood_icon_button.dart';
-import 'package:notemyminds/widgets/tages/time/time_icon_button.dart';
-import 'package:notemyminds/widgets/tages/personal_growth/personal_growth_icon_button.dart';
+import 'package:trovara/widgets/tages/activity/activity_icon_button.dart';
+import 'package:trovara/widgets/tages/mood/mood_icon_button.dart';
+import 'package:trovara/widgets/tages/time/time_icon_button.dart';
+import 'package:trovara/widgets/tages/personal_growth/personal_growth_icon_button.dart';
 ```
 
 2. **Add icon buttons to app bar**:
@@ -279,10 +279,10 @@ For better user experience, you can also add chips directly to the note editing 
 
 ```dart
 // Import chips widgets
-import 'package:notemyminds/widgets/tages/activity/activity_chips.dart';
-import 'package:notemyminds/widgets/tages/mood/mood_chips.dart';
-import 'package:notemyminds/widgets/tages/time/time_chips.dart';
-import 'package:notemyminds/widgets/tages/personal_growth/personal_growth_chips.dart';
+import 'package:trovara/widgets/tages/activity/activity_chips.dart';
+import 'package:trovara/widgets/tages/mood/mood_chips.dart';
+import 'package:trovara/widgets/tages/time/time_chips.dart';
+import 'package:trovara/widgets/tages/personal_growth/personal_growth_chips.dart';
 
 // Add to note body
 Column(
@@ -522,4 +522,4 @@ lib/
             └── README.md
 ```
 
-This documentation provides a complete guide to the notemyminds tag system. For specific implementation details, refer to the individual widget and model files.
+This documentation provides a complete guide to the trovara tag system. For specific implementation details, refer to the individual widget and model files.

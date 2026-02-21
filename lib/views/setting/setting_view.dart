@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:notemyminds/core/base/view_model_provider.dart';
-import 'package:notemyminds/core/provider/theme_provider.dart';
-import 'package:notemyminds/core/services/app_icon_service.dart';
+import 'package:trovara/core/base/view_model_provider.dart';
+import 'package:trovara/core/provider/theme_provider.dart';
+import 'package:trovara/core/services/app_icon_service.dart';
 import 'package:provider/provider.dart';
 
 import 'setting_view_model.dart';

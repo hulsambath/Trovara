@@ -1,8 +1,8 @@
-import 'package:notemyminds/core/repository/base/base_repository.dart';
-import 'package:notemyminds/core/repository/base/objectbox_store_manager.dart';
-import 'package:notemyminds/core/repository/interfaces/custom_tag_repository.dart';
-import 'package:notemyminds/models/custom_tag.dart';
-import 'package:notemyminds/objectbox.g.dart';
+import 'package:trovara/core/repository/base/base_repository.dart';
+import 'package:trovara/core/repository/base/objectbox_store_manager.dart';
+import 'package:trovara/core/repository/interfaces/custom_tag_repository.dart';
+import 'package:trovara/models/custom_tag.dart';
+import 'package:trovara/objectbox.g.dart';
 
 /// ObjectBox implementation of custom tag repository
 class ObjectBoxCustomTagRepository extends BaseRepository implements ICustomTagRepository {

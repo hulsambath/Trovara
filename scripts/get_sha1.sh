@@ -5,7 +5,7 @@ set -euo pipefail
 # Usage: ./scripts/get_sha1.sh [--env dev|prod]
 
 ENVIRONMENT="${1:-prod}"
-CREDENTIALS_DIR="../credentials/android/notemyminds/${ENVIRONMENT}"
+CREDENTIALS_DIR="../credentials/android/trovara/${ENVIRONMENT}"
 
 echo "🔍 Getting SHA-1 fingerprints for ${ENVIRONMENT} environment..."
 echo ""
@@ -66,5 +66,5 @@ echo "1. Copy the SHA-1 fingerprints above"
 echo "2. Go to Firebase Console → Project Settings → Your apps → Android app"
 echo "3. Add both SHA-1 fingerprints"
 echo "4. Download google-services.json and place it in android/app/"
-echo "5. Ensure OAuth client ID is configured for package: com.notemyminds.app"
+echo "5. Ensure OAuth client ID is configured for package: com.trovara.app"
 

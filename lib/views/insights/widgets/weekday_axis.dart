@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:notemyminds/constants/device_constants.dart';
+import 'package:trovara/constants/device_constants.dart';
 
 class WeekdayAxisText extends StatelessWidget {
   const WeekdayAxisText({required this.color, required this.headerHeight, super.key});

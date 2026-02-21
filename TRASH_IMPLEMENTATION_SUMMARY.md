@@ -1,8 +1,8 @@
-# NoteMyMinds Trash Feature Implementation - Summary
+# Trovara Trash Feature Implementation - Summary
 
 ## Implementation Complete ✓
 
-A full "Recently Deleted / Move to Bin" feature has been implemented for NoteMyMinds, mirroring Google Drive Trash behavior. The implementation follows the critical principle: **Google Drive is the source of truth**.
+A full "Recently Deleted / Move to Bin" feature has been implemented for Trovara, mirroring Google Drive Trash behavior. The implementation follows the critical principle: **Google Drive is the source of truth**.
 
 ## What Was Implemented
 
@@ -281,7 +281,7 @@ Two comprehensive guides included:
 
 - Auto-purge age: 30 days (configurable in `purgeExpiredDeletedNotes()`)
 - Drive scope: `driveAppdataScope` (AppData folder)
-- Backup filename: `notemyminds_backup.json`
+- Backup filename: `trovara_backup.json`
 
 ### Backwards Compatibility
 

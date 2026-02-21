@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:notemyminds/views/insights/insights_view_model.dart';
+import 'package:trovara/views/insights/insights_view_model.dart';
 
 class YearAxis extends StatelessWidget {
   const YearAxis({required this.viewModel, super.key});

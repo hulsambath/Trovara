@@ -4,11 +4,11 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_quill/flutter_quill.dart';
-import 'package:notemyminds/core/base/base_view_model.dart';
-import 'package:notemyminds/core/di/service_locator.dart';
-import 'package:notemyminds/core/services/custom_tag_service.dart';
-import 'package:notemyminds/core/services/note_service.dart';
-import 'package:notemyminds/models/note.dart';
+import 'package:trovara/core/base/base_view_model.dart';
+import 'package:trovara/core/di/service_locator.dart';
+import 'package:trovara/core/services/custom_tag_service.dart';
+import 'package:trovara/core/services/note_service.dart';
+import 'package:trovara/models/note.dart';
 
 class NoteViewModel extends BaseViewModel {
   final String? title;

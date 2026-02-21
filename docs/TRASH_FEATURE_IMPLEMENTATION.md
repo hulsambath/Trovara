@@ -1,8 +1,8 @@
-# NoteMyMinds Trash/Recently Deleted Feature Implementation
+# Trovara Trash/Recently Deleted Feature Implementation
 
 ## Overview
 
-This document describes the complete implementation of the "Recently Deleted" / Trash feature for NoteMyMinds, which mirrors Google Drive Trash behavior. The feature ensures that:
+This document describes the complete implementation of the "Recently Deleted" / Trash feature for Trovara, which mirrors Google Drive Trash behavior. The feature ensures that:
 
 - **Google Drive is always the source of truth**
 - Notes are soft-deleted (moved to trash), not immediately removed

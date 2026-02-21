@@ -1,4 +1,4 @@
-package com.notemyminds.app;
+package com.trovara.app;
 
 import io.flutter.embedding.android.FlutterActivity;
 

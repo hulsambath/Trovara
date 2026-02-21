@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:notemyminds/core/base/view_model_provider.dart';
-import 'package:notemyminds/views/insights/widgets/heatmap_with_axes.dart';
-import 'package:notemyminds/views/insights/widgets/legend.dart';
+import 'package:trovara/core/base/view_model_provider.dart';
+import 'package:trovara/views/insights/widgets/heatmap_with_axes.dart';
+import 'package:trovara/views/insights/widgets/legend.dart';
 
 import 'insights_view_model.dart';
 

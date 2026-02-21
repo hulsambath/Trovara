@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:in_app_update/in_app_update.dart';
 import 'package:logger/logger.dart';
-import 'package:notemyminds/core/type/app_update_state.dart';
+import 'package:trovara/core/type/app_update_state.dart';
 
 class InAppUpdateProvider extends ChangeNotifier {
   final Logger _logger = Logger();

@@ -1,4 +1,4 @@
-# notemyminds Development Workflows
+# trovara Development Workflows
 
 ## Common Development Tasks
 
@@ -6,17 +6,17 @@
 
 ```bash
 # Development
-./scripts/run_app.sh --notemyminds
+./scripts/run_app.sh --trovara
 
 # With specific device
-./scripts/run_app.sh --notemyminds -d chrome
+./scripts/run_app.sh --trovara -d chrome
 ```
 
 ### Building Releases
 
 ```bash
 # Android APK
-./scripts/build_apk.sh --notemyminds
+./scripts/build_apk.sh --trovara
 
 # Run build_runner
 ./scripts/build_runner.sh

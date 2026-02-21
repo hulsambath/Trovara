@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:logger/logger.dart';
-import 'package:notemyminds/core/base/base_view_model.dart';
-import 'package:notemyminds/core/di/service_locator.dart';
-import 'package:notemyminds/core/services/google_drive_service.dart';
-import 'package:notemyminds/core/services/google_drive_sync_service.dart';
-import 'package:notemyminds/core/services/note_service.dart';
-import 'package:notemyminds/models/note.dart';
+import 'package:trovara/core/base/base_view_model.dart';
+import 'package:trovara/core/di/service_locator.dart';
+import 'package:trovara/core/services/google_drive_service.dart';
+import 'package:trovara/core/services/google_drive_sync_service.dart';
+import 'package:trovara/core/services/note_service.dart';
+import 'package:trovara/models/note.dart';
 
 class NotesViewModel extends BaseViewModel {
   static NotesViewModel? _instance;

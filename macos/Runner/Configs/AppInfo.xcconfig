@@ -5,10 +5,10 @@
 // 'flutter create' template.
 
 // The application's name. By default this is also the title of the Flutter window.
-PRODUCT_NAME = noteminds
+PRODUCT_NAME = Trovara
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.noteminds.app.noteminds
+PRODUCT_BUNDLE_IDENTIFIER = com.trovara.app
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2025 com.noteminds.app. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2025 com.trovara.app. All rights reserved.

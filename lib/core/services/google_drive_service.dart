@@ -4,7 +4,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
-import 'package:notemyminds/core/storage/google_drive_auth_storage.dart';
+import 'package:trovara/core/storage/google_drive_auth_storage.dart';
 
 /// Handles Google authentication and Drive AppData backup/restore.
 class GoogleDriveService {

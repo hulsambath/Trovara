@@ -36,7 +36,7 @@ class _NotesContent extends StatelessWidget {
   Widget _buildAppBar(BuildContext context) => SliverAppBar(
     floating: true,
     snap: true,
-    title: Text('notemyminds', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600)),
+    title: Text('Trovara', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600)),
     actions: [
       IconButton(
         icon: const Icon(Icons.delete_outline),

@@ -1,9 +1,9 @@
-import 'package:notemyminds/core/services/text_parser_service.dart';
-import 'package:notemyminds/models/activity_tag.dart';
-import 'package:notemyminds/models/custom_tag.dart';
-import 'package:notemyminds/models/mood_tag.dart';
-import 'package:notemyminds/models/personal_growth_tag.dart';
-import 'package:notemyminds/models/time_tag.dart';
+import 'package:trovara/core/services/text_parser_service.dart';
+import 'package:trovara/models/activity_tag.dart';
+import 'package:trovara/models/custom_tag.dart';
+import 'package:trovara/models/mood_tag.dart';
+import 'package:trovara/models/personal_growth_tag.dart';
+import 'package:trovara/models/time_tag.dart';
 import 'package:objectbox/objectbox.dart';
 
 @Entity()

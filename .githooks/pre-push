@@ -203,7 +203,7 @@ if [[ $current_branch =~ ^[0-9]+-.*$ ]]; then
     # Add comment to the issue using the MCP API
     mcp github add-issue-comment \
         --owner "hulsambath" \
-        --repo "notemyminds" \
+        --repo "trovara" \
         --issue_number "$issue_number" \
         --body "$pr_body"
 

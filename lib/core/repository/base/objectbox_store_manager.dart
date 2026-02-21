@@ -1,4 +1,4 @@
-import 'package:notemyminds/objectbox.g.dart';
+import 'package:trovara/objectbox.g.dart';
 
 /// Singleton manager for ObjectBox Store
 /// Ensures only one Store instance is created and shared across repositories

@@ -1,10 +1,10 @@
-# notemyminds AI Assistant Guide
+# trovara AI Assistant Guide
 
-This guide helps AI assistants understand the notemyminds project architecture and conventions for effective contributions.
+This guide helps AI assistants understand the trovara project architecture and conventions for effective contributions.
 
 ## Project Overview
 
-notemyminds is a Flutter-based note-taking app with robust tagging, sync, and analytics features. The app uses:
+trovara is a Flutter-based note-taking app with robust tagging, sync, and analytics features. The app uses:
 
 - Flutter SDK ≥3.8.1
 - ObjectBox for local storage
@@ -68,12 +68,12 @@ lib/core/services/
 2. Run app:
 
    ```bash
-   ./scripts/run_app.sh --notemyminds
+   ./scripts/run_app.sh --trovara
    ```
 
 3. Build release:
    ```bash
-   ./scripts/build_apk.sh --notemyminds  # Android
+   ./scripts/build_apk.sh --trovara  # Android
    ```
 
 ### Common Patterns

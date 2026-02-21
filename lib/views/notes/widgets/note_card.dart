@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:notemyminds/core/services/text_parser_service.dart';
-import 'package:notemyminds/models/note.dart';
-import 'package:notemyminds/widgets/tages/activity/activity_chips.dart';
-import 'package:notemyminds/widgets/tages/custom/custom_tags_widget.dart';
-import 'package:notemyminds/widgets/tages/mood/mood_chips.dart';
-import 'package:notemyminds/widgets/tages/personal_growth/personal_growth_chips.dart';
-import 'package:notemyminds/widgets/tages/time/time_chips.dart';
+import 'package:trovara/core/services/text_parser_service.dart';
+import 'package:trovara/models/note.dart';
+import 'package:trovara/widgets/tages/activity/activity_chips.dart';
+import 'package:trovara/widgets/tages/custom/custom_tags_widget.dart';
+import 'package:trovara/widgets/tages/mood/mood_chips.dart';
+import 'package:trovara/widgets/tages/personal_growth/personal_growth_chips.dart';
+import 'package:trovara/widgets/tages/time/time_chips.dart';
 
 class NoteCard extends StatefulWidget {
   const NoteCard({

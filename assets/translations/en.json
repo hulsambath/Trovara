@@ -1,5 +1,5 @@
 {
-  "app_name": "notemyminds",
+  "app_name": "Trovara",
   "msg": {
     "connectivity": {
       "connected": "Connected to internet",
@@ -9,7 +9,7 @@
       "available": "Update Available",
       "downloading": "Downloading update...",
       "ready_to_install": "Update ready to install",
-      "new_version_available": "A new version of notemyminds is available"
+      "new_version_available": "A new version of Trovara is available"
     }
   },
   "btn": {

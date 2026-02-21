@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:notemyminds/global_widgets/cm_change_notifier.dart';
+import 'package:trovara/global_widgets/cm_change_notifier.dart';
 
 class BaseViewModel extends CmChangeNotifier {
   String? perPage(BuildContext context) {

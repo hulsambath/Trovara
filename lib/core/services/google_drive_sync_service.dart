@@ -2,11 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
-import 'package:notemyminds/core/di/service_locator.dart';
-import 'package:notemyminds/core/services/google_drive_service.dart';
-import 'package:notemyminds/core/services/note_service.dart';
-import 'package:notemyminds/widgets/nm_loading_overlay.dart';
-import 'package:notemyminds/widgets/nm_toast.dart';
+import 'package:trovara/core/di/service_locator.dart';
+import 'package:trovara/core/services/google_drive_service.dart';
+import 'package:trovara/core/services/note_service.dart';
+import 'package:trovara/widgets/nm_loading_overlay.dart';
+import 'package:trovara/widgets/nm_toast.dart';
 
 /// Service for handling Google Drive synchronization operations
 class GoogleDriveSyncService {
@@ -27,7 +27,7 @@ class GoogleDriveSyncService {
     try {
       // Step 1: Pull data from Google Drive (with timeout)
       final driveData = await _driveService
-          .downloadJsonFromAppData('notemyminds_backup.json')
+          .downloadJsonFromAppData('trovara_backup.json')
           .timeout(
             const Duration(seconds: 30),
             onTimeout: () {
@@ -73,7 +73,7 @@ class GoogleDriveSyncService {
 
       // Step 3: Push merged data to Google Drive (with timeout)
       await _driveService
-          .uploadJsonToAppData(fileName: 'notemyminds_backup.json', json: mergedData)
+          .uploadJsonToAppData(fileName: 'trovara_backup.json', json: mergedData)
           .timeout(
             const Duration(seconds: 30),
             onTimeout: () {

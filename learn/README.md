@@ -1,6 +1,6 @@
-# notemyminds Learning Resources
+# trovara Learning Resources
 
-Welcome to the notemyminds learning documentation. This directory contains comprehensive guides about different aspects of the notemyminds project.
+Welcome to the trovara learning documentation. This directory contains comprehensive guides about different aspects of the trovara project.
 
 ## Table of Contents
 
@@ -72,7 +72,7 @@ Welcome to the notemyminds learning documentation. This directory contains compr
 2. Run the app:
 
    ```bash
-   ./scripts/run_app.sh --notemyminds
+   ./scripts/run_app.sh --trovara
    ```
 
 3. Start exploring the documentation based on your needs:
