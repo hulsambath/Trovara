@@ -5,9 +5,11 @@ set -euo pipefail
 # Supports automatic credential decryption for builds
 #
 # Usage:
-#   ./scripts/build_apk.sh --notemyminds         # Build with dev credentials (default)
-#   ./scripts/build_apk.sh --notemyminds --prod  # Build with prod credentials
-#   ./scripts/build_apk.sh --notemyminds --dev   # Build with dev credentials explicitly
+#   ./scripts/build_apk.sh -nm                  # Build with dev credentials (default)
+#   ./scripts/build_apk.sh -nm --prod           # Build with prod credentials
+#   ./scripts/build_apk.sh -nm --dev            # Build with dev credentials explicitly
+#   ./scripts/build_apk.sh --notemyminds        # Build with dev credentials (default)
+#   ./scripts/build_apk.sh --notemyminds --prod # Build with prod credentials
 #
 # The script will:
 # 1. Detect the environment (dev/prod) from arguments or default to dev
@@ -22,7 +24,7 @@ DECRYPT_CREDENTIALS=true
 # Parse arguments
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --notemyminds)
+    -nm|--notemyminds)
       PROJECT="notemyminds"
       shift
       ;;
@@ -39,19 +41,19 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --help)
-      echo "Usage: $0 [--notemyminds] [--prod|--dev] [--no-decrypt]"
+      echo "Usage: $0 [-nm|--notemyminds] [--prod|--dev] [--no-decrypt]"
       echo ""
       echo "Options:"
-      echo "  --notemyminds  Build NoteMyMinds APK"
+      echo "  -nm, --notemyminds  Build NoteMyMinds APK"
       echo "  --prod         Use production credentials"
       echo "  --dev          Use development credentials (default)"
       echo "  --no-decrypt   Skip automatic credential decryption"
       echo "  --help         Show this help message"
       echo ""
       echo "Examples:"
-      echo "  $0 --notemyminds                    # Build with dev credentials"
-      echo "  $0 --notemyminds --prod             # Build with prod credentials"
-      echo "  $0 --notemyminds --no-decrypt       # Build without decrypting credentials"
+      echo "  $0 -nm                              # Build with dev credentials"
+      echo "  $0 -nm --prod                       # Build with prod credentials"
+      echo "  $0 -nm --no-decrypt                 # Build without decrypting credentials"
       exit 0
       ;;
     *)
