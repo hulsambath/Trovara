@@ -24,7 +24,7 @@ jobs:
       - name: Generate cache key
         id: cache-key
         run: |
-          echo "key=${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}" >> $GITHUB_OUTPUT
+          echo "key=${{ runner.os }}-pub-${{ hashFiles('**/pubspec.yaml', '**/pubspec.lock') }}" >> $GITHUB_OUTPUT
 
       - name: Cache Pub dependencies
         id: cache
@@ -32,7 +32,6 @@ jobs:
         with:
           path: |
             ~/.pub-cache
-            .dart_tool
           key: ${{ steps.cache-key.outputs.key }}
           restore-keys: |
             ${{ runner.os }}-pub-
@@ -40,12 +39,11 @@ jobs:
       - name: Setup Flutter SDK
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.38.0"
+          flutter-version: "3.41.2"
           channel: "stable"
           cache: true
 
       - name: Install dependencies
-        if: steps.cache.outputs.cache-hit != 'true'
         run: flutter pub get
 
   build-runner:
@@ -61,7 +59,7 @@ jobs:
       - name: Setup Flutter SDK
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.38.0"
+          flutter-version: "3.41.2"
           channel: "stable"
           cache: true
 
@@ -70,13 +68,11 @@ jobs:
         with:
           path: |
             ~/.pub-cache
-            .dart_tool
           key: ${{ needs.setup.outputs.cache-key }}
           restore-keys: |
             ${{ runner.os }}-pub-
 
       - name: Install dependencies
-        if: needs.setup.outputs.cache-hit != 'true'
         run: flutter pub get
 
       - name: Cache build runner output
@@ -108,7 +104,7 @@ jobs:
       - name: Setup Flutter SDK
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.38.0"
+          flutter-version: "3.41.2"
           channel: "stable"
           cache: true
 
@@ -117,13 +113,11 @@ jobs:
         with:
           path: |
             ~/.pub-cache
-            .dart_tool
           key: ${{ needs.setup.outputs.cache-key }}
           restore-keys: |
             ${{ runner.os }}-pub-
 
       - name: Install dependencies
-        if: needs.setup.outputs.cache-hit != 'true'
         run: flutter pub get
 
       - name: Run tests
