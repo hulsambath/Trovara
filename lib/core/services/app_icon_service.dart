@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:dynamic_app_icon_plus/dynamic_app_icon_plus.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_dynamic_icon_plus/flutter_dynamic_icon_plus.dart';
 
 /// Abstraction over dynamic app icon functionality for both Android and iOS.
@@ -35,22 +36,22 @@ class AppIconService {
   /// Use 'default' to restore the primary icon.
   static Future<void> changeIcon(String iconIdentifier) async {
     try {
-      print('AppIconService: Attempting to change icon to "$iconIdentifier"');
+      debugPrint('AppIconService: Attempting to change icon to "$iconIdentifier"');
       if (Platform.isAndroid) {
         await DynamicAppIconPlus.changeIcon(iconIdentifier);
-        print('AppIconService: Android icon changed successfully');
+        debugPrint('AppIconService: Android icon changed successfully');
         return;
       }
       if (Platform.isIOS) {
         await FlutterDynamicIconPlus.setAlternateIconName(
           iconName: iconIdentifier == 'default' ? null : iconIdentifier,
         );
-        print('AppIconService: iOS icon changed successfully');
+        debugPrint('AppIconService: iOS icon changed successfully');
       }
     } catch (e, stackTrace) {
-      print('AppIconService: Failed to change icon to "$iconIdentifier"');
-      print('AppIconService: Error: $e');
-      print('AppIconService: StackTrace: $stackTrace');
+      debugPrint('AppIconService: Failed to change icon to "$iconIdentifier"');
+      debugPrint('AppIconService: Error: $e');
+      debugPrint('AppIconService: StackTrace: $stackTrace');
       rethrow;
     }
   }
