@@ -22,7 +22,7 @@ DECRYPT_CREDENTIALS=true
 # Parse arguments
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --noteminds|--notemyminds)
+    --notemyminds)
       PROJECT="notemyminds"
       shift
       ;;
@@ -39,11 +39,10 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --help)
-      echo "Usage: $0 [--noteminds|--notemyminds] [--prod|--dev] [--no-decrypt]"
+      echo "Usage: $0 [--notemyminds] [--prod|--dev] [--no-decrypt]"
       echo ""
       echo "Options:"
-      echo "  --noteminds    Build NoteMyMinds APK (legacy name)"
-      echo "  --notemyminds  Build NoteMyMinds APK (current name)"
+      echo "  --notemyminds  Build NoteMyMinds APK"
       echo "  --prod         Use production credentials"
       echo "  --dev          Use development credentials (default)"
       echo "  --no-decrypt   Skip automatic credential decryption"
