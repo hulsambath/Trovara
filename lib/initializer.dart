@@ -1,9 +1,10 @@
 import 'dart:io';
 
+import 'package:dynamic_app_icon_plus/dynamic_app_icon_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:noteminds/core/di/service_locator.dart';
-import 'package:noteminds/core/storage/theme_mode_storage.dart';
+import 'package:notemyminds/core/di/service_locator.dart';
+import 'package:notemyminds/core/storage/theme_mode_storage.dart';
 
 class Initializer {
   static Future<void> load() async {
@@ -12,6 +13,10 @@ class Initializer {
     await ServiceLocator().initialize();
     // Initialize Google Drive session (silent restore if previously signed in)
     await ServiceLocator().googleDriveService.initialize();
+    // Initialize dynamic app icon (Android only)
+    if (Platform.isAndroid) {
+      await DynamicAppIconPlus.initialize('icon_config.yaml');
+    }
   }
 
   static String get deviceType {

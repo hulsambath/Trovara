@@ -1,7 +1,7 @@
 import 'dart:collection';
 
-import 'package:noteminds/core/repository/interfaces/note_repository.dart';
-import 'package:noteminds/models/note.dart';
+import 'package:notemyminds/core/repository/interfaces/note_repository.dart';
+import 'package:notemyminds/models/note.dart';
 
 class AnalyticsRepository {
   final INoteRepository noteRepository;

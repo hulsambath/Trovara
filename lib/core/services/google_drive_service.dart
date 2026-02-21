@@ -4,7 +4,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
-import 'package:noteminds/core/storage/google_drive_auth_storage.dart';
+import 'package:notemyminds/core/storage/google_drive_auth_storage.dart';
 
 /// Handles Google authentication and Drive AppData backup/restore.
 class GoogleDriveService {
@@ -144,6 +144,76 @@ class GoogleDriveService {
     final bytes = await media.stream.expand((c) => c).toList();
     final text = utf8.decode(bytes);
     return jsonDecode(text) as Map<String, dynamic>;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Google Drive Trash Operations (Move to Bin, Restore, Permanent Delete)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Move a file to trash on Google Drive.
+  ///
+  /// This sets the `trashed` flag on the Drive file to true,
+  /// mimicking Google Drive's "Move to Trash" behavior.
+  ///
+  /// Throws an exception if the Drive API call fails.
+  /// Returns the updated Drive file.
+  Future<drive.File> moveFileToTrash(String driveFileId) async {
+    await ensureAuthenticatedDriveApi();
+    final driveApi = _driveApi!;
+
+    _logger.i('Moving file $driveFileId to trash');
+    final file = drive.File()..trashed = true;
+    return await driveApi.files.update(file, driveFileId);
+  }
+
+  /// Restore a file from trash on Google Drive.
+  ///
+  /// This sets the `trashed` flag on the Drive file to false,
+  /// restoring it from trash.
+  ///
+  /// Throws an exception if the Drive API call fails.
+  /// Returns the updated Drive file.
+  Future<drive.File> restoreFileFromTrash(String driveFileId) async {
+    await ensureAuthenticatedDriveApi();
+    final driveApi = _driveApi!;
+
+    _logger.i('Restoring file $driveFileId from trash');
+    final file = drive.File()..trashed = false;
+    return await driveApi.files.update(file, driveFileId);
+  }
+
+  /// Permanently delete a file from Google Drive.
+  ///
+  /// This completely removes the file from Drive.
+  /// This action is irreversible.
+  ///
+  /// Throws an exception if the Drive API call fails.
+  Future<void> permanentlyDeleteFile(String driveFileId) async {
+    await ensureAuthenticatedDriveApi();
+    final driveApi = _driveApi!;
+
+    _logger.i('Permanently deleting file $driveFileId');
+    await driveApi.files.delete(driveFileId);
+  }
+
+  /// Get a file's trash state from Google Drive.
+  ///
+  /// Returns true if the file is trashed, false otherwise.
+  /// Returns null if the file doesn't exist or cannot be accessed.
+  Future<bool?> isFileTrashed(String driveFileId) async {
+    try {
+      await ensureAuthenticatedDriveApi();
+      final driveApi = _driveApi!;
+
+      // Get file metadata with trashed field
+      final response = await driveApi.files.get(driveFileId) as drive.File?;
+      if (response == null) return null;
+
+      return response.trashed ?? false;
+    } catch (e) {
+      _logger.w('Failed to check trash status for file $driveFileId: $e');
+      return null;
+    }
   }
 }
 

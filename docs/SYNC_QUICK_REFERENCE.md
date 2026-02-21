@@ -1,4 +1,4 @@
-# NoteMinds Sync Quick Reference
+# notemyminds Sync Quick Reference
 
 ## Core Files
 

@@ -57,6 +57,10 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+configs/notemyminds.json
+configs/notemyminds_dev.json
+configs/notemyminds_prod.json
+
 # Cursor rules
 .cursor/
 ios/Flutter/DartDefines.xcconfig

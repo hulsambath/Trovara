@@ -88,7 +88,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(3, 6317312537730891446),
     name: 'Note',
-    lastPropertyId: const obx_int.IdUid(14, 4965465751400095188),
+    lastPropertyId: const obx_int.IdUid(17, 1193297639825137982),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -167,6 +167,24 @@ final _entities = <obx_int.ModelEntity>[
         id: const obx_int.IdUid(14, 4965465751400095188),
         name: 'customTagIds',
         type: 27,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(15, 706986872354415990),
+        name: 'isDeleted',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(16, 4605642928560755925),
+        name: 'deletedAt',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(17, 1193297639825137982),
+        name: 'driveFileId',
+        type: 9,
         flags: 0,
       ),
     ],
@@ -395,7 +413,10 @@ obx_int.ModelDefinition getObjectBoxModel() {
               .toList(growable: false),
         );
         final customTagIdsOffset = fbb.writeListInt64(object.customTagIds);
-        fbb.startTable(15);
+        final driveFileIdOffset = object.driveFileId == null
+            ? null
+            : fbb.writeString(object.driveFileId!);
+        fbb.startTable(18);
         fbb.addInt64(0, object.id);
         fbb.addOffset(1, titleOffset);
         fbb.addOffset(2, contentJsonOffset);
@@ -409,12 +430,20 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addOffset(11, timeTagsOffset);
         fbb.addOffset(12, personalGrowthTagsOffset);
         fbb.addOffset(13, customTagIdsOffset);
+        fbb.addBool(14, object.isDeleted);
+        fbb.addInt64(15, object.deletedAt?.millisecondsSinceEpoch);
+        fbb.addOffset(16, driveFileIdOffset);
         fbb.finish(fbb.endTable());
         return object.id;
       },
       objectFromFB: (obx.Store store, ByteData fbData) {
         final buffer = fb.BufferContext(fbData);
         final rootOffset = buffer.derefObject(0);
+        final deletedAtValue = const fb.Int64Reader().vTableGetNullable(
+          buffer,
+          rootOffset,
+          34,
+        );
         final idParam = const fb.Int64Reader().vTableGet(
           buffer,
           rootOffset,
@@ -445,6 +474,18 @@ obx_int.ModelDefinition getObjectBoxModel() {
           16,
           false,
         );
+        final isDeletedParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          32,
+          false,
+        );
+        final deletedAtParam = deletedAtValue == null
+            ? null
+            : DateTime.fromMillisecondsSinceEpoch(deletedAtValue);
+        final driveFileIdParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 36);
         final folderIdParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 18, '');
@@ -476,6 +517,9 @@ obx_int.ModelDefinition getObjectBoxModel() {
           updatedAt: updatedAtParam,
           isFavorite: isFavoriteParam,
           isArchived: isArchivedParam,
+          isDeleted: isDeletedParam,
+          deletedAt: deletedAtParam,
+          driveFileId: driveFileIdParam,
           folderId: folderIdParam,
           customTagIds: customTagIdsParam,
           moodTags: moodTagsParam,
@@ -663,6 +707,21 @@ class Note_ {
   /// See [Note.customTagIds].
   static final customTagIds = obx.QueryIntegerVectorProperty<Note>(
     _entities[1].properties[12],
+  );
+
+  /// See [Note.isDeleted].
+  static final isDeleted = obx.QueryBooleanProperty<Note>(
+    _entities[1].properties[13],
+  );
+
+  /// See [Note.deletedAt].
+  static final deletedAt = obx.QueryDateProperty<Note>(
+    _entities[1].properties[14],
+  );
+
+  /// See [Note.driveFileId].
+  static final driveFileId = obx.QueryStringProperty<Note>(
+    _entities[1].properties[15],
   );
 }
 

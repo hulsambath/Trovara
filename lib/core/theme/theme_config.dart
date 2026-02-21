@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:noteminds/constants/config_constants.dart';
+import 'package:notemyminds/constants/config_constants.dart';
 
 class ThemeConfig {
   static Color brandColor = Color(int.parse(ConfigConstants.brandColor.replaceFirst('#', 'FF'), radix: 16));

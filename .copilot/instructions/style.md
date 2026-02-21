@@ -1,12 +1,14 @@
-# NoteMinds Style Guide
+# notemyminds Style Guide
 
 ## Code Style
 
 ### 1. Naming Conventions
 
 #### Classes and Types
+
 - Use PascalCase for class names
 - Add type prefixes for interfaces (`I`) and abstract classes (`Base`)
+
 ```dart
 class NoteViewModel { }
 abstract class BaseViewModel { }
@@ -14,8 +16,10 @@ interface class IRepository { }
 ```
 
 #### Variables and Methods
+
 - Use camelCase for variables and methods
 - Private members start with underscore
+
 ```dart
 final List<Note> notes = [];
 final INoteRepository _repository;
@@ -27,6 +31,7 @@ void _handleError(Exception e) { }
 ### 2. File Organization
 
 #### Directory Structure
+
 ```
 lib/
 ├── core/          # Core functionality
@@ -39,8 +44,10 @@ lib/
 ```
 
 #### File Naming
+
 - Use snake_case for file names
 - Match class name to file name
+
 ```
 note_view.dart → class NoteView
 note_view_model.dart → class NoteViewModel
@@ -50,21 +57,22 @@ custom_widget.dart → class CustomWidget
 ### 3. Code Organization
 
 #### Class Structure
+
 ```dart
 class MyClass {
   // 1. Static properties
   static const defaultValue = 100;
-  
+
   // 2. Instance properties
   final String name;
   bool _isLoading = false;
-  
+
   // 3. Constructors
   MyClass({required this.name});
-  
+
   // 4. Public methods
   void doSomething() { }
-  
+
   // 5. Private methods
   void _helper() { }
 }
@@ -73,6 +81,7 @@ class MyClass {
 ### 4. Documentation
 
 #### Class Documentation
+
 ```dart
 /// A service that manages note synchronization with Google Drive.
 ///
@@ -86,6 +95,7 @@ class NoteSyncService {
 ```
 
 #### Method Documentation
+
 ```dart
 /// Synchronizes local notes with Google Drive.
 ///
@@ -104,6 +114,7 @@ Future<int> synchronize({bool force = false}) async {
 ### 1. Widget Structure
 
 #### Stateless Widgets
+
 ```dart
 class CustomWidget extends StatelessWidget {
   const CustomWidget({
@@ -123,6 +134,7 @@ class CustomWidget extends StatelessWidget {
 ```
 
 #### Complex Layouts
+
 ```dart
 Widget build(BuildContext context) => Scaffold(
   appBar: _buildAppBar(context),
@@ -138,6 +150,7 @@ Widget _buildAppBar(BuildContext context) => AppBar(
 ### 2. Theme Usage
 
 #### Colors
+
 ```dart
 // DO
 final primary = Theme.of(context).colorScheme.primary;
@@ -148,6 +161,7 @@ final color = Colors.blue;
 ```
 
 #### Text Styles
+
 ```dart
 // DO
 Text('Title', style: Theme.of(context).textTheme.titleLarge);
@@ -159,6 +173,7 @@ Text('Title', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold));
 ### 3. Responsive Design
 
 #### Screen Size Adaptation
+
 ```dart
 LayoutBuilder(
   builder: (context, constraints) {
@@ -171,6 +186,7 @@ LayoutBuilder(
 ```
 
 #### Safe Area Usage
+
 ```dart
 SafeArea(
   child: Padding(
@@ -183,6 +199,7 @@ SafeArea(
 ## Best Practices
 
 ### 1. Error Handling
+
 ```dart
 // DO
 try {
@@ -202,6 +219,7 @@ try {
 ```
 
 ### 2. Async Operations
+
 ```dart
 // DO
 Future<void> loadData() async {
@@ -223,6 +241,7 @@ Future<void> loadData() async {
 ```
 
 ### 3. Resource Disposal
+
 ```dart
 // DO
 class MyWidget extends StatefulWidget {
@@ -232,13 +251,13 @@ class MyWidget extends StatefulWidget {
 
 class _MyWidgetState extends State<MyWidget> {
   late final StreamSubscription _subscription;
-  
+
   @override
   void initState() {
     super.initState();
     _subscription = stream.listen((_) {});
   }
-  
+
   @override
   void dispose() {
     _subscription.cancel();

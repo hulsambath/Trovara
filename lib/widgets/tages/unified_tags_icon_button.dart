@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:noteminds/constants/device_constants.dart';
-import 'package:noteminds/core/di/service_locator.dart';
-import 'package:noteminds/core/services/custom_tag_service.dart';
-import 'package:noteminds/models/activity_tag.dart';
-import 'package:noteminds/models/custom_tag.dart';
-import 'package:noteminds/models/mood_tag.dart';
-import 'package:noteminds/models/personal_growth_tag.dart';
-import 'package:noteminds/models/time_tag.dart';
-import 'package:noteminds/widgets/tages/custom/custom_tags_widget.dart';
+import 'package:notemyminds/constants/device_constants.dart';
+import 'package:notemyminds/core/di/service_locator.dart';
+import 'package:notemyminds/core/services/custom_tag_service.dart';
+import 'package:notemyminds/models/activity_tag.dart';
+import 'package:notemyminds/models/custom_tag.dart';
+import 'package:notemyminds/models/mood_tag.dart';
+import 'package:notemyminds/models/personal_growth_tag.dart';
+import 'package:notemyminds/models/time_tag.dart';
+import 'package:notemyminds/widgets/tages/custom/custom_tags_widget.dart';
 
 /// Unified icon button that combines all tag types (activity, mood, time, personal growth, custom)
 /// into a single button to minimize app bar space

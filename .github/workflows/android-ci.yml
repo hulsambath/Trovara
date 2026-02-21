@@ -1,4 +1,4 @@
-name: Android CI (NoteMinds)
+name: Android CI (notemyminds)
 
 on:
   workflow_dispatch:
@@ -25,13 +25,14 @@ jobs:
       matrix:
         include:
           - android-env: dev
-            artifact-name: noteminds-apk-dev
+            artifact-name: notemyminds-apk-dev
           - android-env: prod
-            artifact-name: noteminds-apk-prod
+            artifact-name: notemyminds-apk-prod
     env:
       ANDROID_ENV: ${{ matrix.android-env }}
-      CREDENTIALS_REPO: git@github.com:your-org/noteminds-credentials.git
+      CREDENTIALS_REPO: git@github.com:your-org/notemyminds-credentials.git
       CREDENTIALS_DIR: credentials
+      SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
     steps:
       - name: Checkout repository
         if: |
@@ -39,16 +40,6 @@ jobs:
           github.event.inputs.environment == 'all' ||
           github.event.inputs.environment == matrix.android-env
         uses: actions/checkout@v4
-
-      - name: Set up Java 17
-        if: |
-          github.event_name == 'push' ||
-          github.event.inputs.environment == 'all' ||
-          github.event.inputs.environment == matrix.android-env
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "17"
 
       - name: Set up Flutter
         if: |
@@ -92,8 +83,6 @@ jobs:
           github.event.inputs.environment == 'all' ||
           github.event.inputs.environment == matrix.android-env
         working-directory: ../credentials
-        env:
-          SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
         run: |
           set -euo pipefail
           case "$ANDROID_ENV" in
@@ -127,14 +116,21 @@ jobs:
           github.event.inputs.environment == matrix.android-env
         run: flutter pub get
 
-      - name: Build APK (NoteMinds)
+      - name: Build APK - Dev
         if: |
-          github.event_name == 'push' ||
-          github.event.inputs.environment == 'all' ||
-          github.event.inputs.environment == matrix.android-env
+          (github.event_name == 'push' || github.event.inputs.environment == 'all' || github.event.inputs.environment == 'dev') &&
+          matrix.android-env == 'dev'
         run: |
-          chmod +x scripts/build_apk.sh
-          ./scripts/build_apk.sh --noteminds
+          echo "🔨 Building notemyminds APK for dev environment..."
+          flutter build apk --release --dart-define-from-file=configs/notemyminds_dev.json
+
+      - name: Build APK - Prod
+        if: |
+          (github.event_name == 'push' || github.event.inputs.environment == 'all' || github.event.inputs.environment == 'prod') &&
+          matrix.android-env == 'prod'
+        run: |
+          echo "🔨 Building notemyminds APK for prod environment..."
+          flutter build apk --release --dart-define-from-file=configs/notemyminds_prod.json
 
       - name: Upload APK artifact
         if: |
@@ -145,4 +141,4 @@ jobs:
         with:
           name: ${{ matrix.artifact-name }}
           path: |
-            build/app/outputs/**/*.apk
+            build/app/outputs/flutter-apk/*.apk

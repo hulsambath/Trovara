@@ -1,8 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
-import 'package:noteminds/core/provider/theme_provider.dart';
-import 'package:noteminds/core/route/app_router.dart';
+import 'package:notemyminds/core/provider/theme_provider.dart';
+import 'package:notemyminds/core/route/app_router.dart';
 import 'package:provider/provider.dart';
 
 class App extends StatelessWidget {

@@ -1,26 +1,29 @@
-# NoteMinds Development Workflows
+# notemyminds Development Workflows
 
 ## Common Development Tasks
 
 ### Running the App
+
 ```bash
 # Development
-./scripts/run_app.sh --noteminds
+./scripts/run_app.sh --notemyminds
 
 # With specific device
-./scripts/run_app.sh --noteminds -d chrome
+./scripts/run_app.sh --notemyminds -d chrome
 ```
 
 ### Building Releases
+
 ```bash
 # Android APK
-./scripts/build_apk.sh --noteminds
+./scripts/build_apk.sh --notemyminds
 
 # Run build_runner
 ./scripts/build_runner.sh
 ```
 
 ### Testing
+
 ```bash
 # Run all tests
 flutter test
@@ -32,7 +35,9 @@ flutter test test/widget_test.dart
 ## File Organization
 
 ### Adding New Features
+
 1. Create view files:
+
    ```
    views/new_feature/
    ├── new_feature_view.dart
@@ -50,17 +55,20 @@ flutter test test/widget_test.dart
    ```
 
 ### Adding New Models
+
 1. Create model class with ObjectBox annotations
 2. Run build_runner to generate code
 3. Add repository interface and implementation
 
 ## Code Generation
+
 - ObjectBox models
 - Assets (flutter_gen)
 - Localizations
 - Build configuration
 
 ## Release Process
+
 1. Update version in pubspec.yaml
 2. Run tests and checks
 3. Build release versions

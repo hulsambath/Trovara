@@ -1,6 +1,6 @@
-import 'package:noteminds/core/base/base_view_model.dart';
-import 'package:noteminds/core/di/service_locator.dart';
-import 'package:noteminds/core/repository/analytics_repository.dart';
+import 'package:notemyminds/core/base/base_view_model.dart';
+import 'package:notemyminds/core/di/service_locator.dart';
+import 'package:notemyminds/core/repository/analytics_repository.dart';
 
 class InsightsViewModel extends BaseViewModel {
   late final AnalyticsRepository _analyticsRepository;

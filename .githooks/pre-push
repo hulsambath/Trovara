@@ -29,7 +29,7 @@ changed_files=$(git diff --name-status $base_branch..$current_branch)
 analyze_changes() {
     local file="$1"
     local change_type="$2"
-    
+
     case $change_type in
         M) local status="Modified";;
         A) local status="Added";;
@@ -37,18 +37,18 @@ analyze_changes() {
         R) local status="Renamed";;
         *) local status="Changed";;
     esac
-    
+
     if [[ -f "$file" ]]; then
         # Get file extension
         local ext="${file##*.}"
-        
+
         case $ext in
             dart)
                 # Analyze Dart files
                 local class_changes=$(git diff $base_branch..$current_branch "$file" | grep '^[+-].*class' | wc -l)
                 local function_changes=$(git diff $base_branch..$current_branch "$file" | grep '^[+-].*\b\(void\|Future\|String\|int\|bool\|double\|List\|Map\|Widget\)\b.*(.*)' | wc -l)
                 local state_changes=$(git diff $base_branch..$current_branch "$file" | grep '^[+-].*\b\(State\|Provider\|ChangeNotifier\)\b' | wc -l)
-                
+
                 echo "  - $status \`$file\`"
                 [[ $class_changes -gt 0 ]] && echo "    - Classes modified: $class_changes"
                 [[ $function_changes -gt 0 ]] && echo "    - Functions/methods modified: $function_changes"
@@ -68,11 +68,11 @@ analyze_changes() {
 # Generate change summary
 generate_summary() {
     local files_by_type=()
-    
+
     # Categorize changes
     echo "## � Changes Summary"
     echo ""
-    
+
     # UI Changes (views and widgets)
     if git diff --name-only $base_branch..$current_branch | grep -q "^lib/\(views\|widgets\)/"; then
         echo "### 🎨 UI Changes"
@@ -86,7 +86,7 @@ generate_summary() {
         done <<< "$changed_files"
         echo ""
     fi
-    
+
     # Model Changes
     if git diff --name-only $base_branch..$current_branch | grep -q "^lib/models/"; then
         echo "### 🔧 Model Changes"
@@ -100,7 +100,7 @@ generate_summary() {
         done <<< "$changed_files"
         echo ""
     fi
-    
+
     # Core Changes
     if git diff --name-only $base_branch..$current_branch | grep -q "^lib/core/"; then
         echo "### ⚙️ Core Changes"
@@ -114,7 +114,7 @@ generate_summary() {
         done <<< "$changed_files"
         echo ""
     fi
-    
+
     # Test Changes
     if git diff --name-only $base_branch..$current_branch | grep -q "^test/"; then
         echo "### 🧪 Test Changes"
@@ -128,7 +128,7 @@ generate_summary() {
         done <<< "$changed_files"
         echo ""
     fi
-    
+
     # Other Changes
     if git diff --name-only $base_branch..$current_branch | grep -qv "^lib/\|^test/"; then
         echo "### 📦 Other Changes"
@@ -142,33 +142,33 @@ generate_summary() {
         done <<< "$changed_files"
         echo ""
     fi
-    
+
     # Impact Analysis
     echo "### 🎯 Impact Analysis"
     echo ""
-    
+
     # Count total changes
     local total_files=$(git diff --name-only $base_branch..$current_branch | wc -l)
     local additions=$(git diff --stat $base_branch..$current_branch | tail -n 1 | grep -o '[0-9]\+ insertion' | grep -o '[0-9]\+')
     local deletions=$(git diff --stat $base_branch..$current_branch | tail -n 1 | grep -o '[0-9]\+ deletion' | grep -o '[0-9]\+')
-    
+
     echo "- Total files changed: $total_files"
     [[ ! -z "$additions" ]] && echo "- Lines added: $additions"
     [[ ! -z "$deletions" ]] && echo "- Lines removed: $deletions"
     echo ""
-    
+
     # Commits included
     echo "### 🔄 Commits Included"
     echo ""
     git log $base_branch..$current_branch --pretty=format:"- %s%n  %b" --reverse
     echo ""
-    
+
     # Testing Notes
     echo "### 🧪 Testing Notes"
     echo ""
     echo "The following areas should be tested:"
     echo ""
-    
+
     if git diff --name-only $base_branch..$current_branch | grep -q "^lib/views/"; then
         echo "- [ ] UI functionality"
         echo "- [ ] Layout on different screen sizes"
@@ -199,13 +199,13 @@ echo -e "${BLUE}📝 Saved to $pr_desc_file${NC}"
 if [[ $current_branch =~ ^[0-9]+-.*$ ]]; then
     issue_number=$(echo $current_branch | cut -d'-' -f1)
     echo -e "${BLUE}🔄 Adding PR description as comment to issue #$issue_number...${NC}"
-    
+
     # Add comment to the issue using the MCP API
     mcp github add-issue-comment \
         --owner "hulsambath" \
-        --repo "noteminds" \
+        --repo "notemyminds" \
         --issue_number "$issue_number" \
         --body "$pr_body"
-        
+
     echo -e "${GREEN}✅ Comment added to issue #$issue_number${NC}"
 fi

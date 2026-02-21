@@ -1,7 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
-import 'package:noteminds/core/di/service_locator.dart';
+import 'package:notemyminds/core/di/service_locator.dart';
 
 /// Utility service for seeding local ObjectBox with mock notes data.
 /// This is intended for development only.

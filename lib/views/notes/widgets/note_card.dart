@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:noteminds/core/services/text_parser_service.dart';
-import 'package:noteminds/models/note.dart';
-import 'package:noteminds/widgets/tages/activity/activity_chips.dart';
-import 'package:noteminds/widgets/tages/custom/custom_tags_widget.dart';
-import 'package:noteminds/widgets/tages/mood/mood_chips.dart';
-import 'package:noteminds/widgets/tages/personal_growth/personal_growth_chips.dart';
-import 'package:noteminds/widgets/tages/time/time_chips.dart';
+import 'package:notemyminds/core/services/text_parser_service.dart';
+import 'package:notemyminds/models/note.dart';
+import 'package:notemyminds/widgets/tages/activity/activity_chips.dart';
+import 'package:notemyminds/widgets/tages/custom/custom_tags_widget.dart';
+import 'package:notemyminds/widgets/tages/mood/mood_chips.dart';
+import 'package:notemyminds/widgets/tages/personal_growth/personal_growth_chips.dart';
+import 'package:notemyminds/widgets/tages/time/time_chips.dart';
 
 class NoteCard extends StatefulWidget {
   const NoteCard({
@@ -157,11 +157,17 @@ class _NoteCardState extends State<NoteCard> {
                 children: [
                   Icon(Icons.access_time, size: 14, color: Theme.of(context).colorScheme.onSurfaceVariant),
                   const SizedBox(width: 4),
-                  Text(
-                    'Created: ${_formatDate(widget.note.createdAt)} • Updated: ${_formatDate(widget.note.updatedAt)}',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  Expanded(
+                    child: Text(
+                      widget.note.isDeleted && widget.note.deletedAt != null
+                          ? 'Deleted: ${_getTimeAgoString(widget.note.deletedAt!)}'
+                          : 'Created: ${_formatDate(widget.note.createdAt)} • Updated: ${_formatDate(widget.note.updatedAt)}',
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                 ],
               ),
@@ -173,4 +179,29 @@ class _NoteCardState extends State<NoteCard> {
   );
 
   String _formatDate(DateTime date) => '${date.day}/${date.month}/${date.year}';
+
+  /// Format a DateTime as relative time (e.g., "2 hours ago", "3 days ago")
+  String _getTimeAgoString(DateTime dateTime) {
+    final now = DateTime.now();
+    final difference = now.difference(dateTime);
+
+    if (difference.inSeconds < 60) {
+      return '${difference.inSeconds}s ago';
+    } else if (difference.inMinutes < 60) {
+      return '${difference.inMinutes}m ago';
+    } else if (difference.inHours < 24) {
+      return '${difference.inHours}h ago';
+    } else if (difference.inDays < 7) {
+      return '${difference.inDays}d ago';
+    } else if (difference.inDays < 30) {
+      final weeks = (difference.inDays / 7).floor();
+      return '${weeks}w ago';
+    } else if (difference.inDays < 365) {
+      final months = (difference.inDays / 30).floor();
+      return '${months}mo ago';
+    } else {
+      final years = (difference.inDays / 365).floor();
+      return '${years}y ago';
+    }
+  }
 }

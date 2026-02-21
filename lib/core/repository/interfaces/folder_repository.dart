@@ -1,4 +1,4 @@
-import 'package:noteminds/models/folder.dart';
+import 'package:notemyminds/models/folder.dart';
 
 /// Interface for folder repository operations
 /// Follows Interface Segregation Principle - only folder-related operations

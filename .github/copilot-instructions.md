@@ -1,10 +1,10 @@
-# NoteMinds AI Assistant Guide
+# notemyminds AI Assistant Guide
 
-This guide helps AI assistants understand the NoteMinds project architecture and conventions for effective contributions.
+This guide helps AI assistants understand the notemyminds project architecture and conventions for effective contributions.
 
 ## Project Overview
 
-NoteMinds is a Flutter-based note-taking app with robust tagging, sync, and analytics features. The app uses:
+notemyminds is a Flutter-based note-taking app with robust tagging, sync, and analytics features. The app uses:
 
 - Flutter SDK ≥3.8.1
 - ObjectBox for local storage
@@ -17,6 +17,7 @@ NoteMinds is a Flutter-based note-taking app with robust tagging, sync, and anal
 ### 1. Tag System
 
 The app uses a sophisticated tagging system with four types:
+
 - Activity tags (work, home, etc.)
 - Mood tags (happy, sad, etc.)
 - Time tags (morning, afternoon, etc.)
@@ -24,6 +25,7 @@ The app uses a sophisticated tagging system with four types:
 - Custom tags (user-defined)
 
 File structure:
+
 ```
 lib/models/
   ├── activity_tag.dart
@@ -35,15 +37,17 @@ lib/models/
 ### 2. Repository Pattern
 
 All data access follows repository pattern with clear interfaces:
+
 ```dart
 // Example structure in lib/core/repository/
 interface INoteRepository { ... }
 class ObjectBoxNoteRepository implements INoteRepository { ... }
 ```
 
-### 3. Service Layer 
+### 3. Service Layer
 
 Services handle business logic and coordinate between repositories:
+
 ```
 lib/core/services/
   ├── note_service.dart      // Note operations
@@ -55,32 +59,36 @@ lib/core/services/
 ### Building & Running
 
 1. Configure environment:
+
    ```bash
    flutter pub get
    ./scripts/build_runner.sh  # Generate ObjectBox code
    ```
 
 2. Run app:
+
    ```bash
-   ./scripts/run_app.sh --noteminds
+   ./scripts/run_app.sh --notemyminds
    ```
 
 3. Build release:
    ```bash
-   ./scripts/build_apk.sh --noteminds  # Android
+   ./scripts/build_apk.sh --notemyminds  # Android
    ```
 
 ### Common Patterns
 
 1. **State Management**: Use Provider with ChangeNotifier
+
    ```dart
    class NoteViewModel extends ChangeNotifier {
      final INoteRepository _repository;
-     // ... 
+     // ...
    }
    ```
 
 2. **Navigation**: Use go_router with named routes
+
    ```dart
    GoRoute(path: '/notes', name: 'notes', ...)
    ```

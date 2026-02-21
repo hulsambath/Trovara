@@ -1,7 +1,9 @@
-# NoteMinds Project Context
+# notemyminds Project Context
 
 ## Project Overview
-NoteMinds is a Flutter-based note-taking application with advanced features including:
+
+notemyminds is a Flutter-based note-taking application with advanced features including:
+
 - Rich text editing with flutter_quill
 - Comprehensive tagging system (Activity, Mood, Time, Personal Growth tags)
 - Google Drive synchronization
@@ -9,6 +11,7 @@ NoteMinds is a Flutter-based note-taking application with advanced features incl
 - Internationalization support (English, Khmer)
 
 ## Technical Stack
+
 - Flutter SDK ≥3.8.1
 - ObjectBox for local storage
 - Provider for state management
@@ -17,6 +20,7 @@ NoteMinds is a Flutter-based note-taking application with advanced features incl
 - Google Drive API for cloud sync
 
 ## Key Dependencies
+
 ```yaml
 dependencies:
   go_router: ^14.6.2
@@ -30,6 +34,7 @@ dependencies:
 ```
 
 ## Project Structure
+
 ```
 lib/
 ├── core/          # Core functionality
@@ -40,11 +45,13 @@ lib/
 ```
 
 ## Environment Configuration
-The app uses `configs/noteminds.json` for environment configuration:
+
+The app uses `configs/notemyminds.json` for environment configuration:
+
 ```json
 {
-  "APP_NAME": "NoteMinds",
-  "APP_SCHEME": "noteminds",
+  "APP_NAME": "notemyminds",
+  "APP_SCHEME": "notemyminds",
   "APP_COLOR": "#2196F3"
 }
 ```

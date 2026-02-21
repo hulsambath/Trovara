@@ -1,9 +1,11 @@
-# NoteMinds Project Overview
+# notemyminds Project Overview
 
 ## Introduction
-NoteMinds is a Flutter-based note-taking application with advanced features like tagging, insights, and Google Drive synchronization. 
+
+notemyminds is a Flutter-based note-taking application with advanced features like tagging, insights, and Google Drive synchronization.
 
 ## Technical Stack
+
 - Flutter SDK ≥3.8.1
 - ObjectBox for local storage
 - Provider for state management
@@ -15,6 +17,7 @@ NoteMinds is a Flutter-based note-taking application with advanced features like
 ## Core Architecture
 
 ### 1. Application Structure
+
 ```
 lib/
 ├── app.dart               # Main MaterialApp configuration
@@ -27,21 +30,25 @@ lib/
 ### 2. Key Components
 
 #### State Management
+
 - Uses Provider pattern with ViewModelProvider wrapper
 - Each view has corresponding ViewModel extending BaseViewModel
 - Global state managed through ProviderScope
 
 #### Navigation
+
 - go_router for declarative routing
 - Shell route pattern for persistent bottom navigation
 - Main routes: notes, insights, settings
 
 #### Data Layer
+
 - ObjectBox for local persistence
 - Repository pattern for data access
 - Service layer for business logic
 
 #### UI Architecture
+
 - Follows MVVM pattern:
   - View (UI layer)
   - ViewModel (presentation logic)
@@ -58,21 +65,25 @@ lib/
 ### 3. Core Features
 
 #### Tagging System
+
 - Multiple tag types (Activity, Mood, Time, Personal Growth)
 - Custom user-defined tags
 - Tag-based filtering and organization
 
 #### Notes Management
+
 - Rich text editing with flutter_quill
 - Tag-based organization
 - Local storage with ObjectBox
 
 #### Google Drive Sync
+
 - Bidirectional synchronization
 - Conflict resolution
 - OAuth authentication
 
 #### Insights
+
 - Note analytics and visualization
 - Activity heatmaps
 - Tag usage statistics
@@ -94,6 +105,7 @@ void main() async {
 ### 5. Configuration
 
 Application configuration is managed through:
-- `configs/noteminds.json` - Environment variables
+
+- `configs/notemyminds.json` - Environment variables
 - `lib/constants/` - App-wide constants
 - Analysis options for code style

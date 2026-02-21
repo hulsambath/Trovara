@@ -1,4 +1,4 @@
-import 'package:noteminds/core/storage/storage_adapter/base_storage_adapter.dart';
+import 'package:notemyminds/core/storage/storage_adapter/base_storage_adapter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SharePreferencesAdapter<T> extends BaseStorageAdapter<T> {

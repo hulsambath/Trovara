@@ -1,8 +1,8 @@
 {
-  "projectName": "NoteMinds",
+  "projectName": "notemyminds",
   "repositoryContext": {
     "owner": "hulsambath",
-    "repository": "noteminds",
+    "repository": "notemyminds",
     "defaultBranch": "develop"
   },
   "contextSources": [
@@ -18,6 +18,9 @@
   "settings": {
     "enableAutomaticContext": true,
     "enableLearningContext": true,
-    "languagePreferences": ["dart", "flutter"]
+    "languagePreferences": [
+      "dart",
+      "flutter"
+    ]
   }
 }
