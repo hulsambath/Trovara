@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:notemyminds/models/personal_growth_tag.dart';
+import 'package:trovara/models/personal_growth_tag.dart';
 
 /// A widget that displays personal growth tags as selectable ChoiceChips in a horizontal scrollable list
 class PersonalGrowthChips extends StatelessWidget {

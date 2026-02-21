@@ -3,8 +3,185 @@
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
+
+# ============================================================
+# 🔐 CREDENTIAL & SENSITIVE DATA GUARD
+# Prevents accidental commits of secrets, keys, and credentials
+# Compatible with macOS (BSD grep, Bash 3.x)
+# ============================================================
+
+echo -e "${BLUE}🔐 Scanning staged files for sensitive data...${NC}"
+
+# Get staged files (only added/modified, not deleted)
+staged_files_for_scan=$(git diff --cached --name-only --diff-filter=ACM)
+
+BLOCKED=false
+WARNINGS=""
+
+# --- 1. Block sensitive file patterns ---
+SENSITIVE_FILE_PATTERNS=(
+  '\.env$'
+  '\.env\.'
+  '\.pem$'
+  '\.p12$'
+  '\.pfx$'
+  '\.key$'
+  '\.keystore$'
+  '\.jks$'
+  'keystore\.properties'
+  'service.account.*\.json'
+  'credentials\.json'
+  'client_secret.*\.json'
+  '\.secret$'
+  'id_rsa'
+  'id_ed25519'
+)
+
+for file in $staged_files_for_scan; do
+  for pattern in "${SENSITIVE_FILE_PATTERNS[@]}"; do
+    if echo "$file" | grep -qiE "$pattern"; then
+      WARNINGS="${WARNINGS}\n  ${RED}🚫 Sensitive file: ${file}${NC} (matches: ${pattern})"
+      BLOCKED=true
+    fi
+  done
+done
+
+# --- 2. Scan file contents for secret patterns ---
+# Using simple patterns compatible with macOS BSD grep -E
+# Each entry: "pattern:::description"
+SECRET_RULES=(
+  'AIza[0-9A-Za-z_-]+:::Google API Key'
+  'AKIA[0-9A-Z]+:::AWS Access Key ID'
+  'sk-[a-zA-Z0-9]+:::OpenAI / Stripe Secret Key'
+  'ghp_[a-zA-Z0-9]+:::GitHub Personal Access Token'
+  'gho_[a-zA-Z0-9]+:::GitHub OAuth Token'
+  'github_pat_[a-zA-Z0-9_]+:::GitHub Fine-grained PAT'
+  'xox[bpoas]-[a-zA-Z0-9_-]+:::Slack Token'
+  'sk_live_[a-zA-Z0-9]+:::Stripe Live Key'
+  'rk_live_[a-zA-Z0-9]+:::Stripe Restricted Key'
+  'BEGIN.*PRIVATE KEY:::Private Key Block'
+  'BEGIN CERTIFICATE:::Certificate Block'
+  '"private_key"[[:space:]]*:.*-----:::Firebase/GCP Private Key'
+  '"private_key_id"[[:space:]]*::::Firebase/GCP Private Key ID'
+)
+
+# Case-insensitive key=value patterns (high-signal, fewer false positives)
+SECRET_KV_RULES=(
+  'api_key[[:space:]]*=[[:space:]]*"[^"]+:::Hardcoded API Key'
+  'api_secret[[:space:]]*=[[:space:]]*"[^"]+:::Hardcoded API Secret'
+  'access_token[[:space:]]*=[[:space:]]*"[^"]+:::Hardcoded Access Token'
+  'client_secret[[:space:]]*=[[:space:]]*"[^"]+:::Hardcoded Client Secret'
+  'secret_key[[:space:]]*=[[:space:]]*"[^"]+:::Hardcoded Secret Key'
+  'database_url[[:space:]]*=[[:space:]]*"[^"]+:::Hardcoded Database URL'
+  'mongodb://[^[:space:]]+:::MongoDB Connection String'
+  'postgres://[^[:space:]]+:::PostgreSQL Connection String'
+  'mysql://[^[:space:]]+:::MySQL Connection String'
+  'redis://[^[:space:]]+:::Redis Connection String'
+)
+
+# File extensions to scan (skip binaries and assets)
+is_scannable() {
+  case "$1" in
+    *.dart|*.json|*.yaml|*.yml|*.xml|*.properties|*.gradle|*.kts|*.sh|*.bash) return 0 ;;
+    *.md|*.txt|*.env|*.cfg|*.conf|*.ini|*.toml|*.js|*.ts|*.html|*.css) return 0 ;;
+    *.py|*.rb|*.go|*.rs|*.java|*.kt|*.swift|*.h|*.m|*.c|*.cpp) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+scan_with_rules() {
+  local file="$1"
+  local content="$2"
+  shift 2
+  local rules=("$@")
+
+  for rule in "${rules[@]}"; do
+    local pattern="${rule%%:::*}"
+    local description="${rule##*:::}"
+    if echo "$content" | grep -qE "$pattern"; then
+      local match_preview
+      match_preview=$(echo "$content" | grep -E "$pattern" | head -1 | sed 's/^+//' | cut -c1-80)
+      WARNINGS="${WARNINGS}\n  ${RED}🔑 ${description}${NC} in ${YELLOW}${file}${NC}"
+      WARNINGS="${WARNINGS}\n     └─ ${RED}${match_preview}...${NC}"
+      BLOCKED=true
+    fi
+  done
+}
+
+scan_with_rules_ci() {
+  local file="$1"
+  local content="$2"
+  shift 2
+  local rules=("$@")
+
+  for rule in "${rules[@]}"; do
+    local pattern="${rule%%:::*}"
+    local description="${rule##*:::}"
+    if echo "$content" | grep -qiE "$pattern"; then
+      local match_preview
+      match_preview=$(echo "$content" | grep -iE "$pattern" | head -1 | sed 's/^+//' | cut -c1-80)
+      WARNINGS="${WARNINGS}\n  ${RED}🔑 ${description}${NC} in ${YELLOW}${file}${NC}"
+      WARNINGS="${WARNINGS}\n     └─ ${RED}${match_preview}...${NC}"
+      BLOCKED=true
+    fi
+  done
+}
+
+for file in $staged_files_for_scan; do
+  # Skip non-scannable files
+  if ! is_scannable "$file"; then
+    continue
+  fi
+
+  # Skip files that don't exist
+  if [ ! -f "$file" ]; then
+    continue
+  fi
+
+  # Get only the NEW lines from staged content (not the working tree version)
+  staged_content=$(git diff --cached -p "$file" | grep '^+' | grep -v '^+++')
+
+  # Check case-sensitive patterns (API keys, tokens, etc.)
+  scan_with_rules "$file" "$staged_content" "${SECRET_RULES[@]}"
+
+  # Check case-insensitive patterns (key=value assignments, connection strings)
+  scan_with_rules_ci "$file" "$staged_content" "${SECRET_KV_RULES[@]}"
+done
+
+# --- 3. Report results ---
+if [ "$BLOCKED" = true ]; then
+  echo ""
+  echo -e "${RED}╔══════════════════════════════════════════════════════════════╗${NC}"
+  echo -e "${RED}║          🚨 COMMIT BLOCKED — SECRETS DETECTED 🚨           ║${NC}"
+  echo -e "${RED}╠══════════════════════════════════════════════════════════════╣${NC}"
+  echo -e "${RED}║  Sensitive data was found in your staged changes.           ║${NC}"
+  echo -e "${RED}║  Please remove the secrets before committing.               ║${NC}"
+  echo -e "${RED}╚══════════════════════════════════════════════════════════════╝${NC}"
+  echo ""
+  echo -e "${RED}Findings:${NC}"
+  echo -e "$WARNINGS"
+  echo ""
+  echo -e "${BLUE}💡 How to fix:${NC}"
+  echo -e "   1. Move secrets to environment variables or config files"
+  echo -e "   2. Add the file to ${YELLOW}.gitignore${NC}"
+  echo -e "   3. Use ${YELLOW}--dart-define-from-file${NC} for Flutter configs"
+  echo -e "   4. Unstage the file: ${YELLOW}git reset HEAD <file>${NC}"
+  echo -e ""
+  echo -e "   To bypass (${RED}NOT recommended${NC}): ${YELLOW}git commit --no-verify${NC}"
+  echo ""
+  exit 1
+fi
+
+echo -e "${GREEN}🔐 No secrets detected — safe to commit${NC}"
+echo ""
+
+# ============================================================
+# 📝 COMMIT MESSAGE GENERATOR
+# (macOS Bash 3.x compatible — no associative arrays)
+# ============================================================
 
 echo -e "${BLUE}🔍 Analyzing changes for commit description...${NC}"
 
@@ -20,45 +197,30 @@ fi
 # Create a temporary file for the commit message
 temp_msg_file=".git/COMMIT_EDITMSG.tmp"
 
-# Start building the commit message
-echo "# Commit Summary" > $temp_msg_file
-echo "" >> $temp_msg_file
+# Use temp files per category (Bash 3.x compatible — no associative arrays)
+tmp_dir=$(mktemp -d)
+trap "rm -rf $tmp_dir" EXIT
 
 # Function to categorize changes
-categorize_changes() {
+categorize_file() {
     local file="$1"
-    if [[ $file == lib/* ]]; then
-        if [[ $file == lib/views/* ]]; then
-            echo "UI_CHANGES"
-        elif [[ $file == lib/models/* ]]; then
-            echo "MODEL_CHANGES"
-        elif [[ $file == lib/core/* ]]; then
-            echo "CORE_CHANGES"
-        elif [[ $file == lib/widgets/* ]]; then
-            echo "WIDGET_CHANGES"
-        else
-            echo "CODE_CHANGES"
-        fi
-    elif [[ $file == test/* ]]; then
-        echo "TEST_CHANGES"
-    elif [[ $file == assets/* ]]; then
-        echo "ASSET_CHANGES"
-    elif [[ $file == docs/* ]]; then
-        echo "DOC_CHANGES"
-    else
-        echo "OTHER_CHANGES"
-    fi
+    case "$file" in
+        lib/views/*)   echo "UI_CHANGES" ;;
+        lib/models/*)  echo "MODEL_CHANGES" ;;
+        lib/core/*)    echo "CORE_CHANGES" ;;
+        lib/widgets/*) echo "WIDGET_CHANGES" ;;
+        lib/*)         echo "CODE_CHANGES" ;;
+        test/*)        echo "TEST_CHANGES" ;;
+        assets/*)      echo "ASSET_CHANGES" ;;
+        docs/*)        echo "DOC_CHANGES" ;;
+        *)             echo "OTHER_CHANGES" ;;
+    esac
 }
 
-# Initialize category arrays
-declare -A categories
-declare -A files_by_category
-
-# Categorize changes
+# Categorize all staged files into temp files
 for file in $staged_files; do
-    category=$(categorize_changes "$file")
-    categories["$category"]=1
-    files_by_category["$category"]+="$file"$'\n'
+    category=$(categorize_file "$file")
+    echo "$file" >> "$tmp_dir/$category"
 done
 
 # Function to get change type (added, modified, deleted)
@@ -81,78 +243,75 @@ get_change_type() {
 get_diff_stats() {
     local file="$1"
     if [ -f "$file" ]; then
-        local added=$(git diff --cached "$file" | grep -e "^+" | wc -l)
-        local removed=$(git diff --cached "$file" | grep -e "^-" | wc -l)
+        local added=$(git diff --cached "$file" | grep -c "^+")
+        local removed=$(git diff --cached "$file" | grep -c "^-")
         echo "(+$added/-$removed)"
     fi
 }
 
-# Add category summaries to commit message
-for category in "${!categories[@]}"; do
-    case $category in
-        "UI_CHANGES")
-            echo "## 🎨 UI Changes" >> $temp_msg_file
-            ;;
-        "MODEL_CHANGES")
-            echo "## 🔧 Model Changes" >> $temp_msg_file
-            ;;
-        "CORE_CHANGES")
-            echo "## ⚙️ Core Changes" >> $temp_msg_file
-            ;;
-        "WIDGET_CHANGES")
-            echo "## 🧩 Widget Changes" >> $temp_msg_file
-            ;;
-        "TEST_CHANGES")
-            echo "## 🧪 Test Changes" >> $temp_msg_file
-            ;;
-        "ASSET_CHANGES")
-            echo "## 🖼️ Asset Changes" >> $temp_msg_file
-            ;;
-        "DOC_CHANGES")
-            echo "## 📚 Documentation Changes" >> $temp_msg_file
-            ;;
-        *)
-            echo "## 📦 Other Changes" >> $temp_msg_file
-            ;;
+# Start building the commit message
+echo "# Commit Summary" > "$temp_msg_file"
+echo "" >> "$temp_msg_file"
+
+# Category display order and labels
+CATEGORY_ORDER="UI_CHANGES MODEL_CHANGES CORE_CHANGES WIDGET_CHANGES CODE_CHANGES TEST_CHANGES ASSET_CHANGES DOC_CHANGES OTHER_CHANGES"
+
+category_label() {
+    case "$1" in
+        UI_CHANGES)     echo "## 🎨 UI Changes" ;;
+        MODEL_CHANGES)  echo "## 🔧 Model Changes" ;;
+        CORE_CHANGES)   echo "## ⚙️ Core Changes" ;;
+        WIDGET_CHANGES) echo "## 🧩 Widget Changes" ;;
+        CODE_CHANGES)   echo "## 💻 Code Changes" ;;
+        TEST_CHANGES)   echo "## 🧪 Test Changes" ;;
+        ASSET_CHANGES)  echo "## 🖼️ Asset Changes" ;;
+        DOC_CHANGES)    echo "## 📚 Documentation Changes" ;;
+        OTHER_CHANGES)  echo "## 📦 Other Changes" ;;
     esac
-    
-    echo "" >> $temp_msg_file
-    
-    # Add files under each category with their change type and stats
-    while IFS= read -r file; do
-        if [ ! -z "$file" ]; then
-            change_type=$(get_change_type "$file")
-            diff_stats=$(get_diff_stats "$file")
-            echo "- ${change_type} \`${file}\` ${diff_stats}" >> $temp_msg_file
-        fi
-    done <<< "${files_by_category[$category]}"
-    
-    echo "" >> $temp_msg_file
+}
+
+for category in $CATEGORY_ORDER; do
+    if [ -f "$tmp_dir/$category" ]; then
+        category_label "$category" >> "$temp_msg_file"
+        echo "" >> "$temp_msg_file"
+
+        while IFS= read -r file; do
+            if [ -n "$file" ]; then
+                change_type=$(get_change_type "$file")
+                diff_stats=$(get_diff_stats "$file")
+                echo "- ${change_type} \`${file}\` ${diff_stats}" >> "$temp_msg_file"
+            fi
+        done < "$tmp_dir/$category"
+
+        echo "" >> "$temp_msg_file"
+    fi
 done
 
 # Add commit guidelines
-echo "# Commit Guidelines" >> $temp_msg_file
-echo "" >> $temp_msg_file
-echo "## Type" >> $temp_msg_file
-echo "- feat: New feature" >> $temp_msg_file
-echo "- fix: Bug fix" >> $temp_msg_file
-echo "- docs: Documentation changes" >> $temp_msg_file
-echo "- style: Code style/formatting" >> $temp_msg_file
-echo "- refactor: Code refactoring" >> $temp_msg_file
-echo "- test: Adding/updating tests" >> $temp_msg_file
-echo "- chore: Maintenance tasks" >> $temp_msg_file
-echo "" >> $temp_msg_file
-echo "## Format" >> $temp_msg_file
-echo "<type>(<scope>): <subject>" >> $temp_msg_file
-echo "" >> $temp_msg_file
-echo "Example: feat(notes): add tag filtering" >> $temp_msg_file
-echo "" >> $temp_msg_file
-echo "# ------------------------ >8 ------------------------" >> $temp_msg_file
-echo "# Everything below this line will be removed." >> $temp_msg_file
-echo "# Please enter the commit message for your changes above." >> $temp_msg_file
+cat >> "$temp_msg_file" << 'EOF'
+# Commit Guidelines
+
+## Type
+- feat: New feature
+- fix: Bug fix
+- docs: Documentation changes
+- style: Code style/formatting
+- refactor: Code refactoring
+- test: Adding/updating tests
+- chore: Maintenance tasks
+
+## Format
+<type>(<scope>): <subject>
+
+Example: feat(notes): add tag filtering
+
+# ------------------------ >8 ------------------------
+# Everything below this line will be removed.
+# Please enter the commit message for your changes above.
+EOF
 
 # Move temporary message to actual commit message file
-mv $temp_msg_file .git/COMMIT_EDITMSG
+mv "$temp_msg_file" .git/COMMIT_EDITMSG
 
 echo -e "${GREEN}✅ Commit description generated${NC}"
 echo -e "${BLUE}📝 Review and edit the commit message...${NC}"

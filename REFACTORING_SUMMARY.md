@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document summarizes the comprehensive refactoring of the notemyminds Flutter application to follow SOLID principles and improve Object-Oriented Programming (OOP) structure.
+This document summarizes the comprehensive refactoring of the trovara Flutter application to follow SOLID principles and improve Object-Oriented Programming (OOP) structure.
 
 ## SOLID Principles Applied
 

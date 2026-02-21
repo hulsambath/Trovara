@@ -1,4 +1,4 @@
-# Dynamic App Icon configuration for NoteMyMinds
+# Dynamic App Icon configuration for Trovara
 # Run: dart run dynamic_app_icon_plus:dynamic_app_icon_plus icon_config.yaml
 
 default_icon: "default"
@@ -7,7 +7,7 @@ icons:
   default:
     path: "assets/app_icon/1024x1024.png"
     label: "Default"
-    description: "The default NoteMyMinds app icon"
+    description: "The default Trovara app icon"
   happy:
     path: "assets/app_icon/happy.png"
     label: "Happy"

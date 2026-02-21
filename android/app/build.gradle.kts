@@ -12,7 +12,7 @@ import org.gradle.api.Project
 // Function to determine credentials directory based on flavor
 fun Project.getCredentialsDir(flavorName: String?): String {
     val flavor = flavorName ?: "dev"
-    val credentialsBase = rootProject.file("../../credentials/android/notemyminds")
+    val credentialsBase = rootProject.file("../../credentials/android/trovara")
     return when (flavor) {
         "prod", "production", "release" -> credentialsBase.absolutePath + "/prod"
         else -> credentialsBase.absolutePath + "/dev"
@@ -31,7 +31,7 @@ fun Project.loadKeystoreFromCredentials(flavorName: String): Properties {
         FileInputStream(keystorePropsFile).use { fis -> keystoreProps.load(fis) }
     } else {
         println("⚠️  Keystore properties not found at: " + keystorePropsFile.absolutePath)
-        println("💡 Run: cd ../../credentials && ./scripts/generate-keystore.sh --project noteminds --env " + flavorName)
+        println("💡 Run: cd ../../credentials && ./scripts/generate-keystore.sh --project trovara --env " + flavorName)
     }
 
     return keystoreProps
@@ -59,7 +59,7 @@ val keyPasswordProp = (keystoreProps.getProperty("keyPassword")
 val hasKeystore = listOf(storeFileProp, storePasswordProp, keyAliasProp, keyPasswordProp).all { it != null }
 
 android {
-    namespace = "com.notemyminds.app"
+    namespace = "com.trovara.app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = "29.0.13599879"
 
@@ -74,7 +74,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.notemyminds.app"
+        applicationId = "com.trovara.app"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion

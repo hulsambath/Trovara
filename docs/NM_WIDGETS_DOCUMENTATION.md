@@ -1,6 +1,6 @@
 # NM Widgets Documentation
 
-The NM (notemyminds) widgets are reusable UI components that provide consistent styling and behavior across the application. They follow the `nm` prefix naming convention and are designed to be easily integrated into any screen or service.
+The NM (trovara) widgets are reusable UI components that provide consistent styling and behavior across the application. They follow the `nm` prefix naming convention and are designed to be easily integrated into any screen or service.
 
 ## Available Widgets
 
@@ -52,7 +52,7 @@ static void clear(BuildContext context)
 ##### Basic Usage
 
 ```dart
-import 'package:notemyminds/widgets/nm_toast.dart';
+import 'package:trovara/widgets/nm_toast.dart';
 
 // Show success toast
 NmToast.success(context, 'Operation completed successfully!');
@@ -145,7 +145,7 @@ static Future<T> showLoading<T>(BuildContext context, Future<T> Function() actio
 ##### Basic Usage
 
 ```dart
-import 'package:notemyminds/widgets/nm_loading_overlay.dart';
+import 'package:trovara/widgets/nm_loading_overlay.dart';
 
 // Show loading overlay with custom message
 await NmLoadingOverlay.show(
@@ -224,8 +224,8 @@ class MyService {
 ### Complete Example: Sync Operation
 
 ```dart
-import 'package:notemyminds/widgets/nm_loading_overlay.dart';
-import 'package:notemyminds/widgets/nm_toast.dart';
+import 'package:trovara/widgets/nm_loading_overlay.dart';
+import 'package:trovara/widgets/nm_toast.dart';
 
 class SyncScreen extends StatelessWidget {
   @override

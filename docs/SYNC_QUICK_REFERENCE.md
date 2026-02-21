@@ -1,4 +1,4 @@
-# notemyminds Sync Quick Reference
+# trovara Sync Quick Reference
 
 ## Core Files
 

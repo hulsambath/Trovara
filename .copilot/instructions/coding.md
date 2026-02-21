@@ -1,4 +1,4 @@
-# notemyminds Coding Instructions
+# trovara Coding Instructions
 
 ## General Guidelines
 

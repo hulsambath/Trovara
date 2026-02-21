@@ -1,8 +1,8 @@
-import 'package:notemyminds/core/repository/base/base_repository.dart';
-import 'package:notemyminds/core/repository/base/objectbox_store_manager.dart';
-import 'package:notemyminds/core/repository/interfaces/note_repository.dart';
-import 'package:notemyminds/models/note.dart';
-import 'package:notemyminds/objectbox.g.dart';
+import 'package:trovara/core/repository/base/base_repository.dart';
+import 'package:trovara/core/repository/base/objectbox_store_manager.dart';
+import 'package:trovara/core/repository/interfaces/note_repository.dart';
+import 'package:trovara/models/note.dart';
+import 'package:trovara/objectbox.g.dart';
 
 /// ObjectBox implementation of the note repository.
 ///

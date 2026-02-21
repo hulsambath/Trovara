@@ -1,8 +1,8 @@
-# notemyminds Project Overview
+# trovara Project Overview
 
 ## Introduction
 
-notemyminds is a Flutter-based note-taking application with advanced features like tagging, insights, and Google Drive synchronization.
+trovara is a Flutter-based note-taking application with advanced features like tagging, insights, and Google Drive synchronization.
 
 ## Technical Stack
 
@@ -106,6 +106,6 @@ void main() async {
 
 Application configuration is managed through:
 
-- `configs/notemyminds.json` - Environment variables
+- `configs/trovara.json` - Environment variables
 - `lib/constants/` - App-wide constants
 - Analysis options for code style

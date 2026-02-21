@@ -1,4 +1,4 @@
-import 'package:notemyminds/core/storage/storage_adapter/base_storage_adapter.dart';
+import 'package:trovara/core/storage/storage_adapter/base_storage_adapter.dart';
 
 abstract class BaseStorage<T> {
   String get key => runtimeType.toString();

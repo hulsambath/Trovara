@@ -1,8 +1,8 @@
 library;
 
 import 'package:flutter/material.dart';
-import 'package:notemyminds/core/base/view_model_provider.dart';
-import 'package:notemyminds/views/notes/widgets/note_card.dart';
+import 'package:trovara/core/base/view_model_provider.dart';
+import 'package:trovara/views/notes/widgets/note_card.dart';
 
 import 'trash_view_model.dart';
 

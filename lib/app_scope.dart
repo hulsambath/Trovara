@@ -1,10 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:notemyminds/app_localization_loader.dart';
-import 'package:notemyminds/constants/app_constants.dart';
-import 'package:notemyminds/core/route/app_router.dart';
-import 'package:notemyminds/provider_scope.dart';
+import 'package:trovara/app_localization_loader.dart';
+import 'package:trovara/constants/app_constants.dart';
+import 'package:trovara/core/route/app_router.dart';
+import 'package:trovara/provider_scope.dart';
 
 class AppScope extends StatefulWidget {
   static BuildContext? get globalContext => _AppScopeState.instance._router.routerDelegate.navigatorKey.currentContext;

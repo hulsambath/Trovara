@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:notemyminds/models/mood_tag.dart';
+import 'package:trovara/models/mood_tag.dart';
 
 /// A widget that displays mood tags as selectable chips
 class MoodChips extends StatelessWidget {

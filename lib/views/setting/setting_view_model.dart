@@ -5,15 +5,15 @@ import 'package:file_picker/file_picker.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:notemyminds/core/base/base_view_model.dart';
-import 'package:notemyminds/core/di/service_locator.dart';
-import 'package:notemyminds/core/services/google_drive_service.dart';
-import 'package:notemyminds/core/services/google_drive_sync_service.dart';
-import 'package:notemyminds/core/services/note_service.dart';
-import 'package:notemyminds/core/storage/google_drive_auth_storage.dart';
-import 'package:notemyminds/views/trash/trash_view.dart';
-import 'package:notemyminds/widgets/nm_loading_overlay.dart';
-import 'package:notemyminds/widgets/nm_toast.dart';
+import 'package:trovara/core/base/base_view_model.dart';
+import 'package:trovara/core/di/service_locator.dart';
+import 'package:trovara/core/services/google_drive_service.dart';
+import 'package:trovara/core/services/google_drive_sync_service.dart';
+import 'package:trovara/core/services/note_service.dart';
+import 'package:trovara/core/storage/google_drive_auth_storage.dart';
+import 'package:trovara/views/trash/trash_view.dart';
+import 'package:trovara/widgets/nm_loading_overlay.dart';
+import 'package:trovara/widgets/nm_toast.dart';
 import 'package:path_provider/path_provider.dart';
 
 class SettingViewModel extends BaseViewModel {
@@ -74,7 +74,7 @@ class SettingViewModel extends BaseViewModel {
   Future<void> _autoSyncAfterSignIn(BuildContext context) async {
     try {
       // Step 1: Pull data from Google Drive
-      final driveData = await _driveService.downloadJsonFromAppData('notemyminds_backup.json');
+      final driveData = await _driveService.downloadJsonFromAppData('trovara_backup.json');
 
       // Step 2: Merge local and remote data
       Map<String, dynamic> mergedData;
@@ -86,13 +86,13 @@ class SettingViewModel extends BaseViewModel {
         await _noteService.importAllFromJson(mergedData);
 
         // Step 3: Push merged data to Google Drive
-        await _driveService.uploadJsonToAppData(fileName: 'notemyminds_backup.json', json: mergedData);
+        await _driveService.uploadJsonToAppData(fileName: 'trovara_backup.json', json: mergedData);
 
         NmToast.success(context, 'Data automatically synced from Google Drive');
       } else {
         // No remote data exists, backup local data
         final localData = _noteService.exportAllToJson();
-        await _driveService.uploadJsonToAppData(fileName: 'notemyminds_backup.json', json: localData);
+        await _driveService.uploadJsonToAppData(fileName: 'trovara_backup.json', json: localData);
 
         NmToast.success(context, 'Local data backed up to Google Drive');
       }
@@ -133,7 +133,7 @@ class SettingViewModel extends BaseViewModel {
         String? targetPath;
         // Prefer native save dialog on desktop/web
         try {
-          final saveLocation = await getSaveLocation(suggestedName: 'notemyminds_export.json');
+          final saveLocation = await getSaveLocation(suggestedName: 'trovara_export.json');
           if (saveLocation != null) targetPath = saveLocation.path;
         } catch (_) {}
 
@@ -141,16 +141,16 @@ class SettingViewModel extends BaseViewModel {
         if (targetPath == null) {
           try {
             final dir = await FilePicker.platform.getDirectoryPath(dialogTitle: 'Choose folder to save export');
-            if (dir != null) targetPath = '$dir/notemyminds_export.json';
+            if (dir != null) targetPath = '$dir/trovara_export.json';
           } catch (_) {}
         }
 
         // Fallback to app documents if user cancels
-        targetPath ??= '${(await getApplicationDocumentsDirectory()).path}/notemyminds_export.json';
+        targetPath ??= '${(await getApplicationDocumentsDirectory()).path}/trovara_export.json';
 
         final jsonMap = _noteService.exportAllToJson();
         final data = utf8.encode(jsonEncode(jsonMap));
-        final file = XFile.fromData(data, name: 'notemyminds_export.json', mimeType: 'application/json');
+        final file = XFile.fromData(data, name: 'trovara_export.json', mimeType: 'application/json');
         await file.saveTo(targetPath);
         successMessage = 'Exported to $targetPath';
       } catch (e) {
@@ -186,7 +186,7 @@ class SettingViewModel extends BaseViewModel {
           } catch (_) {}
         }
 
-        path ??= '${(await getApplicationDocumentsDirectory()).path}/notemyminds_export.json';
+        path ??= '${(await getApplicationDocumentsDirectory()).path}/trovara_export.json';
 
         final text = await XFile(path).readAsString();
         final jsonMap = jsonDecode(text) as Map<String, dynamic>;

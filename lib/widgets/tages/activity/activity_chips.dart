@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:notemyminds/models/activity_tag.dart';
+import 'package:trovara/models/activity_tag.dart';
 
 /// A widget that displays activity tags as selectable ChoiceChips
 class ActivityChips extends StatelessWidget {

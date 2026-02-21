@@ -1,8 +1,8 @@
-# notemyminds Project Context
+# trovara Project Context
 
 ## Project Overview
 
-notemyminds is a Flutter-based note-taking application with advanced features including:
+trovara is a Flutter-based note-taking application with advanced features including:
 
 - Rich text editing with flutter_quill
 - Comprehensive tagging system (Activity, Mood, Time, Personal Growth tags)
@@ -46,12 +46,12 @@ lib/
 
 ## Environment Configuration
 
-The app uses `configs/notemyminds.json` for environment configuration:
+The app uses `configs/trovara.json` for environment configuration:
 
 ```json
 {
-  "APP_NAME": "notemyminds",
-  "APP_SCHEME": "notemyminds",
+  "APP_NAME": "trovara",
+  "APP_SCHEME": "trovara",
   "APP_COLOR": "#2196F3"
 }
 ```

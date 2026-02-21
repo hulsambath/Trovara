@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:notemyminds/models/custom_tag.dart';
+import 'package:trovara/models/custom_tag.dart';
 
 /// Widget for managing custom tags with text input and removable chips
 /// Supports both string-based tags (for backward compatibility) and CustomTag objects

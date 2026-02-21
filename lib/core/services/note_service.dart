@@ -1,10 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
-import 'package:notemyminds/core/repository/interfaces/folder_repository.dart';
-import 'package:notemyminds/core/repository/interfaces/note_repository.dart';
-import 'package:notemyminds/core/services/google_drive_service.dart';
-import 'package:notemyminds/models/folder.dart';
-import 'package:notemyminds/models/note.dart';
+import 'package:trovara/core/repository/interfaces/folder_repository.dart';
+import 'package:trovara/core/repository/interfaces/note_repository.dart';
+import 'package:trovara/core/services/google_drive_service.dart';
+import 'package:trovara/models/folder.dart';
+import 'package:trovara/models/note.dart';
 
 /// Service layer for note operations.
 ///

@@ -1,8 +1,8 @@
 {
-  "projectName": "notemyminds",
+  "projectName": "trovara",
   "repositoryContext": {
     "owner": "hulsambath",
-    "repository": "notemyminds",
+    "repository": "trovara",
     "defaultBranch": "develop"
   },
   "contextSources": [

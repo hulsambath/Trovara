@@ -1,10 +1,10 @@
-# NoteMyMinds
+# Trovara
 
 A Flutter note-taking application with advanced features like tagging, insights, and Google Drive synchronization.
 
 ## Overview
 
-NoteMyMinds is a comprehensive note-taking application built with Flutter that provides:
+Trovara is a comprehensive note-taking application built with Flutter that provides:
 
 - 📝 Advanced note-taking with rich text editing
 - 🏷️ Comprehensive tagging system for organization
@@ -18,13 +18,13 @@ NoteMyMinds is a comprehensive note-taking application built with Flutter that p
 1. **Prerequisites**: Flutter SDK ≥3.8.1
 2. **Install dependencies**: `flutter pub get`
 3. **Generate code**: `./scripts/build_runner.sh`
-4. **Run the app**: `./scripts/run_app.sh --notemyminds`
+4. **Run the app**: `./scripts/run_app.sh --trovara`
 
 ## Development
 
 ### Scripts
-- `./scripts/run_app.sh --notemyminds` - Run the application
-- `./scripts/build_apk.sh --notemyminds` - Build Android APK
+- `./scripts/run_app.sh --trovara` - Run the application
+- `./scripts/build_apk.sh --trovara` - Build Android APK
 - `./scripts/build_runner.sh` - Generate code
 
 ### Credentials Management

@@ -19,6 +19,11 @@ git config core.hooksPath .githooks
 
 # Make hooks executable
 chmod +x .githooks/pre-commit
+chmod +x .githooks/pre-push
 
 echo -e "${GREEN}✅ Git hooks installed successfully${NC}"
 echo -e "${BLUE}Hooks will now run automatically on git operations${NC}"
+echo ""
+echo -e "${BLUE}Installed hooks:${NC}"
+echo -e "  🔐 pre-commit  — Blocks secrets/credentials + generates commit message template"
+echo -e "  📋 pre-push     — Analyzes changes for PR description"

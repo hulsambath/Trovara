@@ -3,7 +3,7 @@
 This project uses dynamic app icons. The following icons are available:
 
 - **default**: Default
-  - The default NoteMyMinds app icon
+  - The default Trovara app icon
   - Icon file: `assets/app_icon/1024x1024.png`
 
 - **happy**: Happy

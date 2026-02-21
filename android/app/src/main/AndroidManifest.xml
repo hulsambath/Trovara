@@ -2,7 +2,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
-        android:label="notemyminds"
+        android:label="Trovara"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher_default">
         <activity
@@ -41,8 +41,8 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
-    
-<!-- Activity alias for default icon -->
+
+        <!-- Activity alias for default icon -->
         <activity-alias
             android:name=".defaultActivity"
             android:enabled="false"
@@ -80,7 +80,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity-alias>
-</application>
+    </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and
          https://developer.android.com/reference/android/content/Intent#ACTION_PROCESS_TEXT.

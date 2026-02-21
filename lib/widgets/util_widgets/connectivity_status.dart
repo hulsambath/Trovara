@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:notemyminds/widgets/nm_toast.dart';
+import 'package:trovara/widgets/nm_toast.dart';
 
 class ConnectivityStatus extends StatefulWidget {
   const ConnectivityStatus({super.key});

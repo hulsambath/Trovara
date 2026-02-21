@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:dynamic_app_icon_plus/dynamic_app_icon_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:notemyminds/core/di/service_locator.dart';
-import 'package:notemyminds/core/storage/theme_mode_storage.dart';
+import 'package:trovara/core/di/service_locator.dart';
+import 'package:trovara/core/storage/theme_mode_storage.dart';
 
 class Initializer {
   static Future<void> load() async {

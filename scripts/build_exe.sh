@@ -16,14 +16,14 @@ json_to_dart_define() {
 }
 
 case "$FLAVOR" in
-  -nm | --notemyminds)
-    CONFIG_FILE="configs/notemyminds.json"
+  -nm | --trovara)
+    CONFIG_FILE="configs/trovara.json"
     DEFINE_FLAGS=$(json_to_dart_define "$CONFIG_FILE")
     CMD="flutter build windows $DEFINE_FLAGS"
     ;;
   *)
     echo "Invalid option: $FLAVOR"
-    echo "Usage: bin/build_exe.sh [--notemyminds]"
+    echo "Usage: bin/build_exe.sh [--trovara]"
     exit 1
     ;;
 esac

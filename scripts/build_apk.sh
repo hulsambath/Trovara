@@ -5,11 +5,11 @@ set -euo pipefail
 # Supports automatic credential decryption for builds
 #
 # Usage:
-#   ./scripts/build_apk.sh -nm                  # Build with dev credentials (default)
-#   ./scripts/build_apk.sh -nm --prod           # Build with prod credentials
-#   ./scripts/build_apk.sh -nm --dev            # Build with dev credentials explicitly
-#   ./scripts/build_apk.sh --notemyminds        # Build with dev credentials (default)
-#   ./scripts/build_apk.sh --notemyminds --prod # Build with prod credentials
+#   ./scripts/build_apk.sh -yp                  # Build with dev credentials (default)
+#   ./scripts/build_apk.sh -yp --prod           # Build with prod credentials
+#   ./scripts/build_apk.sh -yp --dev            # Build with dev credentials explicitly
+#   ./scripts/build_apk.sh --trovara        # Build with dev credentials (default)
+#   ./scripts/build_apk.sh --trovara --prod # Build with prod credentials
 #
 # The script will:
 # 1. Detect the environment (dev/prod) from arguments or default to dev
@@ -17,15 +17,15 @@ set -euo pipefail
 # 3. Build APK with the appropriate configuration and credentials
 
 # Default values
-PROJECT="notemyminds"
+PROJECT="trovara"
 ENVIRONMENT="dev"
 DECRYPT_CREDENTIALS=true
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    -nm|--notemyminds)
-      PROJECT="notemyminds"
+    -nm|--trovara)
+      PROJECT="trovara"
       shift
       ;;
     --prod)
@@ -41,19 +41,19 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --help)
-      echo "Usage: $0 [-nm|--notemyminds] [--prod|--dev] [--no-decrypt]"
+      echo "Usage: $0 [-nm|--trovara] [--prod|--dev] [--no-decrypt]"
       echo ""
       echo "Options:"
-      echo "  -nm, --notemyminds  Build NoteMyMinds APK"
+      echo "  -nm, --trovara  Build Trovara APK"
       echo "  --prod         Use production credentials"
       echo "  --dev          Use development credentials (default)"
       echo "  --no-decrypt   Skip automatic credential decryption"
       echo "  --help         Show this help message"
       echo ""
       echo "Examples:"
-      echo "  $0 -nm                              # Build with dev credentials"
-      echo "  $0 -nm --prod                       # Build with prod credentials"
-      echo "  $0 -nm --no-decrypt                 # Build without decrypting credentials"
+      echo "  $0 -yp                              # Build with dev credentials"
+      echo "  $0 -yp --prod                       # Build with prod credentials"
+      echo "  $0 -yp --no-decrypt                 # Build without decrypting credentials"
       exit 0
       ;;
     *)
@@ -64,7 +64,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-echo "📦 Building NoteMyMinds APK ($ENVIRONMENT environment)..."
+echo "📦 Building Trovara APK ($ENVIRONMENT environment)..."
 
 # Check if credentials need to be decrypted
 if [[ "$DECRYPT_CREDENTIALS" == "true" ]]; then
@@ -98,7 +98,7 @@ if [[ "$DECRYPT_CREDENTIALS" == "true" ]]; then
 fi
 
 # Prepare Flutter build command
-FLUTTER_CMD="flutter build apk --dart-define-from-file=configs/notemyminds.json --release"
+FLUTTER_CMD="flutter build apk --dart-define-from-file=configs/trovara.json --release"
 
 # Add flavor if specified
 if [[ "$ENVIRONMENT" == "prod" ]]; then

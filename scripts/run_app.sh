@@ -5,7 +5,7 @@ set -euo pipefail
 # Supports automatic credential decryption for local development
 
 # Default values
-PROJECT="notemyminds"
+PROJECT="trovara"
 ENVIRONMENT=""
 PLATFORM=""
 DECRYPT_CREDENTIALS=true
@@ -20,7 +20,7 @@ NC='\033[0m' # No Color
 # Function to print colored output
 print_header() {
   echo -e "${BLUE}╔════════════════════════════════════════════════════════════╗${NC}"
-  echo -e "${BLUE}║          NoteMyMinds - Flutter App Runner                 ║${NC}"
+  echo -e "${BLUE}║          Trovara - Flutter App Runner                 ║${NC}"
   echo -e "${BLUE}╚════════════════════════════════════════════════════════════╝${NC}"
   echo ""
 }
@@ -176,7 +176,7 @@ show_summary
 
 # Now proceed with the actual run
 echo ""
-print_step "🚀 Starting NoteMyMinds ($ENVIRONMENT environment) on ${PLATFORM_NAME:-mobile}..."
+print_step "🚀 Starting Trovara ($ENVIRONMENT environment) on ${PLATFORM_NAME:-mobile}..."
 
 # Check if credentials need to be decrypted
 if [[ "$DECRYPT_CREDENTIALS" == "true" ]]; then
@@ -210,14 +210,14 @@ if [[ "$DECRYPT_CREDENTIALS" == "true" ]]; then
 fi
 
 # Determine config file based on environment
-CONFIG_FILE="configs/notemyminds_${ENVIRONMENT}.json"
+CONFIG_FILE="configs/trovara_${ENVIRONMENT}.json"
 
 # Verify config file exists
 if [[ ! -f "$CONFIG_FILE" ]]; then
   print_error "❌ Configuration file not found: $CONFIG_FILE"
   print_info "💡 Make sure you have created config files for each environment:"
-  echo "   - configs/notemyminds_dev.json (for dev)"
-  echo "   - configs/notemyminds_prod.json (for prod)"
+  echo "   - configs/trovara_dev.json (for dev)"
+  echo "   - configs/trovara_prod.json (for prod)"
   exit 1
 fi
 

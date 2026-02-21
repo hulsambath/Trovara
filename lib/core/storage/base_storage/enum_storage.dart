@@ -1,4 +1,4 @@
-import 'package:notemyminds/core/storage/preference_storage/default_storage.dart';
+import 'package:trovara/core/storage/preference_storage/default_storage.dart';
 
 abstract class EnumStorage<T> extends DefaultStorage<String> {
   List<T> get values;

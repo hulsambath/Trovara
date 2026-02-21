@@ -1,4 +1,4 @@
-# notemyminds Testing Guidelines
+# trovara Testing Guidelines
 
 ## Widget Testing
 

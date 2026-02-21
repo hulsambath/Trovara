@@ -1,5 +1,5 @@
 {
-  "app_name": "notemyminds",
+  "app_name": "Trovara",
   "msg": {
     "connectivity": {
       "connected": "បានភ្ជាប់ទៅអ៊ីនធឺណិត",
@@ -9,7 +9,7 @@
       "available": "មានកំណែថ្មី",
       "downloading": "កំពុងទាញយក...",
       "ready_to_install": "កំណែថ្មីរួចរាល់សម្រាប់ការដំឡើង",
-      "new_version_available": "មានកំណែថ្មីនៃ notemyminds"
+      "new_version_available": "មានកំណែថ្មីនៃ Trovara"
     }
   },
   "btn": {

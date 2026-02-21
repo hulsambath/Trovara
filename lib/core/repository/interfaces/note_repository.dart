@@ -1,4 +1,4 @@
-import 'package:notemyminds/models/note.dart';
+import 'package:trovara/models/note.dart';
 
 /// Interface for note repository operations.
 ///

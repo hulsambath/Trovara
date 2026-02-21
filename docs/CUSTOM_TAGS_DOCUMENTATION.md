@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Custom Tags system in notemyminds allows users to create, manage, and organize their notes with personalized tags. This system provides both string-based tags (for backward compatibility) and a new CustomTag-based approach with enhanced features like color coding, usage statistics, and smart suggestions.
+The Custom Tags system in trovara allows users to create, manage, and organize their notes with personalized tags. This system provides both string-based tags (for backward compatibility) and a new CustomTag-based approach with enhanced features like color coding, usage statistics, and smart suggestions.
 
 ## Table of Contents
 
@@ -596,6 +596,6 @@ await customTagService.initialize();
 
 ## Conclusion
 
-The Custom Tags system provides a comprehensive solution for tag management in notemyminds. It offers both backward compatibility and enhanced features, making it easy to migrate existing implementations while providing powerful new capabilities for tag organization and management.
+The Custom Tags system provides a comprehensive solution for tag management in trovara. It offers both backward compatibility and enhanced features, making it easy to migrate existing implementations while providing powerful new capabilities for tag organization and management.
 
 For additional support or questions, refer to the code examples in the `/lib/widgets/tages/custom/` directory and the integration examples in the note editing screens.

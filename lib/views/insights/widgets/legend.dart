@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:notemyminds/views/insights/widgets/util.dart';
+import 'package:trovara/views/insights/widgets/util.dart';
 
 class Legend extends StatelessWidget {
   const Legend({super.key});

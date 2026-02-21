@@ -4,9 +4,9 @@ android/keystore.properties
 android/app/google-services.json
 
 # Config files with OAuth credentials
-configs/notemyminds.json
-configs/notemyminds_dev.json
-configs/notemyminds_prod.json
+configs/trovara.json
+configs/trovara_dev.json
+configs/trovara_prod.json
 
 # Local credentials working dir
 .local-credentials/
@@ -57,9 +57,9 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-configs/notemyminds.json
-configs/notemyminds_dev.json
-configs/notemyminds_prod.json
+configs/trovara.json
+configs/trovara_dev.json
+configs/trovara_prod.json
 
 # Cursor rules
 .cursor/

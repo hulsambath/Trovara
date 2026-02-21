@@ -74,7 +74,7 @@ Run the app with:
 ./scripts/run_app.sh ios
 ```
 
-The Info.plist in the built app will have the actual values from your `configs/notemyminds_prod.json` file!
+The Info.plist in the built app will have the actual values from your `configs/trovara_prod.json` file!
 
 ## Note
 

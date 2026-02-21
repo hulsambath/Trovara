@@ -1,8 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:notemyminds/core/base/base_view_model.dart';
-import 'package:notemyminds/core/provider/in_app_update_provider.dart';
-import 'package:notemyminds/core/type/app_update_state.dart';
+import 'package:trovara/core/base/base_view_model.dart';
+import 'package:trovara/core/provider/in_app_update_provider.dart';
+import 'package:trovara/core/type/app_update_state.dart';
 import 'package:provider/provider.dart';
 
 class ViewModelProvider<T extends BaseViewModel> extends StatelessWidget {
@@ -54,7 +54,7 @@ class ViewModelProvider<T extends BaseViewModel> extends StatelessWidget {
   Widget buildTitle({required BuildContext context, required T viewModel, required Widget child}) {
     if (root) return child;
 
-    return Title(color: ColorScheme.of(context).primary, title: 'NoteMyMinds', child: child);
+    return Title(color: ColorScheme.of(context).primary, title: 'Trovara', child: child);
   }
 }
 

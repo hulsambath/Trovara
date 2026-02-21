@@ -18,12 +18,12 @@ flutter pub get
 
 ### 2. Configuration
 
-Edit `configs/notemyminds.json`:
+Edit `configs/trovara.json`:
 
 ```json
 {
-  "APP_NAME": "notemyminds",
-  "APP_SCHEME": "notemyminds",
+  "APP_NAME": "trovara",
+  "APP_SCHEME": "trovara",
   "APP_COLOR": "#2196F3"
 }
 ```
@@ -34,19 +34,19 @@ Edit `configs/notemyminds.json`:
 
 ```bash
 # Run with development credentials (default)
-./scripts/run_app.sh --notemyminds
+./scripts/run_app.sh --trovara
 
 # Run with production credentials
-./scripts/run_app.sh --notemyminds --prod
+./scripts/run_app.sh --trovara --prod
 
 # Run with development credentials explicitly
-./scripts/run_app.sh --notemyminds --dev
+./scripts/run_app.sh --trovara --dev
 
 # Run without automatic credential decryption
-./scripts/run_app.sh --notemyminds --no-decrypt
+./scripts/run_app.sh --trovara --no-decrypt
 
 # With specific device
-./scripts/run_app.sh --notemyminds -d chrome
+./scripts/run_app.sh --trovara -d chrome
 ```
 
 **Features:**
@@ -60,13 +60,13 @@ Edit `configs/notemyminds.json`:
 
 ```bash
 # Build with development credentials (default)
-./scripts/build_apk.sh --notemyminds
+./scripts/build_apk.sh --trovara
 
 # Build with production credentials
-./scripts/build_apk.sh --notemyminds --prod
+./scripts/build_apk.sh --trovara --prod
 
 # Build without automatic credential decryption
-./scripts/build_apk.sh --notemyminds --no-decrypt
+./scripts/build_apk.sh --trovara --no-decrypt
 ```
 
 **Features:**
@@ -163,9 +163,9 @@ The project uses a sophisticated credentials management system with SOPS encrypt
 
 ```
 project/
-├── notemyminds/                    # Main app
+├── trovara/                    # Main app
 └── credentials/                  # Encrypted credentials
-    ├── android/notemyminds/
+    ├── android/trovara/
     │   ├── dev/                  # Development credentials
     │   └── prod/                 # Production credentials
     └── scripts/
@@ -178,7 +178,7 @@ project/
 ```bash
 # Generate keystore with strong random passwords
 cd project/credentials/scripts
-./generate-keystore.sh --project notemyminds --env prod
+./generate-keystore.sh --project trovara --env prod
 
 # This creates:
 # - upload.jks (keystore file)
@@ -190,25 +190,25 @@ cd project/credentials/scripts
 
 ```bash
 # Encrypt files with SOPS (requires age keys)
-sops --encrypt android/notemyminds/prod/upload.jks > android/notemyminds/prod/upload.jks.enc
-sops --encrypt android/notemyminds/prod/keystore.properties > android/notemyminds/prod/keystore.properties.enc
+sops --encrypt android/trovara/prod/upload.jks > android/trovara/prod/upload.jks.enc
+sops --encrypt android/trovara/prod/keystore.properties > android/trovara/prod/keystore.properties.enc
 
 # Remove plaintext files (only keep .enc files)
-rm android/notemyminds/prod/upload.jks android/notemyminds/prod/keystore.properties
+rm android/trovara/prod/upload.jks android/trovara/prod/keystore.properties
 ```
 
 #### Development Workflow
 
 ```bash
 # Decrypt credentials for local development
-cd project/notemyminds
+cd project/trovara
 ./scripts/keystore.sh --env prod
 
 # Run app with production credentials
-./scripts/run_app.sh --notemyminds --prod
+./scripts/run_app.sh --trovara --prod
 
 # Build APK with production credentials
-./scripts/build_apk.sh --notemyminds --prod
+./scripts/build_apk.sh --trovara --prod
 ```
 
 ### 2. Security Features
@@ -296,12 +296,12 @@ version: 0.2.0 # Semantic versioning
 
 ```bash
 # Android (with credentials management)
-./scripts/build_apk.sh --notemyminds --prod
+./scripts/build_apk.sh --trovara --prod
 # ✅ Automatically decrypts production credentials
 # ✅ Builds signed production APK
 
 # Android (legacy method)
-./scripts/build_apk.sh --notemyminds
+./scripts/build_apk.sh --trovara
 
 # iOS
 flutter build ios --release
@@ -341,15 +341,15 @@ flutter build ios --release
 ls ../credentials/
 
 # Verify encrypted credentials exist
-ls ../credentials/android/notemyminds/prod/*.enc
+ls ../credentials/android/trovara/prod/*.enc
 
 # Test keystore decryption
 ./scripts/keystore.sh --env prod
 
 # Check keystore file validity
-keytool -list -keystore ../credentials/android/notemyminds/prod/upload.jks -storepass [PASSWORD]
+keytool -list -keystore ../credentials/android/trovara/prod/upload.jks -storepass [PASSWORD]
 
 # Regenerate keystore if corrupted
 cd ../credentials/scripts
-./generate-keystore.sh --project notemyminds --env prod
+./generate-keystore.sh --project trovara --env prod
 ```

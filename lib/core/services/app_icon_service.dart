@@ -63,7 +63,7 @@ class AppIconService {
         'identifier': 'default',
         'path': 'assets/app_icon/1024x1024.png',
         'label': 'Default',
-        'description': 'The default NoteMyMinds app icon',
+        'description': 'The default Trovara app icon',
       },
       {
         'identifier': 'happy',

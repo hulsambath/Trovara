@@ -16,10 +16,10 @@ PlatformException(sign_in_failed, com.google.android.gms.common.api.ApiException
 
 ### 1. Get Your Debug SHA-1 Fingerprint
 
-Run this command from the notemyminds root directory:
+Run this command from the trovara root directory:
 
 ```bash
-cd /home/sambath/Documents/project/notemyminds/android
+cd /home/sambath/Documents/project/trovara/android
 ./gradlew signingReport
 ```
 
@@ -47,17 +47,17 @@ SHA256: ...
 4. Go to "Credentials" → "Create Credentials" → "OAuth 2.0 Client IDs"
 5. Select "Android" application type
 6. Fill in:
-   - **Package name**: `com.notemyminds.app.dev` (for debug builds)
+   - **Package name**: `com.trovara.app.dev` (for debug builds)
    - **SHA-1 certificate fingerprint**: Paste the SHA1 from step 1
 
 ### 3. Download google-services.json
 
 1. After creating the OAuth client, download the `google-services.json` file from Google Cloud Console
-2. Place it in: `/home/sambath/Documents/project/notemyminds/android/app/google-services.json`
+2. Place it in: `/home/sambath/Documents/project/trovara/android/app/google-services.json`
 
 ### 4. Add Firebase/Google Services Plugin
 
-Update `/home/sambath/Documents/project/notemyminds/android/build.gradle.kts`:
+Update `/home/sambath/Documents/project/trovara/android/build.gradle.kts`:
 
 ```gradle
 plugins {
@@ -65,7 +65,7 @@ plugins {
 }
 ```
 
-Update `/home/sambath/Documents/project/notemyminds/android/app/build.gradle.kts`:
+Update `/home/sambath/Documents/project/trovara/android/app/build.gradle.kts`:
 
 Add at the bottom (after `flutter` block):
 
@@ -75,7 +75,7 @@ apply plugin: 'com.google.gms.google-services'
 
 ### 5. Verify AndroidManifest Permissions
 
-Check `/home/sambath/Documents/project/notemyminds/android/app/src/main/AndroidManifest.xml` includes:
+Check `/home/sambath/Documents/project/trovara/android/app/src/main/AndroidManifest.xml` includes:
 
 ```xml
 <uses-permission android:name="android.permission.INTERNET" />
@@ -84,7 +84,7 @@ Check `/home/sambath/Documents/project/notemyminds/android/app/src/main/AndroidM
 ### 6. Clean and Rebuild
 
 ```bash
-cd /home/sambath/Documents/project/notemyminds/android
+cd /home/sambath/Documents/project/trovara/android
 ./gradlew clean
 ./gradlew flutter:clean
 flutter clean
@@ -112,7 +112,7 @@ If you need to test without Google Sign-In temporarily:
 When building with production flavor:
 
 1. Get SHA-1 from your production keystore
-2. Create another OAuth client with `com.notemyminds.app` package name
+2. Create another OAuth client with `com.trovara.app` package name
 3. Download corresponding google-services.json for prod flavor
 
 ---

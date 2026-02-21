@@ -1,10 +1,10 @@
 import 'package:cupertino_native_better/cupertino_native_better.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:notemyminds/core/base/view_model_provider.dart';
-import 'package:notemyminds/views/insights/insights_view.dart';
-import 'package:notemyminds/views/notes/notes_view.dart';
-import 'package:notemyminds/views/setting/setting_view.dart';
-import 'package:notemyminds/widgets/util_widgets/connectivity_status.dart';
+import 'package:trovara/core/base/view_model_provider.dart';
+import 'package:trovara/views/insights/insights_view.dart';
+import 'package:trovara/views/notes/notes_view.dart';
+import 'package:trovara/views/setting/setting_view.dart';
+import 'package:trovara/widgets/util_widgets/connectivity_status.dart';
 
 import 'main_view_model.dart';
 
