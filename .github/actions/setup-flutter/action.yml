@@ -5,7 +5,7 @@ inputs:
   flutter-version:
     description: "Flutter version to use"
     required: true
-    default: "3.38.0"
+    default: "3.41.2"
   cache-key:
     description: "Cache key for pub dependencies"
     required: true
@@ -35,13 +35,11 @@ runs:
       with:
         path: |
           ~/.pub-cache
-          .dart_tool
         key: ${{ inputs.cache-key }}
         restore-keys: |
           ${{ runner.os }}-pub-
 
-    - name: Install dependencies (if needed)
-      if: inputs.cache-hit != 'true'
+    - name: Install dependencies
       shell: bash
       run: |
         echo "📦 Installing dependencies..."
