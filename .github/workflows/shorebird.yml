@@ -24,12 +24,9 @@ jobs:
           cache: true
 
       - name: Install Shorebird CLI
-        run: |
-          echo "📦 Installing Shorebird CLI..."
-          curl -fsSL https://raw.githubusercontent.com/shorebirdtech/install/main/install.sh -o install.sh
-          chmod +x install.sh
-          ./install.sh
-          echo "$HOME/.shorebird/bin" >> $GITHUB_PATH
+        uses: shorebirdtech/setup-shorebird@v0
+        with:
+          flutter-version: "3.41.2"
 
       - name: Create Firebase options stub
         run: |
