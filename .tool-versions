@@ -1,5 +1,5 @@
 java openjdk-21
 flutter 3.41.2-stable
-dart 3.11.0
 kotlin 2.2.20
 gradle 8.14
+ruby 3.3.5

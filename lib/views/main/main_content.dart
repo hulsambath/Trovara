@@ -30,10 +30,8 @@ class _MainContentState extends State<_MainContent> {
 
   void _onTabTapped(int index) {
     if (index == _currentIndex && index == 0) {
-      // Tapping on the same Notes tab - scroll to top
       widget.viewModel.onTabTap(context, index);
     } else if (index != _currentIndex) {
-      // Animate to the selected page
       _pageController.animateToPage(index, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
     }
   }
@@ -45,10 +43,34 @@ class _MainContentState extends State<_MainContent> {
   }
 
   @override
-  Widget build(BuildContext context) => CupertinoPageScaffold(
+  Widget build(BuildContext context) {
+    if (Platform.isAndroid) {
+      return _buildAndroid(context);
+    }
+    return _buildIOS(context);
+  }
+
+  Widget _buildAndroid(BuildContext context) => Scaffold(
+    body: Stack(
+      children: [
+        PageView(controller: _pageController, onPageChanged: _onPageChanged, children: _pages),
+        const Positioned(bottom: 0, left: 0, right: 0, child: ConnectivityStatus()),
+      ],
+    ),
+    bottomNavigationBar: BottomNavigationBar(
+      currentIndex: _currentIndex,
+      onTap: _onTabTapped,
+      items: const [
+        BottomNavigationBarItem(icon: Icon(Icons.edit_note), label: 'Note'),
+        BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: 'Insights'),
+        BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Setting'),
+      ],
+    ),
+  );
+
+  Widget _buildIOS(BuildContext context) => CupertinoPageScaffold(
     child: Stack(
       children: [
-        // PageView for smooth tab transitions
         PageView(controller: _pageController, onPageChanged: _onPageChanged, children: _pages),
         const Positioned(bottom: 0, left: 0, right: 0, child: ConnectivityStatus()),
         Positioned(

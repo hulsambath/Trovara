@@ -1,5 +1,8 @@
 plugins {
     id("com.android.application")
+    // START: FlutterFire Configuration
+    id("com.google.gms.google-services")
+    // END: FlutterFire Configuration
     id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
@@ -11,11 +14,11 @@ import org.gradle.api.Project
 
 // Function to determine credentials directory based on flavor
 fun Project.getCredentialsDir(flavorName: String?): String {
-    val flavor = flavorName ?: "dev"
+    val flavor = flavorName ?: "staging"
     val credentialsBase = rootProject.file("../../credentials/android/trovara")
     return when (flavor) {
         "prod", "production", "release" -> credentialsBase.absolutePath + "/prod"
-        else -> credentialsBase.absolutePath + "/dev"
+        else -> credentialsBase.absolutePath + "/staging"
     }
 }
 
@@ -38,10 +41,11 @@ fun Project.loadKeystoreFromCredentials(flavorName: String): Properties {
 }
 
 // Load keystore properties from credentials project
-val keystoreProps = project.loadKeystoreFromCredentials("prod")
+// Use staging by default for local development; prod flavor will override
+val keystoreProps = project.loadKeystoreFromCredentials("staging")
 
 // Get the credentials directory based on flavor
-val flavorName = "prod"
+val flavorName = "staging"
 val credentialsDir = project.getCredentialsDir(flavorName)
 
 val storeFileProp = if (keystoreProps.getProperty("storeFile") != null) {
@@ -85,9 +89,9 @@ android {
 
     flavorDimensions += "environment"
     productFlavors {
-        create("dev") {
-            applicationIdSuffix = ".dev"
-            versionNameSuffix = "-dev"
+        create("staging") {
+            applicationIdSuffix = ".staging"
+            versionNameSuffix = "-staging"
         }
         create("prod") {
             applicationIdSuffix = ""
