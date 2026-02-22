@@ -24,7 +24,9 @@ jobs:
           cache: true
 
       - name: Install Shorebird CLI
-        uses: shorebirdtech/setup-shorebird@v0
+        run: |
+          curl --proto '=https' --tlsv1.2 https://raw.githubusercontent.com/shorebirdtech/install/main/install.sh -sSf | bash
+          echo "$HOME/.shorebird/bin" >> $GITHUB_PATH
 
       - name: Create Firebase options stub
         run: |
@@ -56,10 +58,7 @@ jobs:
         run: flutter pub get
 
       - name: Shorebird Doctor
-        run: |
-          echo "🩺 Running Shorebird doctor..."
-          shorebird doctor
-          echo "✅ Shorebird doctor completed"
+        run: shorebird doctor
 
       - name: Validate Shorebird Configuration
         run: |

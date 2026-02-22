@@ -32,7 +32,6 @@ jobs:
       ANDROID_ENV: ${{ matrix.android-env }}
       CREDENTIALS_REPO: git@github.com:your-org/trovara-credentials.git
       CREDENTIALS_DIR: credentials
-      SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
     steps:
       - name: Checkout repository
         if: |
@@ -83,10 +82,12 @@ jobs:
           github.event.inputs.environment == 'all' ||
           github.event.inputs.environment == matrix.android-env
         working-directory: ../credentials
+        env:
+          SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
         run: |
           set -euo pipefail
           case "$ANDROID_ENV" in
-            dev|staging)
+            staging)
               if [[ ! -f "android/trovara/${ANDROID_ENV}/upload.jks.enc" ]]; then
                 echo "❌ Encrypted keystore not found: android/trovara/${ANDROID_ENV}/upload.jks.enc"
                 exit 1
@@ -160,7 +161,7 @@ jobs:
           matrix.android-env == 'prod'
         run: |
           echo "🔨 Building trovara APK for prod environment..."
-          flutter build apk --release --flavor prod --dart-define-from-file=configs/trovara_prod.json
+          flutter build apk --release --flavor prod --target=lib/main_prod.dart --dart-define-from-file=configs/trovara_prod.json
 
       - name: Upload APK artifact
         if: |

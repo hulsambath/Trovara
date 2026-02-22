@@ -5,20 +5,20 @@ set -euo pipefail
 # Supports automatic credential decryption for builds
 #
 # Usage:
-#   ./scripts/build_apk.sh -yp                  # Build with dev credentials (default)
+#   ./scripts/build_apk.sh -yp                  # Build with staging credentials (default)
 #   ./scripts/build_apk.sh -yp --prod           # Build with prod credentials
-#   ./scripts/build_apk.sh -yp --dev            # Build with dev credentials explicitly
-#   ./scripts/build_apk.sh --trovara        # Build with dev credentials (default)
+#   ./scripts/build_apk.sh -yp --dev            # Build with staging credentials (alias)
+#   ./scripts/build_apk.sh --trovara        # Build with staging credentials (default)
 #   ./scripts/build_apk.sh --trovara --prod # Build with prod credentials
 #
 # The script will:
-# 1. Detect the environment (dev/prod) from arguments or default to dev
+# 1. Detect the environment (staging/prod) from arguments or default to staging
 # 2. Automatically decrypt credentials if needed
 # 3. Build APK with the appropriate configuration and credentials
 
 # Default values
 PROJECT="trovara"
-ENVIRONMENT="dev"
+ENVIRONMENT="staging"
 DECRYPT_CREDENTIALS=true
 
 # Parse arguments
@@ -33,7 +33,7 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --dev)
-      ENVIRONMENT="dev"
+      ENVIRONMENT="staging"
       shift
       ;;
     --no-decrypt)
@@ -46,12 +46,12 @@ while [[ $# -gt 0 ]]; do
       echo "Options:"
       echo "  -nm, --trovara  Build Trovara APK"
       echo "  --prod         Use production credentials"
-      echo "  --dev          Use development credentials (default)"
+      echo "  --dev          Use staging credentials (alias for backwards compatibility)"
       echo "  --no-decrypt   Skip automatic credential decryption"
       echo "  --help         Show this help message"
       echo ""
       echo "Examples:"
-      echo "  $0 -yp                              # Build with dev credentials"
+      echo "  $0 -yp                              # Build with staging credentials"
       echo "  $0 -yp --prod                       # Build with prod credentials"
       echo "  $0 -yp --no-decrypt                 # Build without decrypting credentials"
       exit 0
@@ -100,11 +100,11 @@ fi
 # Prepare Flutter build command
 FLUTTER_CMD="flutter build apk --dart-define-from-file=configs/trovara.json --release"
 
-# Add flavor if specified
+# Add flavor and entry point
 if [[ "$ENVIRONMENT" == "prod" ]]; then
-  FLUTTER_CMD="$FLUTTER_CMD --flavor prod"
-elif [[ "$ENVIRONMENT" == "dev" ]]; then
-  FLUTTER_CMD="$FLUTTER_CMD --flavor dev"
+  FLUTTER_CMD="$FLUTTER_CMD --flavor prod --target=lib/main_prod.dart"
+else
+  FLUTTER_CMD="$FLUTTER_CMD --flavor staging --target=lib/main_staging.dart"
 fi
 
 echo "🔨 Building APK..."

@@ -4,9 +4,10 @@ set -euo pipefail
 # Decrypt Android credentials for local development using local credentials project.
 # The build.gradle.kts now reads directly from the credentials project.
 # Usage:
-#   scripts/keystore.sh --env dev [--age-key-file ~/.config/sops/age/keys.txt]
+#   scripts/keystore.sh [--env staging|prod] [--age-key-file ~/.config/sops/age/keys.txt]
+#   --env dev is accepted but deprecated (maps to staging)
 
-ENVIRONMENT="dev"
+ENVIRONMENT="staging"
 PROJECT="trovara"
 AGE_KEY_FILE="${HOME}/.config/sops/age/keys.txt"
 CREDENTIALS_DIR="../credentials"
@@ -75,8 +76,12 @@ decrypt_if_needed() {
 pushd "${CREDENTIALS_DIR}" >/dev/null
 
 case "${ENVIRONMENT}" in
+  dev)
+    echo "⚠️  --env dev is deprecated, use --env staging instead"
+    ENVIRONMENT="staging"
+    ;&  # fall through
   staging)
-    FOLDER="${ENVIRONMENT}"
+    FOLDER="staging"
     decrypt_if_needed "android/${PROJECT}/${FOLDER}" "upload.jks" || exit 1
     [[ -f "android/${PROJECT}/${FOLDER}/keystore.properties.enc" ]] && \
       decrypt_if_needed "android/${PROJECT}/${FOLDER}" "keystore.properties" || true

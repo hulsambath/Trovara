@@ -198,6 +198,9 @@ if [[ "$DECRYPT_CREDENTIALS" == "true" ]]; then
   # Check if credentials exist (plaintext for now, will be encrypted later)
   # Staging uses dev credentials, prod uses prod credentials
   CRED_ENV="$ENVIRONMENT"
+  if [[ "$ENVIRONMENT" == "staging" ]]; then
+    CRED_ENV="dev"
+  fi
   CREDENTIALS_DIR="../credentials/android/$PROJECT/$CRED_ENV"
 
   # Check if plaintext credentials exist (already decrypted)

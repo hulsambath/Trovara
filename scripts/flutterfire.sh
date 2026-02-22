@@ -3,8 +3,9 @@
 # Use this [scripts/flutterfire] to reconfigure firebase in this project.
 #
 # Commands:
-# scripts/flutterfire -prod
-# scripts/flutterfire -staging
+# scripts/flutterfire --staging
+# scripts/flutterfire --prod
+# scripts/flutterfire --dev      # (deprecated alias for --staging)
 
 function exit_if_file_not_exist() {
   if ! [[ -f $1 ]]; then
@@ -45,10 +46,10 @@ function configure() {
   FLAVOR=$1
   PRODUCT=$2
   PACKAGE_NAME=$3
-  FLAVOR_IN_SNACKCASE=$4
+  FLAVOR_NAME=$4
   PLATFORMS=${PLATFORMS:-'android,ios,macos'}
 
-  log_args "Configuring Firebase for $FLAVOR_IN_SNACKCASE ($PACKAGE_NAME)"
+  log_args "Configuring Firebase for $FLAVOR_NAME ($PACKAGE_NAME)"
 
   run_command "flutterfire configure \
     --project=$PRODUCT \
@@ -59,12 +60,12 @@ function configure() {
     --ios-out=ios/Firebase/$FLAVOR/GoogleService-Info.plist \
     --android-out=android/app/src/$FLAVOR/google-services.json \
     --macos-out=macos/Firebase/$FLAVOR/GoogleService-Info.plist \
-    --out=lib/firebase_options/$FLAVOR_IN_SNACKCASE.dart \
+    --out=lib/firebase_options/$FLAVOR_NAME.dart \
     --yes"
 
-  log_args "TO RUN PROJECT: ./scripts/run_app.sh --$FLAVOR_IN_SNACKCASE"
+  log_args "TO RUN PROJECT: ./scripts/run_app.sh --$FLAVOR_NAME"
 
-  save_dart_main_file $FLAVOR_IN_SNACKCASE
+  save_dart_main_file $FLAVOR_NAME
   ensure_generated_dart_define_exist
 }
 
@@ -74,7 +75,8 @@ function main() {
   case $1 in
 
   -dev | --dev)
-    configure 'staging' 'trovara-team' 'com.trovara.app.staging' 'dev'
+    echo "⚠️  --dev is deprecated, use --staging instead"
+    configure 'staging' 'trovara-team' 'com.trovara.app.staging' 'staging'
     exit 0
     ;;
 
@@ -89,8 +91,13 @@ function main() {
     ;;
 
   *)
-    help
-    exit 0
+    echo "Usage: scripts/flutterfire.sh [--staging|--prod]"
+    echo ""
+    echo "Options:"
+    echo "  --staging    Configure Firebase for staging environment"
+    echo "  --prod       Configure Firebase for production environment"
+    echo "  --dev        (deprecated) Alias for --staging"
+    exit 1
     ;;
 
   esac

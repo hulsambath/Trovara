@@ -40,27 +40,38 @@ fun Project.loadKeystoreFromCredentials(flavorName: String): Properties {
     return keystoreProps
 }
 
-// Load keystore properties from credentials project
-// Use staging by default for local development; prod flavor will override
-val keystoreProps = project.loadKeystoreFromCredentials("staging")
-
-// Get the credentials directory based on flavor
-val flavorName = "staging"
-val credentialsDir = project.getCredentialsDir(flavorName)
-
-val storeFileProp = if (keystoreProps.getProperty("storeFile") != null) {
-    credentialsDir + "/" + keystoreProps.getProperty("storeFile")
-} else {
-    project.findProperty("KEYSTORE_FILE") as String?
+// Helper to resolve signing properties for a given flavor
+data class SigningProps(
+    val storeFile: String?,
+    val storePassword: String?,
+    val keyAlias: String?,
+    val keyPassword: String?,
+    val credentialsDir: String,
+) {
+    val isComplete get() = listOf(storeFile, storePassword, keyAlias, keyPassword).all { it != null }
 }
 
-val storePasswordProp = (keystoreProps.getProperty("storePassword")
-    ?: (project.findProperty("KEYSTORE_PASSWORD") as String?))
-val keyAliasProp = (keystoreProps.getProperty("keyAlias")
-    ?: (project.findProperty("KEY_ALIAS") as String?))
-val keyPasswordProp = (keystoreProps.getProperty("keyPassword")
-    ?: (project.findProperty("KEY_PASSWORD") as String?))
-val hasKeystore = listOf(storeFileProp, storePasswordProp, keyAliasProp, keyPasswordProp).all { it != null }
+fun Project.resolveSigningProps(flavor: String): SigningProps {
+    val props = loadKeystoreFromCredentials(flavor)
+    val dir = getCredentialsDir(flavor)
+
+    val storeFile = if (props.getProperty("storeFile") != null) {
+        dir + "/" + props.getProperty("storeFile")
+    } else {
+        findProperty("KEYSTORE_FILE") as String?
+    }
+
+    return SigningProps(
+        storeFile = storeFile,
+        storePassword = props.getProperty("storePassword") ?: (findProperty("KEYSTORE_PASSWORD") as String?),
+        keyAlias = props.getProperty("keyAlias") ?: (findProperty("KEY_ALIAS") as String?),
+        keyPassword = props.getProperty("keyPassword") ?: (findProperty("KEY_PASSWORD") as String?),
+        credentialsDir = dir,
+    )
+}
+
+val stagingSigning = project.resolveSigningProps("staging")
+val prodSigning = project.resolveSigningProps("prod")
 
 android {
     namespace = "com.trovara.app"
@@ -100,30 +111,52 @@ android {
     }
 
     signingConfigs {
-        // Only create a custom release signing config when keystore is fully provided
-        if (hasKeystore) {
-            create("release") {
-                storeFile = file(storeFileProp!!)
-                storePassword = storePasswordProp!!
-                keyAlias = keyAliasProp!!
-                keyPassword = keyPasswordProp!!
+        if (stagingSigning.isComplete) {
+            create("stagingRelease") {
+                storeFile = file(stagingSigning.storeFile!!)
+                storePassword = stagingSigning.storePassword!!
+                keyAlias = stagingSigning.keyAlias!!
+                keyPassword = stagingSigning.keyPassword!!
             }
+            println("🔐 Staging keystore: ${stagingSigning.storeFile}")
+            println("🔑 Staging key alias: ${stagingSigning.keyAlias}")
+            println("📁 Staging credentials: ${stagingSigning.credentialsDir}")
         }
-    }
-
-    // Print debug info about keystore loading
-    if (hasKeystore) {
-        println("🔐 Using keystore from: " + storeFileProp)
-        println("🔑 Key alias: " + keyAliasProp)
-        println("📁 Credentials directory: " + credentialsDir)
+        if (prodSigning.isComplete) {
+            create("prodRelease") {
+                storeFile = file(prodSigning.storeFile!!)
+                storePassword = prodSigning.storePassword!!
+                keyAlias = prodSigning.keyAlias!!
+                keyPassword = prodSigning.keyPassword!!
+            }
+            println("🔐 Prod keystore: ${prodSigning.storeFile}")
+            println("🔑 Prod key alias: ${prodSigning.keyAlias}")
+            println("📁 Prod credentials: ${prodSigning.credentialsDir}")
+        }
     }
 
     buildTypes {
         release {
-            signingConfig = if (hasKeystore) signingConfigs.getByName("release") else signingConfigs.getByName("debug")
+            // Flavor-specific signing is applied below via productFlavors
+            signingConfig = signingConfigs.getByName("debug")
         }
         debug {
-            signingConfig = if (hasKeystore) signingConfigs.getByName("release") else signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("debug")
+        }
+    }
+
+    // Assign the correct signing config per flavor+buildType
+    applicationVariants.all {
+        val variant = this
+        val flavor = variant.productFlavors.firstOrNull()?.name
+        if (variant.buildType.name == "release" || variant.buildType.name == "debug") {
+            val config = when (flavor) {
+                "prod" -> if (prodSigning.isComplete) signingConfigs.getByName("prodRelease") else null
+                else   -> if (stagingSigning.isComplete) signingConfigs.getByName("stagingRelease") else null
+            }
+            if (config != null) {
+                variant.signingConfig = config
+            }
         }
     }
 }
