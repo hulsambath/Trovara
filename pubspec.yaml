@@ -54,6 +54,7 @@ flutter:
   uses-material-design: true
 
   assets:
+    - shorebird.yaml
     - assets/translations/
     - assets/app_icon/
     - assets/icons/

@@ -83,8 +83,8 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = "17"
+    kotlin {
+        jvmToolchain(17)
     }
 
     defaultConfig {
@@ -145,18 +145,14 @@ android {
         }
     }
 
-    // Assign the correct signing config per flavor+buildType
-    applicationVariants.all {
-        val variant = this
-        val flavor = variant.productFlavors.firstOrNull()?.name
-        if (variant.buildType.name == "release" || variant.buildType.name == "debug") {
-            val config = when (flavor) {
-                "prod" -> if (prodSigning.isComplete) signingConfigs.getByName("prodRelease") else null
-                else   -> if (stagingSigning.isComplete) signingConfigs.getByName("stagingRelease") else null
-            }
-            if (config != null) {
-                variant.signingConfig = config
-            }
+    // Assign the correct signing config per flavor
+    productFlavors.configureEach {
+        val config = when (name) {
+            "prod" -> if (prodSigning.isComplete) signingConfigs.getByName("prodRelease") else null
+            else   -> if (stagingSigning.isComplete) signingConfigs.getByName("stagingRelease") else null
+        }
+        if (config != null) {
+            signingConfig = config
         }
     }
 }
