@@ -53,6 +53,7 @@ jobs:
             static const FirebaseOptions macos = FirebaseOptions(apiKey: 'x', appId: 'x', messagingSenderId: 'x', projectId: 'x', iosBundleId: 'x');
           }
           DART
+          cp lib/firebase_options/staging.dart lib/firebase_options/prod.dart
 
       - name: Install dependencies
         run: flutter pub get
