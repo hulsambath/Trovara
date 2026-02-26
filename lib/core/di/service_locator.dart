@@ -9,6 +9,7 @@ import 'package:trovara/core/repository/interfaces/embedding_repository.dart';
 import 'package:trovara/core/repository/interfaces/folder_repository.dart';
 import 'package:trovara/core/repository/interfaces/note_repository.dart';
 import 'package:trovara/core/services/custom_tag_service.dart';
+import 'package:trovara/core/services/document_resolver_service.dart';
 import 'package:trovara/core/services/embedding_service.dart';
 import 'package:trovara/core/services/google_drive_service.dart';
 import 'package:trovara/core/services/google_drive_sync_service.dart';
@@ -31,6 +32,7 @@ class ServiceLocator {
   CustomTagService? _customTagService;
   EmbeddingService? _embeddingService;
   VectorSearchService? _vectorSearchService;
+  DocumentResolverService? _documentResolverService;
   GoogleDriveService? _googleDriveService;
   GoogleDriveSyncService? _googleDriveSyncService;
 
@@ -71,6 +73,12 @@ class ServiceLocator {
   VectorSearchService get vectorSearchService {
     _vectorSearchService ??= VectorSearchService(repository: embeddingRepository);
     return _vectorSearchService!;
+  }
+
+  /// Get the document resolver service instance
+  DocumentResolverService get documentResolverService {
+    _documentResolverService ??= DocumentResolverService(noteService: noteService);
+    return _documentResolverService!;
   }
 
   /// Get the note service instance
@@ -126,5 +134,6 @@ class ServiceLocator {
     _embeddingRepository = null;
     _embeddingService = null;
     _vectorSearchService = null;
+    _documentResolverService = null;
   }
 }
