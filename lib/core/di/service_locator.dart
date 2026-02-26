@@ -14,6 +14,7 @@ import 'package:trovara/core/services/embedding_service.dart';
 import 'package:trovara/core/services/google_drive_service.dart';
 import 'package:trovara/core/services/google_drive_sync_service.dart';
 import 'package:trovara/core/services/note_service.dart';
+import 'package:trovara/core/services/prompt_builder_service.dart';
 import 'package:trovara/core/services/vector_search_service.dart';
 
 /// Service Locator for dependency injection
@@ -33,6 +34,7 @@ class ServiceLocator {
   EmbeddingService? _embeddingService;
   VectorSearchService? _vectorSearchService;
   DocumentResolverService? _documentResolverService;
+  PromptBuilderService? _promptBuilderService;
   GoogleDriveService? _googleDriveService;
   GoogleDriveSyncService? _googleDriveSyncService;
 
@@ -79,6 +81,12 @@ class ServiceLocator {
   DocumentResolverService get documentResolverService {
     _documentResolverService ??= DocumentResolverService(noteService: noteService);
     return _documentResolverService!;
+  }
+
+  /// Get the prompt builder service instance
+  PromptBuilderService get promptBuilderService {
+    _promptBuilderService ??= PromptBuilderService(documentResolver: documentResolverService);
+    return _promptBuilderService!;
   }
 
   /// Get the note service instance
@@ -135,5 +143,6 @@ class ServiceLocator {
     _embeddingService = null;
     _vectorSearchService = null;
     _documentResolverService = null;
+    _promptBuilderService = null;
   }
 }
