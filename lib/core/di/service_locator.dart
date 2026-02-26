@@ -13,6 +13,7 @@ import 'package:trovara/core/services/embedding_service.dart';
 import 'package:trovara/core/services/google_drive_service.dart';
 import 'package:trovara/core/services/google_drive_sync_service.dart';
 import 'package:trovara/core/services/note_service.dart';
+import 'package:trovara/core/services/vector_search_service.dart';
 
 /// Service Locator for dependency injection
 /// Follows Dependency Inversion Principle - provides abstractions, not concrete implementations
@@ -29,6 +30,7 @@ class ServiceLocator {
   NoteService? _noteService;
   CustomTagService? _customTagService;
   EmbeddingService? _embeddingService;
+  VectorSearchService? _vectorSearchService;
   GoogleDriveService? _googleDriveService;
   GoogleDriveSyncService? _googleDriveSyncService;
 
@@ -63,6 +65,12 @@ class ServiceLocator {
       apiKey: ConfigConstants.geminiApiKey,
     );
     return _embeddingService!;
+  }
+
+  /// Get the vector search service instance
+  VectorSearchService get vectorSearchService {
+    _vectorSearchService ??= VectorSearchService(repository: embeddingRepository);
+    return _vectorSearchService!;
   }
 
   /// Get the note service instance
@@ -117,5 +125,6 @@ class ServiceLocator {
     _folderRepository = null;
     _embeddingRepository = null;
     _embeddingService = null;
+    _vectorSearchService = null;
   }
 }
