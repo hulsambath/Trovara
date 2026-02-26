@@ -56,6 +56,10 @@ class Assets {
   static const $AssetsAppIconGen appIcon = $AssetsAppIconGen();
   static const $AssetsIconsGen icons = $AssetsIconsGen();
   static const $AssetsTranslationsGen translations = $AssetsTranslationsGen();
+  static const String shorebird = 'shorebird.yaml';
+
+  /// List of all assets
+  static List<String> get values => [shorebird];
 }
 
 class AssetGenImage {
