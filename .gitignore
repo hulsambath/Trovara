@@ -23,6 +23,13 @@ configs/trovara_staging.json
 configs/trovara_prod.json
 configs/trovara_dev.json
 
+# Ignore staging/prod google-services placed per flavor
+android/app/src/staging/google-services.json
+android/app/src/prod/google-services.json
+
+# Ignore staging config with sensitive API keys
+configs/trovara_staging.json
+
 # Local credentials working dir
 .local-credentials/
 
@@ -49,7 +56,7 @@ migrate_working_dir/
 # The .vscode folder contains launch configuration and tasks you configure in
 # VS Code which you may wish to be included in version control, so this line
 # is commented out by default.
-#.vscode/
+#.vscode/git commit -m "Close #48 Embedding model"
 
 # Flutter/Dart/Pub related
 **/doc/api/

@@ -17,8 +17,14 @@ class $AssetsAppIconGen {
   /// File path: assets/app_icon/1024x1024.png
   AssetGenImage get a1024x1024 => const AssetGenImage('assets/app_icon/1024x1024.png');
 
+  /// File path: assets/app_icon/happy.png
+  AssetGenImage get happy => const AssetGenImage('assets/app_icon/happy.png');
+
+  /// File path: assets/app_icon/sleepy.png
+  AssetGenImage get sleepy => const AssetGenImage('assets/app_icon/sleepy.png');
+
   /// List of all assets
-  List<AssetGenImage> get values => [a1024x1024];
+  List<AssetGenImage> get values => [a1024x1024, happy, sleepy];
 }
 
 class $AssetsIconsGen {
@@ -50,6 +56,10 @@ class Assets {
   static const $AssetsAppIconGen appIcon = $AssetsAppIconGen();
   static const $AssetsIconsGen icons = $AssetsIconsGen();
   static const $AssetsTranslationsGen translations = $AssetsTranslationsGen();
+  static const String shorebird = 'shorebird.yaml';
+
+  /// List of all assets
+  static List<String> get values => [shorebird];
 }
 
 class AssetGenImage {
