@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
 import 'package:trovara/core/repository/interfaces/folder_repository.dart';
 import 'package:trovara/core/repository/interfaces/note_repository.dart';
+import 'package:trovara/core/services/embedding_service.dart';
 import 'package:trovara/core/services/google_drive_service.dart';
 import 'package:trovara/models/folder.dart';
 import 'package:trovara/models/note.dart';
@@ -20,15 +21,18 @@ class NoteService {
   final INoteRepository _noteRepository;
   final IFolderRepository _folderRepository;
   final GoogleDriveService? _driveService;
+  final EmbeddingService? _embeddingService;
   final Logger _logger = Logger();
 
   NoteService({
     required INoteRepository noteRepository,
     required IFolderRepository folderRepository,
     GoogleDriveService? driveService,
+    EmbeddingService? embeddingService,
   }) : _noteRepository = noteRepository,
        _folderRepository = folderRepository,
-       _driveService = driveService;
+       _driveService = driveService,
+       _embeddingService = embeddingService;
 
   /// Initialize both repositories
   Future<void> initialize() async {
@@ -124,6 +128,9 @@ class NoteService {
         );
       }
     } finally {}
+
+    // Re-embed any notes that are new or changed after import
+    _embeddingService?.reembedStaleNotes(_noteRepository.getActiveNotes());
   }
 
   /// Merge local and remote data intelligently (Git-like merge behaviour).
@@ -297,6 +304,9 @@ class NoteService {
       await _folderRepository.updateFolder(folder);
     }
 
+    // Generate embedding asynchronously (non-blocking)
+    _embeddingService?.embedNote(note);
+
     return note;
   }
 
@@ -338,7 +348,11 @@ class NoteService {
     return note;
   }
 
-  Future<void> updateNote(Note note) => _noteRepository.updateNote(note);
+  Future<void> updateNote(Note note) async {
+    await _noteRepository.updateNote(note);
+    // Re-embed asynchronously (non-blocking)
+    _embeddingService?.embedNote(note);
+  }
 
   // ═══════════════════════════════════════════════════════════════════════════
   //  Soft-delete (trash / recently deleted)
@@ -392,6 +406,9 @@ class NoteService {
       }
     }
 
+    // Delete embeddings before removing the note
+    await _embeddingService?.deleteEmbeddingsForNote(noteId);
+
     await _noteRepository.deleteNote(noteId);
   }
 
@@ -405,6 +422,7 @@ class NoteService {
     );
 
     for (final note in expired.toList()) {
+      await _embeddingService?.deleteEmbeddingsForNote(note.id);
       await _noteRepository.deleteNote(note.id);
     }
   }

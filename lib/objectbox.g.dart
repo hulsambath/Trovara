@@ -16,6 +16,7 @@ import 'package:objectbox_flutter_libs/objectbox_flutter_libs.dart';
 import 'models/custom_tag.dart';
 import 'models/folder.dart';
 import 'models/note.dart';
+import 'models/note_embedding.dart';
 
 export 'package:objectbox/objectbox.dart'; // so that callers only have to import this file
 
@@ -86,6 +87,64 @@ final _entities = <obx_int.ModelEntity>[
     relations: <obx_int.ModelRelation>[],
     backlinks: <obx_int.ModelBacklink>[],
   ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(5, 6866622907400243735),
+    name: 'NoteEmbedding',
+    lastPropertyId: const obx_int.IdUid(8, 2315417692093281007),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 9082221737024787687),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 8621857554089024718),
+        name: 'noteId',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 5155674640786982311),
+        name: 'chunkIndex',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 1677348605704305491),
+        name: 'chunkText',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 233286460839599742),
+        name: 'embeddingData',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(6, 1371899503158169796),
+        name: 'modelVersion',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(7, 8831101180634302375),
+        name: 'createdAt',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(8, 2315417692093281007),
+        name: 'noteUpdatedAt',
+        type: 10,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
 ];
 
 /// Shortcut for [obx.Store.new] that passes [getObjectBoxModel] and for Flutter
@@ -126,7 +185,7 @@ Future<obx.Store> openStore({
 obx_int.ModelDefinition getObjectBoxModel() {
   final model = obx_int.ModelInfo(
     entities: _entities,
-    lastEntityId: const obx_int.IdUid(4, 8381765124324137753),
+    lastEntityId: const obx_int.IdUid(5, 6866622907400243735),
     lastIndexId: const obx_int.IdUid(0, 0),
     lastRelationId: const obx_int.IdUid(0, 0),
     lastSequenceId: const obx_int.IdUid(0, 0),
@@ -359,6 +418,80 @@ obx_int.ModelDefinition getObjectBoxModel() {
         return object;
       },
     ),
+    NoteEmbedding: obx_int.EntityDefinition<NoteEmbedding>(
+      model: _entities[3],
+      toOneRelations: (NoteEmbedding object) => [],
+      toManyRelations: (NoteEmbedding object) => {},
+      getId: (NoteEmbedding object) => object.id,
+      setId: (NoteEmbedding object, int id) {
+        object.id = id;
+      },
+      objectToFB: (NoteEmbedding object, fb.Builder fbb) {
+        final chunkTextOffset = fbb.writeString(object.chunkText);
+        final embeddingDataOffset = fbb.writeString(object.embeddingData);
+        final modelVersionOffset = fbb.writeString(object.modelVersion);
+        fbb.startTable(9);
+        fbb.addInt64(0, object.id);
+        fbb.addInt64(1, object.noteId);
+        fbb.addInt64(2, object.chunkIndex);
+        fbb.addOffset(3, chunkTextOffset);
+        fbb.addOffset(4, embeddingDataOffset);
+        fbb.addOffset(5, modelVersionOffset);
+        fbb.addInt64(6, object.createdAt.millisecondsSinceEpoch);
+        fbb.addInt64(7, object.noteUpdatedAt.millisecondsSinceEpoch);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final idParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          4,
+          0,
+        );
+        final noteIdParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          6,
+          0,
+        );
+        final chunkIndexParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          8,
+          0,
+        );
+        final chunkTextParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 10, '');
+        final embeddingDataParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 12, '');
+        final modelVersionParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 14, '');
+        final createdAtParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 16, 0),
+        );
+        final noteUpdatedAtParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 18, 0),
+        );
+        final object = NoteEmbedding(
+          id: idParam,
+          noteId: noteIdParam,
+          chunkIndex: chunkIndexParam,
+          chunkText: chunkTextParam,
+          embeddingData: embeddingDataParam,
+          modelVersion: modelVersionParam,
+          createdAt: createdAtParam,
+          noteUpdatedAt: noteUpdatedAtParam,
+        );
+
+        return object;
+      },
+    ),
   };
 
   return obx_int.ModelDefinition(model, bindings);
@@ -464,4 +597,47 @@ class CustomTag_ {
 
   /// See [CustomTag.usageCount].
   static final usageCount = obx.QueryIntegerProperty<CustomTag>(_entities[2].properties[5]);
+}
+
+/// [NoteEmbedding] entity fields to define ObjectBox queries.
+class NoteEmbedding_ {
+  /// See [NoteEmbedding.id].
+  static final id = obx.QueryIntegerProperty<NoteEmbedding>(
+    _entities[3].properties[0],
+  );
+
+  /// See [NoteEmbedding.noteId].
+  static final noteId = obx.QueryIntegerProperty<NoteEmbedding>(
+    _entities[3].properties[1],
+  );
+
+  /// See [NoteEmbedding.chunkIndex].
+  static final chunkIndex = obx.QueryIntegerProperty<NoteEmbedding>(
+    _entities[3].properties[2],
+  );
+
+  /// See [NoteEmbedding.chunkText].
+  static final chunkText = obx.QueryStringProperty<NoteEmbedding>(
+    _entities[3].properties[3],
+  );
+
+  /// See [NoteEmbedding.embeddingData].
+  static final embeddingData = obx.QueryStringProperty<NoteEmbedding>(
+    _entities[3].properties[4],
+  );
+
+  /// See [NoteEmbedding.modelVersion].
+  static final modelVersion = obx.QueryStringProperty<NoteEmbedding>(
+    _entities[3].properties[5],
+  );
+
+  /// See [NoteEmbedding.createdAt].
+  static final createdAt = obx.QueryDateProperty<NoteEmbedding>(
+    _entities[3].properties[6],
+  );
+
+  /// See [NoteEmbedding.noteUpdatedAt].
+  static final noteUpdatedAt = obx.QueryDateProperty<NoteEmbedding>(
+    _entities[3].properties[7],
+  );
 }

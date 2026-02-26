@@ -1,11 +1,15 @@
+import 'package:trovara/constants/config_constants.dart';
 import 'package:trovara/core/repository/base/objectbox_store_manager.dart';
 import 'package:trovara/core/repository/implementations/objectbox_custom_tag_repository.dart';
+import 'package:trovara/core/repository/implementations/objectbox_embedding_repository.dart';
 import 'package:trovara/core/repository/implementations/objectbox_folder_repository.dart';
 import 'package:trovara/core/repository/implementations/objectbox_note_repository.dart';
 import 'package:trovara/core/repository/interfaces/custom_tag_repository.dart';
+import 'package:trovara/core/repository/interfaces/embedding_repository.dart';
 import 'package:trovara/core/repository/interfaces/folder_repository.dart';
 import 'package:trovara/core/repository/interfaces/note_repository.dart';
 import 'package:trovara/core/services/custom_tag_service.dart';
+import 'package:trovara/core/services/embedding_service.dart';
 import 'package:trovara/core/services/google_drive_service.dart';
 import 'package:trovara/core/services/google_drive_sync_service.dart';
 import 'package:trovara/core/services/note_service.dart';
@@ -21,8 +25,10 @@ class ServiceLocator {
   INoteRepository? _noteRepository;
   IFolderRepository? _folderRepository;
   ICustomTagRepository? _customTagRepository;
+  IEmbeddingRepository? _embeddingRepository;
   NoteService? _noteService;
   CustomTagService? _customTagService;
+  EmbeddingService? _embeddingService;
   GoogleDriveService? _googleDriveService;
   GoogleDriveSyncService? _googleDriveSyncService;
 
@@ -44,12 +50,28 @@ class ServiceLocator {
     return _customTagRepository!;
   }
 
+  /// Get the embedding repository instance
+  IEmbeddingRepository get embeddingRepository {
+    _embeddingRepository ??= ObjectBoxEmbeddingRepository();
+    return _embeddingRepository!;
+  }
+
+  /// Get the embedding service instance
+  EmbeddingService get embeddingService {
+    _embeddingService ??= EmbeddingService(
+      embeddingRepository: embeddingRepository,
+      apiKey: ConfigConstants.geminiApiKey,
+    );
+    return _embeddingService!;
+  }
+
   /// Get the note service instance
   NoteService get noteService {
     _noteService ??= NoteService(
       noteRepository: noteRepository,
       folderRepository: folderRepository,
       driveService: googleDriveService,
+      embeddingService: embeddingService,
     );
     return _noteService!;
   }
@@ -75,6 +97,7 @@ class ServiceLocator {
   Future<void> initialize() async {
     await noteService.initialize();
     await customTagService.initialize();
+    await embeddingService.initialize();
   }
 
   /// Dispose all services
@@ -82,6 +105,7 @@ class ServiceLocator {
     _noteService?.dispose();
     _noteRepository?.dispose();
     _folderRepository?.dispose();
+    _embeddingRepository?.dispose();
     _googleDriveService = null;
     _googleDriveSyncService = null;
 
@@ -91,5 +115,7 @@ class ServiceLocator {
     _noteService = null;
     _noteRepository = null;
     _folderRepository = null;
+    _embeddingRepository = null;
+    _embeddingService = null;
   }
 }

@@ -184,9 +184,58 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "5:6866622907400243735",
+      "lastPropertyId": "8:2315417692093281007",
+      "name": "NoteEmbedding",
+      "properties": [
+        {
+          "id": "1:9082221737024787687",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:8621857554089024718",
+          "name": "noteId",
+          "type": 6
+        },
+        {
+          "id": "3:5155674640786982311",
+          "name": "chunkIndex",
+          "type": 6
+        },
+        {
+          "id": "4:1677348605704305491",
+          "name": "chunkText",
+          "type": 9
+        },
+        {
+          "id": "5:233286460839599742",
+          "name": "embeddingData",
+          "type": 9
+        },
+        {
+          "id": "6:1371899503158169796",
+          "name": "modelVersion",
+          "type": 9
+        },
+        {
+          "id": "7:8831101180634302375",
+          "name": "createdAt",
+          "type": 10
+        },
+        {
+          "id": "8:2315417692093281007",
+          "name": "noteUpdatedAt",
+          "type": 10
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "4:8381765124324137753",
+  "lastEntityId": "5:6866622907400243735",
   "lastIndexId": "0:0",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",
