@@ -9,6 +9,7 @@ import 'package:trovara/core/di/service_locator.dart';
 import 'package:trovara/core/services/custom_tag_service.dart';
 import 'package:trovara/core/services/note_service.dart';
 import 'package:trovara/models/note.dart';
+import 'package:trovara/widgets/nm_toast.dart';
 
 class NoteViewModel extends BaseViewModel {
   final String? title;
@@ -276,7 +277,7 @@ class NoteViewModel extends BaseViewModel {
     }
   }
 
-  Future<void> updateCustomTags(List<String> customTags) async {
+  Future<void> updateCustomTags(List<String> customTags, BuildContext context) async {
     if (_currentNote != null) {
       _hasUnsavedChanges = true;
 
@@ -289,9 +290,9 @@ class NoteViewModel extends BaseViewModel {
           final customTag = await _customTagService.createOrGetCustomTag(tagName);
           customTagIds.add(customTag.id);
         } catch (e) {
-          // Handle error - could show a snackbar or log the error
-          // TODO: Show user-friendly error message
-          debugPrint('Error creating custom tag "$tagName": $e');
+          if (context.mounted) {
+            NmToast.error(context, 'Failed to create tag "$tagName"');
+          }
         }
       }
 

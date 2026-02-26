@@ -37,8 +37,9 @@ dependencies:
   pointycastle: ^4.0.0
   intl: ^0.20.2
   cupertino_native_better: ^1.3.4
-  dynamic_app_icon_plus: ^1.0.0
   flutter_dynamic_icon_plus: ^1.4.0
+  firebase_core: ^4.4.0
+  path: ^1.9.1
 
 dev_dependencies:
   flutter_test:
@@ -53,6 +54,7 @@ flutter:
   uses-material-design: true
 
   assets:
+    - shorebird.yaml
     - assets/translations/
     - assets/app_icon/
     - assets/icons/

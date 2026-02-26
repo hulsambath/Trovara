@@ -1,22 +1,21 @@
 import 'dart:io';
 
-import 'package:dynamic_app_icon_plus/dynamic_app_icon_plus.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:trovara/core/di/service_locator.dart';
 import 'package:trovara/core/storage/theme_mode_storage.dart';
 
 class Initializer {
-  static Future<void> load() async {
+  static Future<void> load({FirebaseOptions? firebaseOptions}) async {
     WidgetsFlutterBinding.ensureInitialized();
+    if (firebaseOptions != null) {
+      await Firebase.initializeApp(options: firebaseOptions);
+    }
     await ThemeModeStorage.instance.initialize();
     await ServiceLocator().initialize();
     // Initialize Google Drive session (silent restore if previously signed in)
     await ServiceLocator().googleDriveService.initialize();
-    // Initialize dynamic app icon (Android only)
-    if (Platform.isAndroid) {
-      await DynamicAppIconPlus.initialize('icon_config.yaml');
-    }
   }
 
   static String get deviceType {

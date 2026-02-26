@@ -3,10 +3,25 @@ android/app/upload.jks
 android/keystore.properties
 android/app/google-services.json
 
+# Per-flavor google-services (contain API keys)
+android/app/src/*/google-services.json
+
+# Firebase options - stubs with placeholders are committed for static analysis
+# Real keys are injected at build time via CI or by running: scripts/flutterfire.sh
+# After running flutterfire configure locally, restore stubs: git checkout lib/firebase_options/
+ios/Firebase/
+macos/Firebase/
+**/GoogleService-Info.plist
+
+lib/firebase_options/*
+!lib/firebase_options/staging.dart
+!lib/firebase_options/prod.dart
+
 # Config files with OAuth credentials
 configs/trovara.json
-configs/trovara_dev.json
+configs/trovara_staging.json
 configs/trovara_prod.json
+configs/trovara_dev.json
 
 # Local credentials working dir
 .local-credentials/

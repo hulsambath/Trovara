@@ -21,7 +21,7 @@ class _NoteContent extends StatelessWidget {
           onMoodChanged: viewModel.updateMoodTags,
           onTimeChanged: viewModel.updateTimeTags,
           onPersonalGrowthChanged: viewModel.updatePersonalGrowthTags,
-          onCustomTagsChanged: viewModel.updateCustomTags,
+          onCustomTagsChanged: (tags) => viewModel.updateCustomTags(tags, context),
           creationTime: viewModel.currentNote?.createdAt,
           showTimeSuggestions: viewModel.isNewNote,
         ),
