@@ -71,7 +71,10 @@ class _MainContentState extends State<_MainContent> {
   Widget _buildIOS(BuildContext context) => CupertinoPageScaffold(
     child: Stack(
       children: [
-        PageView(controller: _pageController, onPageChanged: _onPageChanged, children: _pages),
+        Positioned.fill(
+          bottom: kToolbarHeight,
+          child: PageView(controller: _pageController, onPageChanged: _onPageChanged, children: _pages),
+        ),
         const Positioned(bottom: 0, left: 0, right: 0, child: ConnectivityStatus()),
         Positioned(
           bottom: 0,

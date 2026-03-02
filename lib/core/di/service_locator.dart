@@ -13,8 +13,10 @@ import 'package:trovara/core/services/document_resolver_service.dart';
 import 'package:trovara/core/services/embedding_service.dart';
 import 'package:trovara/core/services/google_drive_service.dart';
 import 'package:trovara/core/services/google_drive_sync_service.dart';
+import 'package:trovara/core/services/llm_client.dart';
 import 'package:trovara/core/services/note_service.dart';
 import 'package:trovara/core/services/prompt_builder_service.dart';
+import 'package:trovara/core/services/rag_service.dart';
 import 'package:trovara/core/services/vector_search_service.dart';
 
 /// Service Locator for dependency injection
@@ -35,6 +37,8 @@ class ServiceLocator {
   VectorSearchService? _vectorSearchService;
   DocumentResolverService? _documentResolverService;
   PromptBuilderService? _promptBuilderService;
+  LlmClient? _llmClient;
+  RagService? _ragService;
   GoogleDriveService? _googleDriveService;
   GoogleDriveSyncService? _googleDriveSyncService;
 
@@ -66,7 +70,9 @@ class ServiceLocator {
   EmbeddingService get embeddingService {
     _embeddingService ??= EmbeddingService(
       embeddingRepository: embeddingRepository,
+      provider: EmbeddingProvider.gemini,
       apiKey: ConfigConstants.geminiApiKey,
+      modelName: EmbeddingService.defaultGeminiEmbeddingModel,
     );
     return _embeddingService!;
   }
@@ -87,6 +93,27 @@ class ServiceLocator {
   PromptBuilderService get promptBuilderService {
     _promptBuilderService ??= PromptBuilderService(documentResolver: documentResolverService);
     return _promptBuilderService!;
+  }
+
+  /// Get the LLM client instance
+  LlmClient get llmClient {
+    _llmClient ??= LlmClient(
+      provider: LlmProvider.gemini,
+      apiKey: ConfigConstants.geminiApiKey,
+      modelName: LlmClient.defaultGeminiModel,
+    );
+    return _llmClient!;
+  }
+
+  /// Get the RAG service instance
+  RagService get ragService {
+    _ragService ??= RagService(
+      embeddingService: embeddingService,
+      vectorSearchService: vectorSearchService,
+      promptBuilderService: promptBuilderService,
+      llmClient: llmClient,
+    );
+    return _ragService!;
   }
 
   /// Get the note service instance
@@ -122,6 +149,7 @@ class ServiceLocator {
     await noteService.initialize();
     await customTagService.initialize();
     await embeddingService.initialize();
+    await llmClient.initialize();
   }
 
   /// Dispose all services
@@ -144,5 +172,7 @@ class ServiceLocator {
     _vectorSearchService = null;
     _documentResolverService = null;
     _promptBuilderService = null;
+    _llmClient = null;
+    _ragService = null;
   }
 }

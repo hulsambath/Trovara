@@ -56,6 +56,10 @@ class NotesViewModel extends BaseViewModel {
     }
   }
 
+  void openChat(BuildContext context) {
+    context.push('/chat');
+  }
+
   void _loadNotes() {
     if (_isDisposed) return;
 
@@ -84,14 +88,14 @@ class NotesViewModel extends BaseViewModel {
   void createNewNote(BuildContext context) {
     context.push('/note').then((_) {
       // Refresh notes when returning from creating a new note
-      refreshNotes();
+      _loadNotes();
     });
   }
 
   void openNote(BuildContext context, Note note) {
     context.push('/note?title=${Uri.encodeComponent(note.title)}').then((_) {
       // Refresh notes when returning from editing a note
-      refreshNotes();
+      _loadNotes();
     });
   }
 

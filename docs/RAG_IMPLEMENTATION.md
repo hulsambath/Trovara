@@ -1034,33 +1034,38 @@ class RagService {
 
 ---
 
-## 7. Step 6 — Chat UI
+## 7. Step 6 — Chat UI ✅
 
-> **Goal:** A chat interface where users ask questions and see AI-generated
-> answers with source attribution.
+> **Status:** Complete · **Tests:** 22 passing · **Files:** 8 created, 3 modified
 
 ### 7.1 `ChatMessage` model
 
 **File:** `lib/models/chat_message.dart`
 
+Immutable data model representing a single message in the chat conversation.
+Updated from the original plan to include `isError` for error-state rendering.
+
 ```dart
-/// Represents a single message in the chat conversation.
 class ChatMessage {
   final String id;
   final String content;
   final bool isUser;
   final DateTime timestamp;
-  final List<String>? sourceNoteTitles;  // for AI responses
+  final List<String> sourceNoteTitles; // non-nullable, defaults to []
   final bool isLoading;
+  final bool isError;                  // added: error state
 
   ChatMessage({
     required this.id,
     required this.content,
     required this.isUser,
     DateTime? timestamp,
-    this.sourceNoteTitles,
+    this.sourceNoteTitles = const [],
     this.isLoading = false,
+    this.isError = false,
   }) : timestamp = timestamp ?? DateTime.now();
+
+  ChatMessage copyWith({ ... }); // immutable updates for streaming
 }
 ```
 
@@ -1068,118 +1073,129 @@ class ChatMessage {
 
 **File:** `lib/views/chat/chat_view_model.dart`
 
+Extends `BaseViewModel` (dispose-safe `ChangeNotifier`). Manages the full
+message lifecycle: user input → streaming AI response → source attribution.
+
 ```dart
 class ChatViewModel extends BaseViewModel {
-  final RagService _ragService;
-  final List<ChatMessage> _messages = [];
+  // Testable: accepts optional RagService for dependency injection
+  ChatViewModel({RagService? ragService})
+      : _ragService = ragService ?? ServiceLocator().ragService;
 
-  List<ChatMessage> get messages => List.unmodifiable(_messages);
-  bool get isProcessing => _isProcessing;
-  bool _isProcessing = false;
+  // --- Public getters ---
+  List<ChatMessage> get messages;   // unmodifiable
+  bool get isProcessing;
+  bool get isAvailable;             // delegates to RagService
+  bool get hasMessages;
 
-  ChatViewModel({required RagService ragService})
-      : _ragService = ragService;
+  // --- Public API ---
+  Future<void> sendMessage(String question);  // streams via queryStream()
+  void clearConversation();
 
-  /// Send a user question and stream the AI response.
-  Future<void> sendMessage(String question) async {
-    // Add user message
-    _messages.add(ChatMessage(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      content: question,
-      isUser: true,
-    ));
-    _isProcessing = true;
-    notifyListeners();
-
-    // Add placeholder for AI response
-    final aiMessageId = '${DateTime.now().millisecondsSinceEpoch}_ai';
-    _messages.add(ChatMessage(
-      id: aiMessageId,
-      content: '',
-      isUser: false,
-      isLoading: true,
-    ));
-    notifyListeners();
-
-    // Stream the response
-    final buffer = StringBuffer();
-    try {
-      await for (final chunk in _ragService.queryStream(question)) {
-        buffer.write(chunk);
-        _updateLastMessage(aiMessageId, buffer.toString(), isLoading: true);
-      }
-      _updateLastMessage(aiMessageId, buffer.toString(), isLoading: false);
-    } catch (e) {
-      _updateLastMessage(
-        aiMessageId,
-        'Sorry, something went wrong. Please try again.',
-        isLoading: false,
-      );
-    }
-
-    _isProcessing = false;
-    notifyListeners();
-  }
-
-  void _updateLastMessage(String id, String content, {required bool isLoading}) {
-    final index = _messages.indexWhere((m) => m.id == id);
-    if (index != -1) {
-      _messages[index] = ChatMessage(
-        id: id,
-        content: content,
-        isUser: false,
-        isLoading: isLoading,
-      );
-      notifyListeners();
-    }
-  }
+  // --- Static ---
+  static const List<String> suggestedQuestions = [ ... ];
 }
 ```
 
-### 7.3 Chat UI wireframe
+**Message flow in `sendMessage()`:**
+
+```
+1. Trim + validate input
+2. Add user ChatMessage
+3. Add AI placeholder (isLoading: true)
+4. Stream chunks via RagService.queryStream()
+   → Update AI message content on each chunk
+5. Fetch source titles via RagService.getSourceTitles()
+6. Final update: content + sources, isLoading: false
+7. On error: isError: true, friendly message
+```
+
+### 7.3 Chat UI widgets
+
+Follows the project's 3-file pattern (`*_view.dart` + `*_content.dart` part
+file + widget part files):
+
+| File                                              | Purpose                                                        |
+| ------------------------------------------------- | -------------------------------------------------------------- |
+| `lib/views/chat/chat_view.dart`                   | `ViewModelProvider<ChatViewModel>` entry point                 |
+| `lib/views/chat/chat_content.dart`                | Scaffold, AppBar ("Ask your notes"), message list + input      |
+| `lib/views/chat/widgets/chat_bubble.dart`         | User (right, primary) / AI (left, surface) bubbles with avatar |
+| `lib/views/chat/widgets/chat_input_field.dart`    | Multi-line TextField + circular send button                    |
+| `lib/views/chat/widgets/source_attribution.dart`  | "Sources" label with note-title chips below AI bubbles         |
+| `lib/views/chat/widgets/suggested_questions.dart` | Empty-state card list with tappable question suggestions       |
+
+**UI wireframe:**
 
 ```
 ┌──────────────────────────────────────┐
-│  ← Ask your notes          ⋮        │  ← AppBar
+│  ← Ask your notes        🗑️  ⋮     │  AppBar (clear button when messages)
 ├──────────────────────────────────────┤
 │                                      │
-│  ┌─────────────────────────────┐     │
-│  │ What did I write about      │     │  ← User bubble (right)
-│  │ meditation last week?       │     │
-│  └─────────────────────────────┘     │
+│     ┌─────────────────────────┐      │
+│     │ What did I write about  │──────│  User bubble (right, primary)
+│     │ meditation last week?   │      │
+│     └─────────────────────────┘      │
 │                                      │
-│  ┌─────────────────────────────┐     │
-│  │ Based on your notes, you    │     │  ← AI bubble (left)
-│  │ wrote about a 20-minute     │     │
-│  │ morning meditation session  │     │
-│  │ on Feb 19th in "Morning     │     │
-│  │ Reflection"...              │     │
-│  │                              │     │
-│  │ 📎 Sources:                  │     │  ← Source attribution
-│  │ • Morning Reflection (Feb 19)│     │
-│  │ • Weekly Review (Feb 22)     │     │
-│  └─────────────────────────────┘     │
+│  ✨ ┌─────────────────────────┐      │
+│  │  │ Based on your notes...  │──────│  AI bubble (left, surface)
+│  │  │                         │      │
+│  │  │ 📎 Sources:             │──────│  Source attribution chips
+│  │  │ [Morning Reflection]    │      │
+│  │  │ [Weekly Review]         │      │
+│     └─────────────────────────┘      │
+│                                      │
+│  ┌────────────────────── ──── ┐      │
+│  │ ✨ Ask your notes anything │      │  Empty state (suggested questions)
+│  │                            │      │
+│  │ Try asking:                │      │
+│  │ ○ What have I been writing │      │
+│  │ ○ Activities that made me  │      │
+│  │ ○ Summarize my mornings    │      │
+│  │ ○ Goals in my notes        │      │
+│  └────────────────────────────┘      │
 │                                      │
 ├──────────────────────────────────────┤
-│  ┌────────────────────────┐  ┌────┐  │
-│  │ Ask about your notes...│  │ ➤  │  │  ← Input + Send
-│  └────────────────────────┘  └────┘  │
+│  ┌────────────────────────┐  ┌──┐   │
+│  │ Ask about your notes...│  │↑ │   │  Input + send button
+│  └────────────────────────┘  └──┘   │
 └──────────────────────────────────────┘
 ```
 
 ### 7.4 Navigation integration
 
-Add a route to the existing `go_router` configuration:
+**Route:** Added to `lib/core/route/app_router.dart`:
 
 ```dart
 GoRoute(
   path: '/chat',
   name: 'chat',
-  builder: (context, state) => const ChatView(),
+  pageBuilder: (context, state) => const MaterialPage(child: ChatView()),
 ),
 ```
 
-Entry point: a floating action button or bottom nav item on the main screen.
+**Entry point:** Chat icon button (✨ `auto_awesome_outlined`) added to the
+notes AppBar actions in `lib/views/notes/notes_content.dart`:
+
+```dart
+IconButton(
+  icon: const Icon(Icons.auto_awesome_outlined),
+  tooltip: 'Ask your notes',
+  onPressed: () => context.push('/chat'),
+),
+```
+
+### 7.5 Testing
+
+**File:** `test/views/chat/chat_view_model_test.dart` · **22 tests passing**
+
+| Group         | Tests | What's covered                                                                                                                                                                                                        |
+| ------------- | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ChatMessage   | 8     | Constructor fields, defaults, `copyWith`, `toString`                                                                                                                                                                  |
+| ChatViewModel | 14    | Initial state, `isAvailable` delegation, `sendMessage` flow, streaming, source titles, whitespace trimming, empty input, error handling, `clearConversation`, multiple messages, `notifyListeners`, unmodifiable list |
+
+Testing approach: `_FakeRagService extends RagService` with overridden
+`isAvailable`, `queryStream()`, and `getSourceTitles()`. Constructor
+dependencies are satisfied with lightweight stub repositories.
 
 ---
 
@@ -1225,15 +1241,15 @@ Entry point: a floating action button or bottom nav item on the main screen.
 
 ### 8.4 Implementation order & timeline
 
-| Step  | Description               | Dependencies                   | Est. effort    |
-| ----- | ------------------------- | ------------------------------ | -------------- |
-| **1** | Embedding Model           | `google_generative_ai` package | 2–3 days       |
-| **2** | Vector Storage & Search   | Step 1 complete                | 1–2 days       |
-| **3** | Top-K Document Resolution | Step 2 complete                | 0.5 day        |
-| **4** | Prompt Augmentation       | Step 3 complete                | 1 day          |
-| **5** | LLM Generator             | Step 4 complete, API key ready | 1 day          |
-| **6** | Chat UI                   | Step 5 complete                | 2–3 days       |
-|       | **Total**                 |                                | **~8–10 days** |
+| Step  | Description               | Dependencies                   | Est. effort    | Status   |
+| ----- | ------------------------- | ------------------------------ | -------------- | -------- |
+| **1** | Embedding Model           | `google_generative_ai` package | 2–3 days       | ✅       |
+| **2** | Vector Storage & Search   | Step 1 complete                | 1–2 days       | ✅       |
+| **3** | Top-K Document Resolution | Step 2 complete                | 0.5 day        | ✅       |
+| **4** | Prompt Augmentation       | Step 3 complete                | 1 day          | ✅       |
+| **5** | LLM Generator             | Step 4 complete, API key ready | 1 day          | ✅       |
+| **6** | Chat UI                   | Step 5 complete                | 2–3 days       | ✅       |
+|       | **Total**                 |                                | **~8–10 days** | **Done** |
 
 ### 8.5 Future enhancements
 
@@ -1247,4 +1263,4 @@ Entry point: a floating action button or bottom nav item on the main screen.
 ---
 
 _Document created: Feb 26, 2026_
-_Last updated: Feb 26, 2026_
+_Last updated: Jun 18, 2025_ — Step 6 (Chat UI) complete, all 6 steps done

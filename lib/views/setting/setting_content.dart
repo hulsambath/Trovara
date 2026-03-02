@@ -158,6 +158,7 @@ class _SettingContent extends StatelessWidget {
             ],
           ),
         ),
+        const SizedBox(height: kToolbarHeight * 2),
       ],
     ),
   );

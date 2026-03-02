@@ -199,7 +199,7 @@ if [[ "$DECRYPT_CREDENTIALS" == "true" ]]; then
   # Staging uses dev credentials, prod uses prod credentials
   CRED_ENV="$ENVIRONMENT"
   if [[ "$ENVIRONMENT" == "staging" ]]; then
-    CRED_ENV="dev"
+    CRED_ENV="staging"
   fi
   CREDENTIALS_DIR="../credentials/android/$PROJECT/$CRED_ENV"
 
@@ -270,7 +270,7 @@ fi
 print_step "📋 Using config: $CONFIG_FILE"
 
 # Prepare Flutter command
-FLUTTER_CMD="flutter run --dart-define-from-file=$CONFIG_FILE"
+FLUTTER_CMD="flutter run --release --dart-define-from-file=$CONFIG_FILE"
 
 # Use the flavor-specific entry point if it exists (e.g. lib/main_staging.dart)
 ENTRY_POINT="lib/main_${ENVIRONMENT}.dart"

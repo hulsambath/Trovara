@@ -337,11 +337,16 @@ class _CustomTagsWidgetState extends State<CustomTagsWidget> {
         children: [
           Icon(Icons.check_circle_outline, size: 16, color: Theme.of(context).colorScheme.primary),
           const SizedBox(width: 8),
-          Text(
-            'Selected Tags',
-            style: Theme.of(
-              context,
-            ).textTheme.titleSmall?.copyWith(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w500),
+          Flexible(
+            child: Text(
+              'Selected Tags',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: Theme.of(context).colorScheme.primary,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ),
         ],
       ),

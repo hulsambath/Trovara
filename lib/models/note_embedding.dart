@@ -24,7 +24,7 @@ class NoteEmbedding {
   String chunkText;
 
   /// The embedding vector serialized as a comma-separated string of doubles.
-  /// Gemini `text-embedding-004` produces 768-dimensional vectors.
+  /// Embedding vectors are model-dependent (dimension varies by provider/model).
   String embeddingData;
 
   /// The embedding model version used (e.g. "text-embedding-004").

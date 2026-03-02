@@ -29,11 +29,14 @@ class _NoteContent extends StatelessWidget {
           IconButton(icon: const Icon(Icons.save), onPressed: () => viewModel.saveNote(), tooltip: 'Save'),
       ],
     ),
-    body: Column(
-      children: [
-        Expanded(child: _buildBody(context)),
-        _buildFooter(context),
-      ],
+    body: Padding(
+      padding: const EdgeInsets.only(bottom: kBottomNavigationBarHeight / 2),
+      child: Column(
+        children: [
+          Expanded(child: _buildBody(context)),
+          _buildFooter(context),
+        ],
+      ),
     ),
   );
 

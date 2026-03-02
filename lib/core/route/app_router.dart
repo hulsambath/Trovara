@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:trovara/views/chat/chat_view.dart';
 import 'package:trovara/views/main/main_view.dart';
 import 'package:trovara/views/notes/note/note_view.dart';
 
@@ -29,6 +30,12 @@ class AppRouter {
             child: NoteView(title: title),
           );
         },
+      ),
+      GoRoute(
+        path: '/chat',
+        name: 'chat',
+        pageBuilder: (context, state) =>
+            MaterialPage(key: state.pageKey, restorationId: 'chat', child: const ChatView()),
       ),
     ],
   );

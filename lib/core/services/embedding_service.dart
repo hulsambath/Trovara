@@ -1,38 +1,68 @@
+import 'dart:convert';
+
 import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
 import 'package:trovara/core/repository/interfaces/embedding_repository.dart';
 import 'package:trovara/core/services/text_parser_service.dart';
 import 'package:trovara/models/note.dart';
 import 'package:trovara/models/note_embedding.dart';
 
-/// Converts note content into vector embeddings via Google Gemini API.
+enum EmbeddingProvider { openAiCompatible, gemini }
+
+/// Converts note content into vector embeddings via an OpenAI-compatible API.
 ///
 /// Responsibilities:
 /// - Extract plain text from Quill Delta JSON via [TextParserService]
 /// - Chunk long notes into ~500-token segments with overlap
-/// - Call Gemini `text-embedding-004` to generate 768-dim vectors
+/// - Call an embeddings endpoint (default: OpenRouter)
 /// - Persist embeddings via [IEmbeddingRepository]
 /// - Re-embed notes whose content has changed
 /// - Provide query embedding for similarity search (Step 2)
 class EmbeddingService {
-  static const String _modelVersion = 'text-embedding-004';
+  static const String defaultBaseUrl = 'https://openrouter.ai/api/v1';
+  static const String defaultEmbeddingModel = 'openai/text-embedding-3-small';
+  static const String defaultGeminiEmbeddingModel = 'gemini-embedding-001';
   static const int _maxChunkChars = 2000; // ~500 tokens
   static const int _overlapChars = 200; // overlap between chunks
 
   final IEmbeddingRepository _embeddingRepository;
+  final EmbeddingProvider _provider;
   final String _apiKey;
+  final String _modelName;
+  final String _baseUrl;
+  final String? _siteUrl;
+  final String? _appName;
   final Logger _logger = Logger();
 
-  late final GenerativeModel _embeddingModel;
+  http.Client? _client;
+  GenerativeModel? _geminiModel;
   bool _isInitialized = false;
+
+  EmbeddingApiException? _lastError;
+
+  /// Last API error encountered while embedding (if any).
+  EmbeddingApiException? get lastError => _lastError;
 
   /// Notes that failed to embed (e.g. offline). Will be retried on next
   /// call to [processPendingEmbeddings].
   final List<Note> _pendingQueue = [];
 
-  EmbeddingService({required IEmbeddingRepository embeddingRepository, required String apiKey})
-    : _embeddingRepository = embeddingRepository,
-      _apiKey = apiKey;
+  EmbeddingService({
+    required IEmbeddingRepository embeddingRepository,
+    EmbeddingProvider provider = EmbeddingProvider.openAiCompatible,
+    required String apiKey,
+    String modelName = defaultEmbeddingModel,
+    String baseUrl = defaultBaseUrl,
+    String? siteUrl,
+    String? appName,
+  }) : _embeddingRepository = embeddingRepository,
+       _provider = provider,
+       _apiKey = apiKey,
+       _modelName = modelName,
+       _baseUrl = baseUrl,
+       _siteUrl = siteUrl,
+       _appName = appName;
 
   /// Whether the service has a valid API key and has been initialized.
   bool get isAvailable => _isInitialized && _apiKey.isNotEmpty;
@@ -44,7 +74,7 @@ class EmbeddingService {
   //  Initialization
   // ═══════════════════════════════════════════════════════════════════════════
 
-  /// Initialize the Gemini embedding model.
+  /// Initialize the embedding client.
   ///
   /// Also initializes the underlying [IEmbeddingRepository].
   Future<void> initialize() async {
@@ -57,9 +87,18 @@ class EmbeddingService {
       return;
     }
 
-    _embeddingModel = GenerativeModel(model: _modelVersion, apiKey: _apiKey);
-    _isInitialized = true;
-    _logger.i('EmbeddingService initialized with model $_modelVersion');
+    switch (_provider) {
+      case EmbeddingProvider.openAiCompatible:
+        _client = http.Client();
+        _isInitialized = true;
+        _logger.i('EmbeddingService initialized (OpenAI-compatible) (baseUrl=$_baseUrl, model=$_modelName)');
+        return;
+      case EmbeddingProvider.gemini:
+        _geminiModel = GenerativeModel(model: _modelName, apiKey: _apiKey);
+        _isInitialized = true;
+        _logger.i('EmbeddingService initialized (Gemini) (model=$_modelName)');
+        return;
+    }
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -77,13 +116,17 @@ class EmbeddingService {
   /// and failed notes are added to the pending queue for retry.
   Future<void> embedNote(Note note) async {
     if (!isAvailable) {
-      _addToPendingQueue(note);
+      if (_apiKey.isNotEmpty) {
+        _addToPendingQueue(note);
+      }
       return;
     }
 
     try {
-      final plainText = TextParserService.parseQuillContent(note.contentJson);
-      if (plainText.trim().isEmpty) {
+      final title = note.title.trim();
+      final content = TextParserService.parseQuillContent(note.contentJson).trim();
+      final textForChunking = content.isEmpty ? title : content;
+      if (textForChunking.isEmpty) {
         _logger.d('Skipping empty note ${note.id}');
         return;
       }
@@ -92,11 +135,12 @@ class EmbeddingService {
       await _embeddingRepository.deleteByNoteId(note.id);
 
       // Chunk the text
-      final chunks = _chunkText(plainText);
+      final chunks = _chunkText(textForChunking);
 
       // Generate and save embeddings for each chunk
       for (int i = 0; i < chunks.length; i++) {
-        final vector = await _generateEmbedding(chunks[i]);
+        final embeddingInput = content.isEmpty ? chunks[i] : _buildEmbeddingInput(title: title, chunkText: chunks[i]);
+        final vector = await _generateEmbedding(embeddingInput);
         if (vector == null) {
           _logger.w('Failed to generate embedding for note ${note.id} chunk $i');
           _addToPendingQueue(note);
@@ -108,7 +152,7 @@ class EmbeddingService {
           chunkIndex: i,
           chunkText: chunks[i],
           embeddingData: NoteEmbedding.serializeEmbedding(vector),
-          modelVersion: _modelVersion,
+          modelVersion: _modelName,
           noteUpdatedAt: note.updatedAt,
         );
 
@@ -120,6 +164,11 @@ class EmbeddingService {
       _logger.e('Failed to embed note ${note.id}: $e');
       _addToPendingQueue(note);
     }
+  }
+
+  String _buildEmbeddingInput({required String title, required String chunkText}) {
+    if (title.isEmpty) return chunkText;
+    return 'Title: $title\n\n$chunkText';
   }
 
   /// Embed a user query for similarity comparison.
@@ -252,15 +301,70 @@ class EmbeddingService {
   //  Private helpers
   // ═══════════════════════════════════════════════════════════════════════════
 
-  /// Call Gemini API to generate an embedding vector for [text].
+  /// Call the embeddings API to generate an embedding vector for [text].
   Future<List<double>?> _generateEmbedding(String text) async {
     try {
-      final result = await _embeddingModel.embedContent(Content.text(text));
-      return result.embedding.values;
+      if (_provider == EmbeddingProvider.gemini) {
+        if (_geminiModel == null) return null;
+
+        final res = await _geminiModel!.embedContent(Content.text(text));
+        final values = res.embedding.values;
+        _lastError = null;
+        return values;
+      }
+
+      if (_client == null) return null;
+
+      final uri = Uri.parse('$_baseUrl/embeddings');
+      final res = await _client!.post(
+        uri,
+        headers: _buildHeaders(),
+        body: jsonEncode({'model': _modelName, 'input': text}),
+      );
+
+      if (res.statusCode < 200 || res.statusCode >= 300) {
+        _lastError = EmbeddingApiException.fromHttp(statusCode: res.statusCode, body: res.body);
+        _logger.e('Embedding API error (${res.statusCode}): ${_lastError!.message}');
+        return null;
+      }
+
+      _lastError = null;
+
+      final decoded = jsonDecode(res.body);
+      if (decoded is! Map) return null;
+
+      final data = decoded['data'];
+      if (data is! List || data.isEmpty) return null;
+
+      final first = data.first;
+      if (first is! Map) return null;
+
+      final embedding = first['embedding'];
+      if (embedding is! List) return null;
+
+      return embedding.map((e) => (e as num).toDouble()).toList(growable: false);
     } catch (e) {
-      _logger.e('Gemini embedding API error: $e');
+      _lastError = EmbeddingApiException(statusCode: null, message: e.toString());
+      _logger.e('Embedding API error: $e');
       return null;
     }
+  }
+
+  Map<String, String> _buildHeaders() {
+    if (_provider != EmbeddingProvider.openAiCompatible) {
+      throw StateError('_buildHeaders is only valid for OpenAI-compatible providers');
+    }
+
+    final headers = <String, String>{'Authorization': 'Bearer $_apiKey', 'Content-Type': 'application/json'};
+
+    if (_siteUrl != null && _siteUrl.trim().isNotEmpty) {
+      headers['HTTP-Referer'] = _siteUrl.trim();
+    }
+    if (_appName != null && _appName.trim().isNotEmpty) {
+      headers['X-Title'] = _appName.trim();
+    }
+
+    return headers;
   }
 
   /// Add a note to the pending retry queue (deduplicated by noteId).
@@ -272,5 +376,43 @@ class EmbeddingService {
         '(queue size: ${_pendingQueue.length})',
       );
     }
+  }
+}
+
+class EmbeddingApiException implements Exception {
+  final int? statusCode;
+  final String message;
+  final String? code;
+
+  EmbeddingApiException({required this.statusCode, required this.message, this.code});
+
+  bool get isAuthFailure => statusCode == 401 || statusCode == 403;
+
+  static EmbeddingApiException fromHttp({required int statusCode, required String body}) {
+    try {
+      final decoded = jsonDecode(body);
+      if (decoded is Map && decoded['error'] is Map) {
+        final err = decoded['error'] as Map;
+        return EmbeddingApiException(
+          statusCode: statusCode,
+          message: err['message']?.toString() ?? body,
+          code: err['code']?.toString(),
+        );
+      }
+    } catch (_) {
+      // Ignore JSON parse errors.
+    }
+
+    final truncated = body.length > 500 ? '${body.substring(0, 500)}…' : body;
+    return EmbeddingApiException(statusCode: statusCode, message: truncated);
+  }
+
+  @override
+  String toString() {
+    final parts = <String>['Embedding API error'];
+    if (statusCode != null) parts.add('($statusCode)');
+    parts.add(': $message');
+    if (code != null && code!.isNotEmpty) parts.add('code=$code');
+    return parts.join(' ');
   }
 }

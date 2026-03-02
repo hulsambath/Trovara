@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
 import 'package:trovara/core/repository/interfaces/folder_repository.dart';
@@ -63,13 +65,56 @@ class NoteService {
   }
 
   /// Import notes and folders from a JSON map. This performs an upsert.
-  Future<void> importAllFromJson(Map<String, dynamic> json) async {
-    try {
-      final List<dynamic> folders = (json['folders'] as List<dynamic>? ?? []);
-      for (final f in folders) {
-        final importFolder = Folder.fromJson(Map<String, dynamic>.from(f as Map));
+  Future<void> importAllFromJson(Map<String, dynamic> json, {String source = 'unknown', bool verbose = false}) async {
+    Map<String, dynamic> workingJson = json;
 
+    // Storypad exports don't match Trovara's {folders, notes} schema.
+    // Detect and convert them into Trovara import format.
+    if (_looksLikeStorypadBackup(workingJson)) {
+      try {
+        _logger.i('Storypad backup detected (source=$source). Converting to Trovara import schema...');
+        workingJson = _convertStorypadBackupToTrovaraJson(workingJson, source: source, verbose: verbose);
+      } catch (e, st) {
+        _logger.e('Storypad conversion failed (source=$source): $e', error: e, stackTrace: st);
+        // Fall through to normal import so we still get the usual diagnostics.
+      }
+    }
+
+    final stopwatch = Stopwatch()..start();
+
+    final keys = workingJson.keys.toList()..sort();
+    final version = workingJson['version'];
+    final exportedAt = workingJson['exportedAt'];
+
+    final foldersRaw = workingJson['folders'];
+    final notesRaw = workingJson['notes'];
+
+    final folders = (foldersRaw is List) ? foldersRaw : const <dynamic>[];
+    final notes = (notesRaw is List) ? notesRaw : const <dynamic>[];
+
+    _logger.i(
+      'Import start (source=$source, verbose=$verbose) '
+      'keys=$keys version=$version exportedAt=$exportedAt '
+      'folders=${folders.length} notes=${notes.length}',
+    );
+
+    if (foldersRaw != null && foldersRaw is! List) {
+      _logger.w('Import warning (source=$source): "folders" is not a List (type=${foldersRaw.runtimeType})');
+    }
+    if (notesRaw != null && notesRaw is! List) {
+      _logger.w('Import warning (source=$source): "notes" is not a List (type=${notesRaw.runtimeType})');
+    }
+
+    int foldersCreated = 0;
+    int foldersUpdated = 0;
+    int folderErrors = 0;
+
+    for (int i = 0; i < folders.length; i++) {
+      try {
+        final f = folders[i];
+        final importFolder = Folder.fromJson(Map<String, dynamic>.from(f as Map));
         final existing = _folderRepository.getFolderById(importFolder.folderId);
+
         if (existing == null) {
           await createFolderWithTimestamps(
             folderId: importFolder.folderId,
@@ -81,6 +126,12 @@ class NoteService {
             isDefault: importFolder.isDefault,
             noteCount: importFolder.noteCount,
           );
+          foldersCreated++;
+          if (verbose) {
+            _logger.d(
+              'Import folder created (source=$source): folderId=${importFolder.folderId} name=${importFolder.name}',
+            );
+          }
         } else {
           existing
             ..name = importFolder.name
@@ -90,28 +141,56 @@ class NoteService {
             ..noteCount = importFolder.noteCount
             ..updatedAt = importFolder.updatedAt;
           await _folderRepository.updateFolder(existing);
+          foldersUpdated++;
+          if (verbose) {
+            _logger.d(
+              'Import folder updated (source=$source): folderId=${importFolder.folderId} name=${importFolder.name}',
+            );
+          }
         }
+      } catch (e, st) {
+        folderErrors++;
+        _logger.e('Import folder failed (source=$source) index=$i error=$e', error: e, stackTrace: st);
       }
+    }
 
-      final List<dynamic> notes = (json['notes'] as List<dynamic>? ?? []);
-      for (final n in notes) {
+    int notesCreated = 0;
+    int notesUpdated = 0;
+    int notesSkippedPermanentlyDeleted = 0;
+    int noteErrors = 0;
+
+    for (int i = 0; i < notes.length; i++) {
+      try {
+        final n = notes[i];
         final importNote = Note.fromJson(Map<String, dynamic>.from(n as Map));
 
         if (importNote.id != 0) {
           final existing = _noteRepository.getNoteById(importNote.id);
           if (existing != null) {
-            // CRITICAL: Don't re-import permanently deleted notes
-            // If note was deleted locally (not in DB), keep it deleted
-            // Only update if it still exists locally
+            // CRITICAL: Don't re-import permanently deleted notes.
+            // Only update if it still exists locally.
             await _noteRepository.updateNote(importNote);
-            continue;
-          } else {
-            // CRITICAL: Note doesn't exist locally
-            // This means it was permanently deleted locally
-            // Skip re-importing it from Drive backup
-            _logger.i('Skipping import of permanently deleted note ${importNote.id}');
+            notesUpdated++;
+            if (verbose) {
+              _logger.d(
+                'Import note updated (source=$source): '
+                'id=${importNote.id} title=${importNote.title} updatedAt=${importNote.updatedAt.toIso8601String()} '
+                'deleted=${importNote.isDeleted}',
+              );
+            }
             continue;
           }
+
+          // Note doesn't exist locally -> it was permanently deleted locally; keep it deleted.
+          notesSkippedPermanentlyDeleted++;
+          if (verbose) {
+            _logger.d(
+              'Import note skipped (permanently deleted locally, source=$source): id=${importNote.id} title=${importNote.title}',
+            );
+          } else {
+            _logger.i('Skipping import of permanently deleted note ${importNote.id} (source=$source)');
+          }
+          continue;
         }
 
         await createNoteWithTimestamps(
@@ -126,11 +205,414 @@ class NoteService {
           isDeleted: importNote.isDeleted,
           deletedAt: importNote.deletedAt,
         );
+        notesCreated++;
+        if (verbose) {
+          _logger.d(
+            'Import note created (source=$source): '
+            'title=${importNote.title} createdAt=${importNote.createdAt.toIso8601String()} '
+            'folderId=${importNote.folderId} contentChars=${importNote.contentJson.length}',
+          );
+        }
+      } catch (e, st) {
+        noteErrors++;
+        _logger.e('Import note failed (source=$source) index=$i error=$e', error: e, stackTrace: st);
       }
-    } finally {}
+    }
 
-    // Re-embed any notes that are new or changed after import
-    _embeddingService?.reembedStaleNotes(_noteRepository.getActiveNotes());
+    // Re-embed any notes that are new or changed after import.
+    final activeNotes = _noteRepository.getActiveNotes();
+    _logger.i(
+      'Import upsert complete (source=$source) '
+      'folders: +$foldersCreated/~$foldersUpdated/err=$folderErrors '
+      'notes: +$notesCreated/~$notesUpdated/skippedDeleted=$notesSkippedPermanentlyDeleted/err=$noteErrors '
+      'activeNotes=${activeNotes.length} elapsedMs=${stopwatch.elapsedMilliseconds}',
+    );
+
+    try {
+      await _embeddingService?.reembedStaleNotes(activeNotes);
+    } catch (e, st) {
+      _logger.e('Import embedding refresh failed (source=$source): $e', error: e, stackTrace: st);
+    }
+  }
+
+  bool _looksLikeStorypadBackup(Map<String, dynamic> json) {
+    if (json.containsKey('notes') || json.containsKey('folders')) return false;
+    if (!json.containsKey('tables')) return false;
+
+    // Observed Storypad keyset: {meta_data, tables, version}
+    final hasMeta = json.containsKey('meta_data') || json.containsKey('metaData');
+    final hasVersion = json.containsKey('version');
+    return hasMeta || hasVersion;
+  }
+
+  Map<String, dynamic> _convertStorypadBackupToTrovaraJson(
+    Map<String, dynamic> storypadJson, {
+    required String source,
+    required bool verbose,
+  }) {
+    final tablesRaw = storypadJson['tables'];
+    final tables = _normalizeStorypadTables(tablesRaw, source: source, verbose: verbose);
+
+    if (tables.isEmpty) {
+      _logger.w('Storypad conversion (source=$source): no tables found');
+    }
+
+    if (verbose) {
+      final tableNames = tables.keys.toList()..sort();
+      _logger.d('Storypad conversion (source=$source): tables=$tableNames');
+      for (final name in tableNames) {
+        _logger.d('Storypad conversion (source=$source): table=$name rows=${tables[name]!.length}');
+      }
+    }
+
+    final folderRowsById = <String, Map<String, dynamic>>{};
+    final folderIdByName = <String, String>{};
+    final foldersOut = <Map<String, dynamic>>[];
+
+    // Always ensure a default folder exists.
+    final nowIso = DateTime.now().toIso8601String();
+    foldersOut.add({
+      'id': 0,
+      'folderId': 'default',
+      'name': 'Default',
+      'description': null,
+      'color': null,
+      'createdAt': nowIso,
+      'updatedAt': nowIso,
+      'isDefault': true,
+      'noteCount': 0,
+    });
+
+    // Try to find a folder/category table.
+    final folderTableCandidates = _findTableCandidates(tables, const ['folder', 'category', 'notebook', 'collection']);
+    for (final tableName in folderTableCandidates) {
+      final rows = tables[tableName] ?? const <Map<String, dynamic>>[];
+      for (final row in rows) {
+        final rawId = row['id'] ?? row['folder_id'] ?? row['folderId'] ?? row['category_id'] ?? row['categoryId'];
+        final id = _stringify(rawId);
+        if (id.isEmpty) continue;
+
+        final name = _stringify(
+          row['name'] ??
+              row['title'] ??
+              row['label'] ??
+              row['folder_name'] ??
+              row['folderName'] ??
+              row['category_name'] ??
+              row['categoryName'],
+        );
+        final folderId = 'storypad_folder_$id';
+
+        folderRowsById[id] = row;
+        if (name.isNotEmpty) {
+          folderIdByName[name.toLowerCase()] = folderId;
+        }
+
+        final createdAt = _parseDate(row['created_at'] ?? row['createdAt']) ?? DateTime.now();
+        final updatedAt = _parseDate(row['updated_at'] ?? row['updatedAt']) ?? createdAt;
+
+        foldersOut.add({
+          'id': 0,
+          'folderId': folderId,
+          'name': name.isNotEmpty ? name : 'Storypad $id',
+          'description': _stringify(row['description'] ?? row['desc']).isEmpty
+              ? null
+              : _stringify(row['description'] ?? row['desc']),
+          'color': _stringify(row['color']).isEmpty ? null : _stringify(row['color']),
+          'createdAt': createdAt.toIso8601String(),
+          'updatedAt': updatedAt.toIso8601String(),
+          'isDefault': false,
+          'noteCount': 0,
+        });
+      }
+    }
+
+    // Identify the notes table by heuristic scoring.
+    final notesTable = _pickBestNotesTable(tables);
+    final noteRows = notesTable == null
+        ? const <Map<String, dynamic>>[]
+        : (tables[notesTable] ?? const <Map<String, dynamic>>[]);
+    if (notesTable == null) {
+      _logger.w('Storypad conversion (source=$source): could not identify notes table; importing 0 notes');
+    } else {
+      _logger.i('Storypad conversion (source=$source): notesTable=$notesTable rows=${noteRows.length}');
+      if (verbose && noteRows.isNotEmpty) {
+        final sampleKeys = noteRows.first.keys.toList()..sort();
+        _logger.d('Storypad conversion (source=$source): notesTable sample keys=$sampleKeys');
+      }
+    }
+
+    final notesOut = <Map<String, dynamic>>[];
+    for (int i = 0; i < noteRows.length; i++) {
+      final row = noteRows[i];
+      try {
+        final title = _stringify(row['title'] ?? row['name'] ?? row['subject']).trim();
+        final rawContent =
+            row['content'] ?? row['body'] ?? row['text'] ?? row['delta'] ?? row['content_json'] ?? row['contentJson'];
+        final contentJson = _ensureQuillContentJson(rawContent);
+
+        final createdAt = _parseDate(row['created_at'] ?? row['createdAt'] ?? row['created']) ?? DateTime.now();
+        final updatedAt = _parseDate(row['updated_at'] ?? row['updatedAt'] ?? row['updated']) ?? createdAt;
+        final deletedAt = _parseDate(row['deleted_at'] ?? row['deletedAt']);
+
+        final isFavorite = _parseBool(row['is_favorite'] ?? row['isFavorite'] ?? row['favorite']);
+        final isArchived = _parseBool(row['is_archived'] ?? row['isArchived'] ?? row['archived']);
+        final isDeleted = deletedAt != null || _parseBool(row['is_deleted'] ?? row['isDeleted'] ?? row['deleted']);
+
+        final folderId = _resolveFolderIdForNote(row, folderRowsById: folderRowsById, folderIdByName: folderIdByName);
+
+        notesOut.add({
+          // Force create-on-import semantics: Trovara treats id!=0 specially and may skip.
+          'id': 0,
+          'title': title.isNotEmpty ? title : 'Imported note ${i + 1}',
+          'contentJson': contentJson,
+          'createdAt': createdAt.toIso8601String(),
+          'updatedAt': updatedAt.toIso8601String(),
+          'isFavorite': isFavorite,
+          'isArchived': isArchived,
+          'isDeleted': isDeleted,
+          'deletedAt': deletedAt?.toIso8601String() ?? '',
+          'driveFileId': null,
+          'folderId': folderId,
+          'customTagIds': const <int>[],
+          'moodTags': const <String>[],
+          'activityTags': const <String>[],
+          'timeTags': const <String>[],
+          'personalGrowthTags': const <String>[],
+        });
+      } catch (e, st) {
+        _logger.e('Storypad note conversion failed (source=$source) index=$i error=$e', error: e, stackTrace: st);
+      }
+    }
+
+    _logger.i('Storypad conversion (source=$source): produced folders=${foldersOut.length} notes=${notesOut.length}');
+
+    return {'version': 1, 'exportedAt': DateTime.now().toIso8601String(), 'folders': foldersOut, 'notes': notesOut};
+  }
+
+  Map<String, List<Map<String, dynamic>>> _normalizeStorypadTables(
+    dynamic tablesRaw, {
+    required String source,
+    required bool verbose,
+  }) {
+    final result = <String, List<Map<String, dynamic>>>{};
+
+    if (tablesRaw is Map) {
+      for (final entry in tablesRaw.entries) {
+        final name = _stringify(entry.key);
+        final value = entry.value;
+        final rows = _coerceRows(value);
+        if (name.isNotEmpty && rows.isNotEmpty) {
+          result[name] = rows;
+        }
+      }
+      return result;
+    }
+
+    if (tablesRaw is List) {
+      for (final t in tablesRaw) {
+        if (t is! Map) continue;
+        final map = Map<String, dynamic>.from(t);
+        final name = _stringify(map['name'] ?? map['table'] ?? map['table_name'] ?? map['tableName']);
+        final rowsRaw = map['rows'] ?? map['data'] ?? map['items'];
+        final rows = _coerceRows(rowsRaw);
+        if (name.isNotEmpty && rows.isNotEmpty) {
+          result[name] = rows;
+        }
+      }
+      return result;
+    }
+
+    if (tablesRaw != null) {
+      _logger.w('Storypad conversion (source=$source): unsupported tables type=${tablesRaw.runtimeType}');
+    }
+    return result;
+  }
+
+  List<Map<String, dynamic>> _coerceRows(dynamic rowsRaw) {
+    if (rowsRaw is! List) return const <Map<String, dynamic>>[];
+    final out = <Map<String, dynamic>>[];
+    for (final r in rowsRaw) {
+      if (r is Map) {
+        out.add(Map<String, dynamic>.from(r));
+      }
+    }
+    return out;
+  }
+
+  List<String> _findTableCandidates(Map<String, List<Map<String, dynamic>>> tables, List<String> keywords) {
+    final names = tables.keys.toList();
+    names.sort();
+    final lowerKeywords = keywords.map((k) => k.toLowerCase()).toList();
+    return names.where((name) {
+      final lower = name.toLowerCase();
+      return lowerKeywords.any(lower.contains);
+    }).toList();
+  }
+
+  String? _pickBestNotesTable(Map<String, List<Map<String, dynamic>>> tables) {
+    String? best;
+    int bestScore = -1;
+
+    for (final entry in tables.entries) {
+      final name = entry.key;
+      final rows = entry.value;
+      if (rows.isEmpty) {
+        continue;
+      }
+
+      final keys = rows.first.keys.map((k) => k.toLowerCase()).toSet();
+
+      int score = 0;
+      final lowerName = name.toLowerCase();
+      if (lowerName.contains('note')) {
+        score += 5;
+      }
+      if (lowerName.contains('notes')) {
+        score += 5;
+      }
+      if (lowerName.contains('document')) {
+        score += 3;
+      }
+      if (keys.contains('title') || keys.contains('name') || keys.contains('subject')) {
+        score += 3;
+      }
+      if (keys.contains('content') || keys.contains('body') || keys.contains('text') || keys.contains('delta')) {
+        score += 4;
+      }
+      if (keys.contains('created_at') || keys.contains('createdat')) {
+        score += 1;
+      }
+      if (keys.contains('updated_at') || keys.contains('updatedat')) {
+        score += 1;
+      }
+
+      // Penalize tables that clearly don't look like notes.
+      if (keys.contains('password') || keys.contains('token')) {
+        score -= 5;
+      }
+
+      if (score > bestScore) {
+        bestScore = score;
+        best = name;
+      }
+    }
+
+    // Require at least a minimal signal.
+    if (bestScore < 4) {
+      return null;
+    }
+    return best;
+  }
+
+  String _resolveFolderIdForNote(
+    Map<String, dynamic> row, {
+    required Map<String, Map<String, dynamic>> folderRowsById,
+    required Map<String, String> folderIdByName,
+  }) {
+    final rawFolderId =
+        row['folder_id'] ??
+        row['folderId'] ??
+        row['category_id'] ??
+        row['categoryId'] ??
+        row['notebook_id'] ??
+        row['notebookId'];
+    final folderIdValue = _stringify(rawFolderId);
+    if (folderIdValue.isNotEmpty && folderRowsById.containsKey(folderIdValue)) {
+      return 'storypad_folder_$folderIdValue';
+    }
+
+    final folderName = _stringify(
+      row['folder_name'] ??
+          row['folderName'] ??
+          row['category_name'] ??
+          row['categoryName'] ??
+          row['notebook_name'] ??
+          row['notebookName'],
+    );
+    if (folderName.isNotEmpty) {
+      final mapped = folderIdByName[folderName.toLowerCase()];
+      if (mapped != null) return mapped;
+
+      // If we got a name but no folder table, synthesize a stable-ish folderId.
+      return 'storypad_${_slugify(folderName)}';
+    }
+
+    return 'default';
+  }
+
+  bool _parseBool(dynamic value) {
+    if (value == null) return false;
+    if (value is bool) return value;
+    if (value is num) return value != 0;
+    final s = value.toString().trim().toLowerCase();
+    return s == 'true' || s == '1' || s == 'yes' || s == 'y';
+  }
+
+  DateTime? _parseDate(dynamic value) {
+    if (value == null) return null;
+    if (value is DateTime) return value;
+
+    if (value is num) {
+      final n = value.toInt();
+      // Heuristic: seconds vs milliseconds vs microseconds.
+      if (n > 100000000000000) {
+        return DateTime.fromMicrosecondsSinceEpoch(n);
+      }
+      if (n > 1000000000000) {
+        return DateTime.fromMillisecondsSinceEpoch(n);
+      }
+      if (n > 1000000000) {
+        return DateTime.fromMillisecondsSinceEpoch(n * 1000);
+      }
+      return null;
+    }
+
+    final s = value.toString().trim();
+    if (s.isEmpty) return null;
+    return DateTime.tryParse(s);
+  }
+
+  String _ensureQuillContentJson(dynamic content) {
+    final raw = content == null ? '' : content.toString();
+    final trimmed = raw.trim();
+
+    if (trimmed.isEmpty) {
+      return jsonEncode({
+        'ops': [
+          {'insert': '\n'},
+        ],
+      });
+    }
+
+    // If it already looks like Quill JSON, keep it.
+    if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+      try {
+        jsonDecode(trimmed);
+        return trimmed;
+      } catch (_) {
+        // Fall through to wrap as plain text.
+      }
+    }
+
+    return jsonEncode({
+      'ops': [
+        {'insert': '$trimmed\n'},
+      ],
+    });
+  }
+
+  String _slugify(String input) {
+    final lower = input.trim().toLowerCase();
+    final replaced = lower.replaceAll(RegExp(r'[^a-z0-9]+'), '_');
+    final collapsed = replaced.replaceAll(RegExp(r'_+'), '_');
+    return collapsed.replaceAll(RegExp(r'^_|_$'), '');
+  }
+
+  String _stringify(dynamic value) {
+    if (value == null) return '';
+    if (value is String) return value;
+    return value.toString();
   }
 
   /// Merge local and remote data intelligently (Git-like merge behaviour).
