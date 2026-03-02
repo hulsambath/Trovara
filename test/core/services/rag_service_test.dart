@@ -361,7 +361,7 @@ void main() {
 
       final result = await service.query('test question');
 
-      expect(result.answer, contains("couldn't find"));
+      expect(result.answer, contains("haven't been indexed"));
       expect(result.matchedChunks, equals(0));
       expect(llm.generateCalled, isFalse);
     });
@@ -508,7 +508,7 @@ void main() {
   // ─────────────────────────────────────────────────────────────────────────
 
   group('RagService.queryStream', () {
-    test('yields error when embedding fails', () async {
+    test('throws error when embedding fails', () async {
       final (:service, llm: _) = _buildRagService(
         noteRepo: noteRepo,
         folderRepo: folderRepo,
@@ -516,13 +516,13 @@ void main() {
         queryVector: null,
       );
 
-      final chunks = await service.queryStream('test').toList();
-
-      expect(chunks.length, equals(1));
-      expect(chunks.first, contains('unable to process'));
+      await expectLater(
+        service.queryStream('test').toList(),
+        throwsA(isA<RagQueryException>().having((e) => e.message, 'message', contains('unable to process'))),
+      );
     });
 
-    test('yields error when no results found', () async {
+    test('throws error when no results found', () async {
       final (:service, llm: _) = _buildRagService(
         noteRepo: noteRepo,
         folderRepo: folderRepo,
@@ -530,10 +530,10 @@ void main() {
         queryVector: [0.5, 0.5, 0.5],
       );
 
-      final chunks = await service.queryStream('test').toList();
-
-      expect(chunks.length, equals(1));
-      expect(chunks.first, contains("couldn't find"));
+      await expectLater(
+        service.queryStream('test').toList(),
+        throwsA(isA<RagQueryException>().having((e) => e.message, 'message', contains("haven't been indexed"))),
+      );
     });
 
     test('streams answer tokens', () async {
@@ -561,7 +561,7 @@ void main() {
       expect(combined, contains('word3'));
     });
 
-    test('yields error when LLM stream fails', () async {
+    test('throws error when LLM stream fails', () async {
       final note = _makeNote(id: 1, title: 'Note');
       noteRepo.seed([note]);
       embeddingRepo.seed([
@@ -576,10 +576,10 @@ void main() {
         llmShouldThrow: true,
       );
 
-      final chunks = await service.queryStream('test').toList();
-
-      expect(chunks.length, equals(1));
-      expect(chunks.first, contains('something went wrong'));
+      await expectLater(
+        service.queryStream('test').toList(),
+        throwsA(isA<RagQueryException>().having((e) => e.message, 'message', contains('something went wrong'))),
+      );
     });
   });
 

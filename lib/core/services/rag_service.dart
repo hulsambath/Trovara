@@ -113,8 +113,44 @@ class RagService {
     final queryVector = await _embeddingService.embedQuery(userQuestion);
     if (queryVector == null) {
       _logger.w('Failed to embed user query');
+
+      final lastError = _embeddingService.lastError;
+      if (lastError != null && lastError.isAuthFailure) {
+        return RagResult(
+          answer:
+              'Gemini authentication failed while creating embeddings. '
+              'Please verify `GEMINI_API_KEY` is set to a valid Gemini API key.',
+          sourceNoteTitles: [],
+          prompt: '',
+          matchedChunks: 0,
+        );
+      }
+
       return RagResult(
         answer: 'Sorry, I was unable to process your question. Please try again.',
+        sourceNoteTitles: [],
+        prompt: '',
+        matchedChunks: 0,
+      );
+    }
+
+    final stats = _vectorSearchService.getStats();
+    if (stats.totalChunks == 0) {
+      return RagResult(
+        answer:
+            "Your notes haven't been indexed yet, so I can't search them. "
+            'Try creating/editing a note (to trigger embedding), or run a re-embed of all notes.',
+        sourceNoteTitles: [],
+        prompt: '',
+        matchedChunks: 0,
+      );
+    }
+
+    if (stats.embeddingDimension != 0 && stats.embeddingDimension != queryVector.length) {
+      return RagResult(
+        answer:
+            'Your saved note embeddings were created with a different embedding model. '
+            'Please re-embed your notes so search works again.',
         sourceNoteTitles: [],
         prompt: '',
         matchedChunks: 0,
@@ -127,7 +163,9 @@ class RagService {
     if (scoredChunks.isEmpty) {
       _logger.d('No relevant chunks found for query');
       return RagResult(
-        answer: "I couldn't find any relevant notes for your question.",
+        answer:
+            "I couldn't find any relevant notes for your question. "
+            'Try asking about the note content (not just the title), or rephrase your question.',
         sourceNoteTitles: [],
         prompt: '',
         matchedChunks: 0,
@@ -172,6 +210,42 @@ class RagService {
       );
     } catch (e) {
       _logger.e('LLM generation failed: $e');
+
+      if (e is LlmApiException) {
+        if (e.code == 'auth_error') {
+          return RagResult(
+            answer:
+                'Gemini authentication failed while generating the answer. '
+                'Please verify `GEMINI_API_KEY` is set to a valid Gemini API key.',
+            sourceNoteTitles: sourceTitles,
+            prompt: prompt,
+            matchedChunks: scoredChunks.length,
+          );
+        }
+
+        if (e.code == 'quota_exceeded' || e.isInsufficientQuota) {
+          return RagResult(
+            answer:
+                'Gemini quota exceeded for this API key. Please check your Gemini plan/billing, '
+                'or replace `GEMINI_API_KEY` with a key that has available quota.',
+            sourceNoteTitles: sourceTitles,
+            prompt: prompt,
+            matchedChunks: scoredChunks.length,
+          );
+        }
+
+        if (e.code == 'model_not_found') {
+          return RagResult(
+            answer:
+                'The configured Gemini model is not available for this API key. '
+                'Try a different Gemini model, or update the app to auto-select a supported model.',
+            sourceNoteTitles: sourceTitles,
+            prompt: prompt,
+            matchedChunks: scoredChunks.length,
+          );
+        }
+      }
+
       return RagResult(
         answer: 'Sorry, something went wrong generating the answer. Please try again.',
         sourceNoteTitles: sourceTitles,
@@ -197,16 +271,40 @@ class RagService {
     // Step 1: Embed
     final queryVector = await _embeddingService.embedQuery(userQuestion);
     if (queryVector == null) {
-      yield 'Sorry, I was unable to process your question. Please try again.';
-      return;
+      final lastError = _embeddingService.lastError;
+      if (lastError != null && lastError.isAuthFailure) {
+        throw RagQueryException(
+          'Gemini authentication failed while creating embeddings. '
+          'Please verify `GEMINI_API_KEY` is set to a valid Gemini API key.',
+        );
+      }
+
+      throw RagQueryException('Sorry, I was unable to process your question. Please try again.');
+    }
+
+    final stats = _vectorSearchService.getStats();
+    if (stats.totalChunks == 0) {
+      throw RagQueryException(
+        "Your notes haven't been indexed yet, so I can't search them. "
+        'Try creating/editing a note (to trigger embedding), or run a re-embed of all notes.',
+      );
+    }
+
+    if (stats.embeddingDimension != 0 && stats.embeddingDimension != queryVector.length) {
+      throw RagQueryException(
+        'Your saved note embeddings were created with a different embedding model. '
+        'Please re-embed your notes so search works again.',
+      );
     }
 
     // Step 2: Search
     final scoredChunks = _vectorSearchService.search(queryVector, topK: searchTopK, minScore: minScore);
 
     if (scoredChunks.isEmpty) {
-      yield "I couldn't find any relevant notes for your question.";
-      return;
+      throw RagQueryException(
+        "I couldn't find any relevant notes for your question. "
+        'Try asking about the note content (not just the title), or rephrase your question.',
+      );
     }
 
     // Steps 3 + 4: Resolve and build prompt
@@ -217,8 +315,10 @@ class RagService {
     );
 
     if (prompt == null) {
-      yield "I couldn't find any relevant notes for your question.";
-      return;
+      throw RagQueryException(
+        "I couldn't find any relevant notes for your question. "
+        'Try asking about the note content (not just the title), or rephrase your question.',
+      );
     }
 
     // Step 5: Stream response
@@ -230,7 +330,38 @@ class RagService {
       }
     } catch (e) {
       _logger.e('LLM streaming failed: $e');
-      yield 'Sorry, something went wrong generating the answer. Please try again.';
+
+      if (e is LlmApiException) {
+        if (e.code == 'auth_error') {
+          throw RagQueryException(
+            'Gemini authentication failed while generating the answer. '
+            'Please verify `GEMINI_API_KEY` is set to a valid Gemini API key.',
+          );
+        }
+
+        if (e.code == 'model_not_found') {
+          throw RagQueryException(
+            'The configured Gemini model is not available for this API key. '
+            'Please try a different Gemini model (or let the app auto-select one after updating).',
+          );
+        }
+
+        if (e.code == 'quota_exceeded' || e.isInsufficientQuota) {
+          if (_llmClient.provider == LlmProvider.gemini) {
+            throw RagQueryException(
+              'Gemini quota exceeded for this API key. Please check your Gemini plan/billing, '
+              'or replace `GEMINI_API_KEY` with a key that has available quota.',
+            );
+          }
+
+          throw RagQueryException(
+            'OpenAI-compatible provider quota exceeded for this API key. Please check your plan/billing, '
+            'or replace the configured API key with one that has available credits.',
+          );
+        }
+      }
+
+      throw RagQueryException('Sorry, something went wrong generating the answer. Please try again.');
     }
   }
 
@@ -253,4 +384,12 @@ class RagService {
 
     return _promptBuilderService.extractSourceTitles(scoredChunks: scoredChunks, maxNotes: maxNotes);
   }
+}
+
+class RagQueryException implements Exception {
+  final String message;
+  RagQueryException(this.message);
+
+  @override
+  String toString() => message;
 }

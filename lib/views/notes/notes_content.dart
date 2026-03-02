@@ -6,15 +6,11 @@ class _NotesContent extends StatelessWidget {
   final NotesViewModel viewModel;
 
   @override
-  Widget build(BuildContext context) => Scaffold(body: _buildBody(context), floatingActionButton: _buildFAB(context));
+  Widget build(BuildContext context) => Scaffold(body: _buildBody(context));
 
   Widget _buildBody(BuildContext context) {
     if (viewModel.isLoading) {
       return const Center(child: CircularProgressIndicator());
-    }
-
-    if (viewModel.notes.isEmpty) {
-      return _buildEmptyState(context);
     }
 
     return CustomScrollView(
@@ -39,6 +35,12 @@ class _NotesContent extends StatelessWidget {
     title: Text('Trovara', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600)),
     actions: [
       IconButton(
+        icon: const Icon(Icons.add),
+        onPressed: () => viewModel.createNewNote(context),
+        tooltip: 'Create new note',
+      ),
+      IconButton(icon: const Icon(Icons.chat_rounded), onPressed: () => viewModel.openChat(context), tooltip: 'Chat'),
+      IconButton(
         icon: const Icon(Icons.delete_outline),
         onPressed: () => _openRecentlyDeleted(context),
         tooltip: 'Recently Deleted',
@@ -55,33 +57,31 @@ class _NotesContent extends StatelessWidget {
     ),
   );
 
-  Widget _buildNotesList(BuildContext context) => SliverPadding(
-    padding: const EdgeInsets.all(16),
-    sliver: SliverList(
-      delegate: SliverChildBuilderDelegate((context, index) {
-        final note = viewModel.notes[index];
-        return NoteCard(
-          note: note,
-          onTap: () => viewModel.openNote(context, note),
-          onLongPress: () => viewModel.showNoteOptions(context, note),
-          onToggleFavorite: () => viewModel.toggleFavorite(note),
-        );
-      }, childCount: viewModel.notes.length),
-    ),
-  );
+  Widget _buildNotesList(BuildContext context) {
+    if (viewModel.notes.isEmpty) {
+      return SliverFillRemaining(child: _buildEmptyState(context));
+    }
+    return SliverPadding(
+      padding: const EdgeInsets.all(16),
+      sliver: SliverList(
+        delegate: SliverChildBuilderDelegate((context, index) {
+          final note = viewModel.notes[index];
+          return NoteCard(
+            note: note,
+            onTap: () => viewModel.openNote(context, note),
+            onLongPress: () => viewModel.showNoteOptions(context, note),
+            onToggleFavorite: () => viewModel.toggleFavorite(note),
+          );
+        }, childCount: viewModel.notes.length),
+      ),
+    );
+  }
 
   Widget _buildEmptyState(BuildContext context) => Center(
     child: Text(
       'No notes yet',
       style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
     ),
-  );
-
-  Widget _buildFAB(BuildContext context) => FloatingActionButton.small(
-    heroTag: 'add_note',
-    shape: const CircleBorder(),
-    onPressed: () => viewModel.createNewNote(context),
-    child: const Icon(Icons.add),
   );
 
   void _openRecentlyDeleted(BuildContext context) {

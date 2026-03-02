@@ -50,7 +50,7 @@ class GoogleDriveSyncService {
 
         // Apply the merged data locally (with timeout)
         await _noteService
-            .importAllFromJson(mergedData)
+            .importAllFromJson(mergedData, source: 'google-drive-sync', verbose: false)
             .timeout(
               const Duration(seconds: 60),
               onTimeout: () {

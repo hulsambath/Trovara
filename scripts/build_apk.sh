@@ -97,8 +97,22 @@ if [[ "$DECRYPT_CREDENTIALS" == "true" ]]; then
   echo "✅ $ENVIRONMENT credentials found and ready to use"
 fi
 
+# Determine config file based on environment
+CONFIG_FILE="configs/trovara_${ENVIRONMENT}.json"
+
+# Verify config file exists
+if [[ ! -f "$CONFIG_FILE" ]]; then
+  echo "❌ Configuration file not found: $CONFIG_FILE"
+  echo "💡 Make sure you have created config files for each environment:"
+  echo "   - configs/trovara_staging.json (for staging)"
+  echo "   - configs/trovara_prod.json (for prod)"
+  exit 1
+fi
+
+echo "📋 Using config: $CONFIG_FILE"
+
 # Prepare Flutter build command
-FLUTTER_CMD="flutter build apk --dart-define-from-file=configs/trovara.json --release"
+FLUTTER_CMD="flutter build apk --dart-define-from-file=$CONFIG_FILE --release"
 
 # Add flavor and entry point
 if [[ "$ENVIRONMENT" == "prod" ]]; then

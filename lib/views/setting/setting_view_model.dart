@@ -5,6 +5,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:trovara/core/base/base_view_model.dart';
 import 'package:trovara/core/di/service_locator.dart';
 import 'package:trovara/core/services/google_drive_service.dart';
@@ -14,12 +16,12 @@ import 'package:trovara/core/storage/google_drive_auth_storage.dart';
 import 'package:trovara/views/trash/trash_view.dart';
 import 'package:trovara/widgets/nm_loading_overlay.dart';
 import 'package:trovara/widgets/nm_toast.dart';
-import 'package:path_provider/path_provider.dart';
 
 class SettingViewModel extends BaseViewModel {
   final GoogleDriveService _driveService = ServiceLocator().googleDriveService;
   final NoteService _noteService = ServiceLocator().noteService;
   final GoogleDriveSyncService _syncService = ServiceLocator().googleDriveSyncService;
+  final Logger _logger = Logger();
 
   bool get isSignedIn => _driveService.isSignedIn;
   String? _accountName;
@@ -83,7 +85,7 @@ class SettingViewModel extends BaseViewModel {
         mergedData = await _noteService.mergeWithRemoteData(driveData);
 
         // Apply the merged data locally
-        await _noteService.importAllFromJson(mergedData);
+        await _noteService.importAllFromJson(mergedData, source: 'google-drive-auto-sync', verbose: false);
 
         // Step 3: Push merged data to Google Drive
         await _driveService.uploadJsonToAppData(fileName: 'trovara_backup.json', json: mergedData);
@@ -189,8 +191,20 @@ class SettingViewModel extends BaseViewModel {
         path ??= '${(await getApplicationDocumentsDirectory()).path}/trovara_export.json';
 
         final text = await XFile(path).readAsString();
-        final jsonMap = jsonDecode(text) as Map<String, dynamic>;
-        await _noteService.importAllFromJson(jsonMap);
+        _logger.i('Import file selected: path=$path chars=${text.length}');
+
+        final decoded = jsonDecode(text);
+        if (decoded is! Map<String, dynamic>) {
+          throw FormatException('Expected top-level JSON object, got ${decoded.runtimeType}');
+        }
+
+        final jsonMap = decoded;
+        final keys = jsonMap.keys.toList()..sort();
+        final foldersCount = (jsonMap['folders'] is List) ? (jsonMap['folders'] as List).length : null;
+        final notesCount = (jsonMap['notes'] is List) ? (jsonMap['notes'] as List).length : null;
+        _logger.i('Import JSON summary: keys=$keys folders=$foldersCount notes=$notesCount');
+
+        await _noteService.importAllFromJson(jsonMap, source: 'file-import', verbose: kDebugMode);
         successMessage = 'Import complete';
       } catch (e) {
         errorMessage = 'Import failed: $e';

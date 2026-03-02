@@ -13,9 +13,8 @@ ios/Firebase/
 macos/Firebase/
 **/GoogleService-Info.plist
 
-lib/firebase_options/*
-!lib/firebase_options/staging.dart
-!lib/firebase_options/prod.dart
+lib/firebase_options/staging.dart
+lib/firebase_options/prod.dart
 
 # Config files with OAuth credentials
 configs/trovara.json
@@ -29,6 +28,8 @@ android/app/src/prod/google-services.json
 
 # Ignore staging config with sensitive API keys
 configs/trovara_staging.json
+
+
 
 # Local credentials working dir
 .local-credentials/

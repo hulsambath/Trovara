@@ -70,7 +70,9 @@ class ServiceLocator {
   EmbeddingService get embeddingService {
     _embeddingService ??= EmbeddingService(
       embeddingRepository: embeddingRepository,
+      provider: EmbeddingProvider.gemini,
       apiKey: ConfigConstants.geminiApiKey,
+      modelName: EmbeddingService.defaultGeminiEmbeddingModel,
     );
     return _embeddingService!;
   }
@@ -95,7 +97,11 @@ class ServiceLocator {
 
   /// Get the LLM client instance
   LlmClient get llmClient {
-    _llmClient ??= LlmClient(apiKey: ConfigConstants.geminiApiKey);
+    _llmClient ??= LlmClient(
+      provider: LlmProvider.gemini,
+      apiKey: ConfigConstants.geminiApiKey,
+      modelName: LlmClient.defaultGeminiModel,
+    );
     return _llmClient!;
   }
 
