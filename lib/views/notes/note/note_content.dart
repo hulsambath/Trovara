@@ -44,8 +44,7 @@ class _NoteContent extends StatelessWidget {
     margin: const EdgeInsets.all(16),
     padding: const EdgeInsets.all(16),
     decoration: BoxDecoration(
-      color: Theme.of(context).colorScheme.surfaceContainer,
-      border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+      color: Theme.of(context).colorScheme.surfaceContainerLow,
       borderRadius: BorderRadius.circular(16),
     ),
     child: Column(
@@ -76,13 +75,7 @@ class _NoteContent extends StatelessWidget {
 
   Widget _buildFooter(BuildContext context) => Container(
     height: kToolbarHeight,
-    decoration: BoxDecoration(
-      color: Theme.of(context).colorScheme.surface,
-      border: Border(
-        top: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
-        bottom: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
-      ),
-    ),
+    decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface),
     child: _buildToolbar(context),
   );
 

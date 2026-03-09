@@ -62,13 +62,12 @@ class _ChatContentState extends State<_ChatContent> {
           await viewModel.deleteThread(threadId);
         },
       ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(child: _buildMessageArea(context, colors)),
-            _ChatInputField(onSubmit: viewModel.sendMessage, isEnabled: !viewModel.isProcessing),
-          ],
-        ),
+      body: Column(
+        children: [
+          Expanded(child: _buildMessageArea(context, colors)),
+          _ChatInputField(onSubmit: viewModel.sendMessage, isEnabled: !viewModel.isProcessing),
+          const SizedBox(height: kBottomNavigationBarHeight / 2),
+        ],
       ),
     );
   }
