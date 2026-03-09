@@ -270,7 +270,7 @@ fi
 print_step "📋 Using config: $CONFIG_FILE"
 
 # Prepare Flutter command
-FLUTTER_CMD="flutter run --release --dart-define-from-file=$CONFIG_FILE"
+FLUTTER_CMD="flutter run --dart-define-from-file=$CONFIG_FILE"
 
 # Use the flavor-specific entry point if it exists (e.g. lib/main_staging.dart)
 ENTRY_POINT="lib/main_${ENVIRONMENT}.dart"

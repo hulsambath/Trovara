@@ -1,3 +1,85 @@
+import 'package:objectbox/objectbox.dart';
+
+/// Represents a single persisted message in a chat thread.
+///
+/// This is the ObjectBox entity used for local/Drive-backed history.
+/// The UI-facing chat model is defined below as [ChatMessage] and kept
+/// separate to avoid mixing persistence concerns into the view layer.
+@Entity()
+class ChatMessageEntity {
+  int id;
+
+  /// Foreign key reference to [ChatThread.id].
+  int threadId;
+
+  /// Role of the message author: 'user', 'assistant', or 'system'.
+  String role;
+
+  /// Raw markdown/plaintext content of the message.
+  String content;
+
+  /// Optional titles of notes used as context when generating
+  /// the assistant response. Only populated for assistant messages.
+  List<String> sourceNoteTitles;
+
+  /// Optional token counts for analytics / debugging.
+  int? promptTokens;
+  int? completionTokens;
+
+  DateTime createdAt;
+  DateTime updatedAt;
+
+  ChatMessageEntity({
+    this.id = 0,
+    required this.threadId,
+    required this.role,
+    required this.content,
+    List<String>? sourceNoteTitles,
+    this.promptTokens,
+    this.completionTokens,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) : sourceNoteTitles = sourceNoteTitles ?? const [],
+       createdAt = createdAt ?? DateTime.now(),
+       updatedAt = updatedAt ?? DateTime.now();
+
+  void touch() {
+    updatedAt = DateTime.now();
+  }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'threadId': threadId,
+    'role': role,
+    'content': content,
+    'sourceNoteTitles': sourceNoteTitles,
+    'promptTokens': promptTokens,
+    'completionTokens': completionTokens,
+    'createdAt': createdAt.toIso8601String(),
+    'updatedAt': updatedAt.toIso8601String(),
+  };
+
+  factory ChatMessageEntity.fromJson(Map<String, dynamic> json) => ChatMessageEntity(
+    id: json['id'] as int? ?? 0,
+    threadId: json['threadId'] as int,
+    role: json['role'] as String? ?? 'user',
+    content: json['content'] as String? ?? '',
+    sourceNoteTitles: List<String>.from(json['sourceNoteTitles'] as List? ?? const []),
+    promptTokens: json['promptTokens'] as int?,
+    completionTokens: json['completionTokens'] as int?,
+    createdAt: _parseDate(json['createdAt']),
+    updatedAt: _parseDate(json['updatedAt']),
+  );
+
+  static DateTime _parseDate(dynamic value) {
+    if (value is DateTime) return value;
+    if (value is String && value.isNotEmpty) {
+      return DateTime.tryParse(value) ?? DateTime.now();
+    }
+    return DateTime.now();
+  }
+}
+
 /// Represents a single message in the chat conversation.
 ///
 /// Used by [ChatViewModel] to manage the message list displayed in the

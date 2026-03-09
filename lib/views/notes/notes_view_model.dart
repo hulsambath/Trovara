@@ -56,10 +56,6 @@ class NotesViewModel extends BaseViewModel {
     }
   }
 
-  void openChat(BuildContext context) {
-    context.push('/chat');
-  }
-
   void _loadNotes() {
     if (_isDisposed) return;
 

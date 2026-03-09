@@ -1,7 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:trovara/core/repository/interfaces/chat_message_repository.dart';
+import 'package:trovara/core/repository/interfaces/chat_thread_repository.dart';
 import 'package:trovara/core/repository/interfaces/embedding_repository.dart';
 import 'package:trovara/core/repository/interfaces/folder_repository.dart';
 import 'package:trovara/core/repository/interfaces/note_repository.dart';
+import 'package:trovara/core/services/chat_service.dart';
 import 'package:trovara/core/services/document_resolver_service.dart';
 import 'package:trovara/core/services/embedding_service.dart';
 import 'package:trovara/core/services/llm_client.dart';
@@ -10,6 +13,7 @@ import 'package:trovara/core/services/prompt_builder_service.dart';
 import 'package:trovara/core/services/rag_service.dart';
 import 'package:trovara/core/services/vector_search_service.dart';
 import 'package:trovara/models/chat_message.dart';
+import 'package:trovara/models/chat_thread.dart';
 import 'package:trovara/models/folder.dart';
 import 'package:trovara/models/note.dart';
 import 'package:trovara/models/note_embedding.dart';
@@ -124,6 +128,88 @@ class _StubFolderRepo implements IFolderRepository {
   Future<void> deleteFolder(String folderId) async {}
   @override
   Folder? getDefaultFolder() => null;
+  @override
+  void addListener(Function() listener) {}
+  @override
+  void removeListener(Function() listener) {}
+  @override
+  void dispose() {}
+}
+
+class _StubChatThreadRepo implements IChatThreadRepository {
+  int _nextId = 1;
+  final List<ChatThread> _threads = [];
+
+  @override
+  Future<void> initialize() async {}
+  @override
+  ChatThread? getThreadById(int id) => _threads.where((t) => t.id == id).firstOrNull;
+  @override
+  List<ChatThread> getThreadsByNote(int noteId) =>
+      _threads.where((t) => t.noteId == noteId && !t.isDeleted).toList();
+  @override
+  List<ChatThread> getGlobalThreads() =>
+      _threads.where((t) => t.type == 'global' && !t.isDeleted).toList();
+  @override
+  List<ChatThread> getAllThreads() => _threads.where((t) => !t.isDeleted).toList();
+  @override
+  Future<ChatThread> createThread({required String type, int? noteId, String? title}) async {
+    final thread = ChatThread(id: _nextId++, type: type, noteId: noteId, title: title);
+    _threads.add(thread);
+    return thread;
+  }
+  @override
+  Future<void> updateThread(ChatThread thread) async {}
+  @override
+  Future<void> upsertThread(ChatThread thread) async {
+    _threads.removeWhere((t) => t.id == thread.id);
+    _threads.add(thread);
+  }
+  @override
+  Future<void> deleteThread(int id) async {
+    _threads.removeWhere((t) => t.id == id);
+  }
+  @override
+  void addListener(Function() listener) {}
+  @override
+  void removeListener(Function() listener) {}
+  @override
+  void dispose() {}
+}
+
+class _StubChatMessageRepo implements IChatMessageRepository {
+  int _nextId = 1;
+  final List<ChatMessageEntity> _messages = [];
+
+  @override
+  Future<void> initialize() async {}
+  @override
+  List<ChatMessageEntity> getMessagesForThread(int threadId) =>
+      _messages.where((m) => m.threadId == threadId).toList();
+  @override
+  List<ChatMessageEntity> getRecentMessagesForThread(int threadId, {int limit = 50}) =>
+      getMessagesForThread(threadId).reversed.take(limit).toList().reversed.toList();
+  @override
+  Future<ChatMessageEntity> createMessage(ChatMessageEntity message) async {
+    message.id = _nextId++;
+    _messages.add(message);
+    return message;
+  }
+  @override
+  Future<void> updateMessage(ChatMessageEntity message) async {}
+  @override
+  Future<void> upsertMessage(ChatMessageEntity message) async {
+    _messages.removeWhere((m) => m.id == message.id);
+    _messages.add(message);
+  }
+  @override
+  Future<void> deleteMessagesForThread(int threadId) async {
+    _messages.removeWhere((m) => m.threadId == threadId);
+  }
+  @override
+  Future<void> deleteMessage(int id) async {
+    _messages.removeWhere((m) => m.id == id);
+  }
   @override
   void addListener(Function() listener) {}
   @override
@@ -281,11 +367,16 @@ void main() {
   // ─────────────────────────────────────────────────────────────────────────
   group('ChatViewModel', () {
     late _FakeRagService fakeRag;
+    late ChatService chatService;
     late ChatViewModel vm;
 
     setUp(() {
       fakeRag = _FakeRagService();
-      vm = ChatViewModel(ragService: fakeRag);
+      chatService = ChatService(
+        threadRepository: _StubChatThreadRepo(),
+        messageRepository: _StubChatMessageRepo(),
+      );
+      vm = ChatViewModel(ragService: fakeRag, chatService: chatService);
     });
 
     test('initial state is empty and not processing', () {
@@ -295,10 +386,10 @@ void main() {
     });
 
     test('isAvailable delegates to RagService', () {
-      final available = ChatViewModel(ragService: _FakeRagService(available: true));
+      final available = ChatViewModel(ragService: _FakeRagService(available: true), chatService: chatService);
       expect(available.isAvailable, true);
 
-      final unavailable = ChatViewModel(ragService: _FakeRagService(available: false));
+      final unavailable = ChatViewModel(ragService: _FakeRagService(available: false), chatService: chatService);
       expect(unavailable.isAvailable, false);
     });
 
@@ -340,7 +431,7 @@ void main() {
 
     test('sendMessage handles stream error', () async {
       final errorRag = _FakeRagService(onQueryStream: (_) => Stream<String>.error(Exception('API failed')));
-      final errorVm = ChatViewModel(ragService: errorRag);
+      final errorVm = ChatViewModel(ragService: errorRag, chatService: chatService);
 
       await errorVm.sendMessage('test');
 
@@ -357,7 +448,7 @@ void main() {
             Stream<String>.error(RagQueryException("I couldn't find any relevant notes for your question.")),
         onGetSourceTitles: (_) async => [],
       );
-      final noResultsVm = ChatViewModel(ragService: noResultsRag);
+      final noResultsVm = ChatViewModel(ragService: noResultsRag, chatService: chatService);
 
       await noResultsVm.sendMessage('test');
 
@@ -392,7 +483,7 @@ void main() {
         onQueryStream: (q) => Stream.value('Reply to $q'),
         onGetSourceTitles: (_) async => [],
       );
-      final multiVm = ChatViewModel(ragService: rag);
+      final multiVm = ChatViewModel(ragService: rag, chatService: chatService);
 
       await multiVm.sendMessage('first');
       await multiVm.sendMessage('second');

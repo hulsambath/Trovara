@@ -13,8 +13,12 @@ class _MainContentState extends State<_MainContent> {
   int _currentIndex = 0;
   late PageController _pageController;
 
-  // Tab pages
-  final List<Widget> _pages = [const NotesView(), const InsightsView(), const SettingView()];
+  final List<Widget> _pages = [
+    const NotesView(),
+    const ChatView(embedded: true),
+    const InsightsView(),
+    const SettingView(),
+  ];
 
   @override
   void initState() {
@@ -60,10 +64,12 @@ class _MainContentState extends State<_MainContent> {
     bottomNavigationBar: BottomNavigationBar(
       currentIndex: _currentIndex,
       onTap: _onTabTapped,
+      type: BottomNavigationBarType.fixed,
       items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.edit_note), label: 'Note'),
+        BottomNavigationBarItem(icon: Icon(Icons.edit_note), label: 'Notes'),
+        BottomNavigationBarItem(icon: Icon(Icons.chat_rounded), label: 'Chat'),
         BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: 'Insights'),
-        BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Setting'),
+        BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Settings'),
       ],
     ),
   );
@@ -84,9 +90,10 @@ class _MainContentState extends State<_MainContent> {
             currentIndex: _currentIndex,
             onTap: _onTabTapped,
             items: const [
-              CNTabBarItem(icon: CNSymbol('square.and.pencil'), label: 'Note'),
+              CNTabBarItem(icon: CNSymbol('square.and.pencil'), label: 'Notes'),
+              CNTabBarItem(icon: CNSymbol('bubble.left.and.bubble.right'), label: 'Chat'),
               CNTabBarItem(icon: CNSymbol('chart.bar'), label: 'Insights'),
-              CNTabBarItem(icon: CNSymbol('gear'), label: 'Setting'),
+              CNTabBarItem(icon: CNSymbol('gear'), label: 'Settings'),
             ],
           ),
         ),

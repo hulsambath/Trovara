@@ -1,13 +1,19 @@
 import 'package:trovara/constants/config_constants.dart';
 import 'package:trovara/core/repository/base/objectbox_store_manager.dart';
+import 'package:trovara/core/repository/implementations/objectbox_chat_message_repository.dart';
+import 'package:trovara/core/repository/implementations/objectbox_chat_thread_repository.dart';
 import 'package:trovara/core/repository/implementations/objectbox_custom_tag_repository.dart';
 import 'package:trovara/core/repository/implementations/objectbox_embedding_repository.dart';
 import 'package:trovara/core/repository/implementations/objectbox_folder_repository.dart';
 import 'package:trovara/core/repository/implementations/objectbox_note_repository.dart';
+import 'package:trovara/core/repository/interfaces/chat_message_repository.dart';
+import 'package:trovara/core/repository/interfaces/chat_thread_repository.dart';
 import 'package:trovara/core/repository/interfaces/custom_tag_repository.dart';
 import 'package:trovara/core/repository/interfaces/embedding_repository.dart';
 import 'package:trovara/core/repository/interfaces/folder_repository.dart';
 import 'package:trovara/core/repository/interfaces/note_repository.dart';
+import 'package:trovara/core/services/chat_drive_sync_service.dart';
+import 'package:trovara/core/services/chat_service.dart';
 import 'package:trovara/core/services/custom_tag_service.dart';
 import 'package:trovara/core/services/document_resolver_service.dart';
 import 'package:trovara/core/services/embedding_service.dart';
@@ -41,6 +47,10 @@ class ServiceLocator {
   RagService? _ragService;
   GoogleDriveService? _googleDriveService;
   GoogleDriveSyncService? _googleDriveSyncService;
+  IChatThreadRepository? _chatThreadRepository;
+  IChatMessageRepository? _chatMessageRepository;
+  ChatService? _chatService;
+  ChatDriveSyncService? _chatDriveSyncService;
 
   /// Get the note repository instance
   INoteRepository get noteRepository {
@@ -144,26 +154,56 @@ class ServiceLocator {
     return _googleDriveSyncService!;
   }
 
+  /// Get the chat thread repository instance
+  IChatThreadRepository get chatThreadRepository {
+    _chatThreadRepository ??= ObjectBoxChatThreadRepository();
+    return _chatThreadRepository!;
+  }
+
+  /// Get the chat message repository instance
+  IChatMessageRepository get chatMessageRepository {
+    _chatMessageRepository ??= ObjectBoxChatMessageRepository();
+    return _chatMessageRepository!;
+  }
+
+  /// Get the chat service instance
+  ChatService get chatService {
+    _chatService ??= ChatService(threadRepository: chatThreadRepository, messageRepository: chatMessageRepository);
+    return _chatService!;
+  }
+
+  /// Get the chat Drive sync service instance
+  ChatDriveSyncService get chatDriveSyncService {
+    _chatDriveSyncService ??= ChatDriveSyncService();
+    return _chatDriveSyncService!;
+  }
+
   /// Initialize all services
   Future<void> initialize() async {
     await noteService.initialize();
     await customTagService.initialize();
     await embeddingService.initialize();
     await llmClient.initialize();
+    await chatService.initialize();
   }
 
   /// Dispose all services
   void dispose() {
+    _chatService?.dispose();
     _noteService?.dispose();
     _noteRepository?.dispose();
     _folderRepository?.dispose();
     _embeddingRepository?.dispose();
     _googleDriveService = null;
     _googleDriveSyncService = null;
+    _chatDriveSyncService = null;
 
     // Close the shared ObjectBox Store
     ObjectBoxStoreManager().close();
 
+    _chatService = null;
+    _chatThreadRepository = null;
+    _chatMessageRepository = null;
     _noteService = null;
     _noteRepository = null;
     _folderRepository = null;
