@@ -39,7 +39,6 @@ class _NotesContent extends StatelessWidget {
         onPressed: () => viewModel.createNewNote(context),
         tooltip: 'Create new note',
       ),
-      IconButton(icon: const Icon(Icons.chat_rounded), onPressed: () => viewModel.openChat(context), tooltip: 'Chat'),
       IconButton(
         icon: const Icon(Icons.delete_outline),
         onPressed: () => _openRecentlyDeleted(context),

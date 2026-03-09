@@ -1,10 +1,9 @@
 part of '../chat_view.dart';
 
-/// A single chat message bubble.
+/// ChatGPT-style message display.
 ///
-/// User messages are aligned right with the primary color background.
-/// AI messages are aligned left with a surface-variant background
-/// and include source attribution when available.
+/// User messages: right-aligned grey pill, no avatar.
+/// AI messages: left-aligned with small sparkle avatar, plain text, no bubble.
 class _ChatBubble extends StatelessWidget {
   const _ChatBubble({required this.message});
 
@@ -12,56 +11,61 @@ class _ChatBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
     final isUser = message.isUser;
+    return isUser ? _buildUserMessage(context) : _buildAssistantMessage(context);
+  }
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        mainAxisAlignment: isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (!isUser) ...[_buildAvatar(context, colors), const SizedBox(width: 8)],
-          Flexible(
-            child: Column(
-              crossAxisAlignment: isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-              children: [
-                Container(
-                  constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.78),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: isUser
-                        ? colors.primary
-                        : message.isError
-                        ? colors.errorContainer
-                        : colors.surfaceContainerHighest,
-                    borderRadius: BorderRadius.only(
-                      topLeft: const Radius.circular(16),
-                      topRight: const Radius.circular(16),
-                      bottomLeft: Radius.circular(isUser ? 16 : 4),
-                      bottomRight: Radius.circular(isUser ? 4 : 16),
-                    ),
-                  ),
-                  child: _buildContent(context, colors, isUser),
-                ),
-                // Source attribution (AI only)
-                if (!isUser && !message.isLoading && message.sourceNoteTitles.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 6),
-                    child: _SourceAttribution(titles: message.sourceNoteTitles),
-                  ),
-              ],
+  Widget _buildUserMessage(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(width: 48),
+        Flexible(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            decoration: BoxDecoration(color: colors.surfaceContainerHighest, borderRadius: BorderRadius.circular(20)),
+            child: Text(
+              message.content,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colors.onSurface, height: 1.45),
             ),
           ),
-          if (isUser) const SizedBox(width: 8),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  Widget _buildContent(BuildContext context, ColorScheme colors, bool isUser) {
+  Widget _buildAssistantMessage(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildAvatar(context, colors),
+        const SizedBox(width: 10),
+        Flexible(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildAssistantContent(context, colors),
+              if (!message.isLoading && message.sourceNoteTitles.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 10),
+                  child: _SourceAttribution(titles: message.sourceNoteTitles),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 48),
+      ],
+    );
+  }
+
+  Widget _buildAssistantContent(BuildContext context, ColorScheme colors) {
     if (message.isLoading && message.content.isEmpty) {
-      return _buildTypingIndicator(colors, isUser);
+      return const _TypingIndicator();
     }
 
     return Column(
@@ -69,52 +73,97 @@ class _ChatBubble extends StatelessWidget {
       children: [
         SelectableText(
           message.content,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: isUser
-                ? colors.onPrimaryContainer
-                : message.isError
-                ? colors.onErrorContainer
-                : colors.onSurface,
-            height: 1.4,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(color: message.isError ? colors.error : colors.onSurface, height: 1.5),
         ),
-        if (message.isLoading && message.content.isNotEmpty) ...[
-          const SizedBox(height: 4),
-          SizedBox(
-            width: 12,
-            height: 12,
-            child: CircularProgressIndicator(strokeWidth: 1.5, color: colors.onSurfaceVariant),
-          ),
-        ],
+        if (message.isLoading && message.content.isNotEmpty)
+          const Padding(padding: EdgeInsets.only(top: 6), child: _TypingIndicator()),
       ],
     );
   }
-
-  Widget _buildTypingIndicator(ColorScheme colors, bool isUser) => Row(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      SizedBox(
-        width: 16,
-        height: 16,
-        child: CircularProgressIndicator(strokeWidth: 2, color: isUser ? colors.onPrimary : colors.onSurfaceVariant),
-      ),
-      const SizedBox(width: 8),
-      Text(
-        'Thinking...',
-        style: TextStyle(
-          color: isUser ? colors.onPrimary : colors.onSurfaceVariant,
-          fontSize: 13,
-          fontStyle: FontStyle.italic,
-        ),
-      ),
-    ],
-  );
 
   Widget _buildAvatar(BuildContext context, ColorScheme colors) => Container(
     width: 28,
     height: 28,
     margin: const EdgeInsets.only(top: 2),
-    decoration: BoxDecoration(color: colors.primaryContainer, shape: BoxShape.circle),
-    child: Icon(Icons.auto_awesome, size: 16, color: colors.onPrimaryContainer),
+    decoration: BoxDecoration(color: colors.primary, shape: BoxShape.circle),
+    child: Icon(Icons.auto_awesome, size: 15, color: colors.onPrimary),
   );
+}
+
+/// Three-dot bouncing typing indicator (ChatGPT-style).
+class _TypingIndicator extends StatefulWidget {
+  const _TypingIndicator();
+
+  @override
+  State<_TypingIndicator> createState() => _TypingIndicatorState();
+}
+
+class _TypingIndicatorState extends State<_TypingIndicator> with TickerProviderStateMixin {
+  late final List<AnimationController> _controllers;
+  late final List<Animation<double>> _animations;
+
+  @override
+  void initState() {
+    super.initState();
+    _controllers = List.generate(
+      3,
+      (i) => AnimationController(vsync: this, duration: const Duration(milliseconds: 600)),
+    );
+
+    _animations = List.generate(
+      3,
+      (i) => Tween<double>(begin: 0.0, end: -6.0).animate(
+        CurvedAnimation(
+          parent: _controllers[i],
+          curve: Interval(i * 0.2, 0.6 + i * 0.2, curve: Curves.easeInOut),
+        ),
+      ),
+    );
+
+    for (int i = 0; i < 3; i++) {
+      Future.delayed(Duration(milliseconds: i * 160), () {
+        if (mounted) _controllers[i].repeat(reverse: true);
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    for (final c in _controllers) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
+    return SizedBox(
+      height: 24,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: List.generate(
+          3,
+          (i) => AnimatedBuilder(
+            animation: _animations[i],
+            builder: (context, child) => Transform.translate(
+              offset: Offset(0, _animations[i].value),
+              child: Container(
+                width: 7,
+                height: 7,
+                margin: const EdgeInsets.symmetric(horizontal: 2),
+                decoration: BoxDecoration(
+                  color: colors.onSurfaceVariant.withValues(alpha: 0.5),
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }

@@ -1,1 +1,78 @@
-{"flutter":{"platforms":{"android":{"buildConfigurations":{"src/staging":{"projectId":"trovara-team","appId":"1:947138961993:android:8677bb2b094e187c091598","fileOutput":"android/app/src/staging/google-services.json"},"src/prod":{"projectId":"trovara-team","appId":"1:947138961993:android:3232a477268f4d3d091598","fileOutput":"android/app/src/prod/google-services.json"}}},"ios":{"buildConfigurations":{"Debug":{"projectId":"trovara-team","appId":"1:947138961993:ios:a9b866f80e8afd32091598","uploadDebugSymbols":false,"fileOutput":"ios/Firebase/staging/GoogleService-Info.plist"},"Release":{"projectId":"trovara-team","appId":"1:947138961993:ios:010c02dce8d745c5091598","uploadDebugSymbols":false,"fileOutput":"ios/Firebase/prod/GoogleService-Info.plist"}}},"macos":{"buildConfigurations":{"Debug":{"projectId":"trovara-team","appId":"1:947138961993:ios:a9b866f80e8afd32091598","uploadDebugSymbols":false,"fileOutput":"macos/Firebase/staging/GoogleService-Info.plist"},"Release":{"projectId":"trovara-team","appId":"1:947138961993:ios:010c02dce8d745c5091598","uploadDebugSymbols":false,"fileOutput":"macos/Firebase/prod/GoogleService-Info.plist"}}},"dart":{"lib/firebase_options/dev.dart":{"projectId":"trovara-team","configurations":{"android":"1:947138961993:android:8677bb2b094e187c091598","ios":"1:947138961993:ios:a9b866f80e8afd32091598","macos":"1:947138961993:ios:a9b866f80e8afd32091598"}},"lib/firebase_options/staging.dart":{"projectId":"trovara-team","configurations":{"android":"1:947138961993:android:8677bb2b094e187c091598","ios":"1:947138961993:ios:a9b866f80e8afd32091598","macos":"1:947138961993:ios:a9b866f80e8afd32091598"}},"lib/firebase_options/prod.dart":{"projectId":"trovara-team","configurations":{"android":"1:947138961993:android:3232a477268f4d3d091598","ios":"1:947138961993:ios:010c02dce8d745c5091598","macos":"1:947138961993:ios:010c02dce8d745c5091598"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "buildConfigurations": {
+          "src/staging": {
+            "projectId": "trovara-team",
+            "appId": "1:947138961993:android:8677bb2b094e187c091598",
+            "fileOutput": "android/app/src/staging/google-services.json"
+          },
+          "src/prod": {
+            "projectId": "trovara-team",
+            "appId": "1:947138961993:android:3232a477268f4d3d091598",
+            "fileOutput": "android/app/src/prod/google-services.json"
+          }
+        }
+      },
+      "ios": {
+        "buildConfigurations": {
+          "Debug": {
+            "projectId": "trovara-team",
+            "appId": "1:947138961993:ios:a9b866f80e8afd32091598",
+            "uploadDebugSymbols": false,
+            "fileOutput": "ios/Firebase/staging/GoogleService-Info.plist"
+          },
+          "Release": {
+            "projectId": "trovara-team",
+            "appId": "1:947138961993:ios:010c02dce8d745c5091598",
+            "uploadDebugSymbols": false,
+            "fileOutput": "ios/Firebase/prod/GoogleService-Info.plist"
+          }
+        }
+      },
+      "macos": {
+        "buildConfigurations": {
+          "Debug": {
+            "projectId": "trovara-team",
+            "appId": "1:947138961993:ios:a9b866f80e8afd32091598",
+            "uploadDebugSymbols": false,
+            "fileOutput": "macos/Firebase/staging/GoogleService-Info.plist"
+          },
+          "Release": {
+            "projectId": "trovara-team",
+            "appId": "1:947138961993:ios:010c02dce8d745c5091598",
+            "uploadDebugSymbols": false,
+            "fileOutput": "macos/Firebase/prod/GoogleService-Info.plist"
+          }
+        }
+      },
+      "dart": {
+        "lib/firebase_options/dev.dart": {
+          "projectId": "trovara-team",
+          "configurations": {
+            "android": "1:947138961993:android:8677bb2b094e187c091598",
+            "ios": "1:947138961993:ios:a9b866f80e8afd32091598",
+            "macos": "1:947138961993:ios:a9b866f80e8afd32091598"
+          }
+        },
+        "lib/firebase_options/staging.dart": {
+          "projectId": "trovara-team",
+          "configurations": {
+            "android": "1:947138961993:android:8677bb2b094e187c091598",
+            "ios": "1:947138961993:ios:a9b866f80e8afd32091598",
+            "macos": "1:947138961993:ios:a9b866f80e8afd32091598"
+          }
+        },
+        "lib/firebase_options/prod.dart": {
+          "projectId": "trovara-team",
+          "configurations": {
+            "android": "1:947138961993:android:3232a477268f4d3d091598",
+            "ios": "1:947138961993:ios:010c02dce8d745c5091598",
+            "macos": "1:947138961993:ios:010c02dce8d745c5091598"
+          }
+        }
+      }
+    }
+  }
+}

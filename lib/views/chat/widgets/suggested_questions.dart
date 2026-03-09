@@ -1,9 +1,6 @@
 part of '../chat_view.dart';
 
-/// Empty-state widget showing suggested questions.
-///
-/// Displayed when the chat has no messages yet. Tapping a question
-/// sends it as if the user typed it.
+/// ChatGPT-style empty state with greeting and suggested prompt chips.
 class _SuggestedQuestions extends StatelessWidget {
   const _SuggestedQuestions({required this.questions, required this.onTap});
 
@@ -16,60 +13,50 @@ class _SuggestedQuestions extends StatelessWidget {
 
     return Center(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.auto_awesome, size: 48, color: colors.primary.withValues(alpha: 0.6)),
-            const SizedBox(height: 16),
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(color: colors.primary, shape: BoxShape.circle),
+              child: Icon(Icons.auto_awesome, size: 28, color: colors.onPrimary),
+            ),
+            const SizedBox(height: 20),
             Text(
-              'Ask your notes anything',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+              'How can I help?',
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700, color: colors.onSurface),
             ),
             const SizedBox(height: 8),
             Text(
-              'Get AI-powered answers based on your personal notes',
+              'Ask me anything about your notes',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colors.onSurfaceVariant),
-              textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 32),
-            Text(
-              'Try asking',
-              style: Theme.of(
-                context,
-              ).textTheme.labelMedium?.copyWith(color: colors.onSurfaceVariant, fontWeight: FontWeight.w600),
+            const SizedBox(height: 36),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              alignment: WrapAlignment.center,
+              children: questions.map((q) => _buildChip(context, colors, q)).toList(),
             ),
-            const SizedBox(height: 12),
-            ...questions.map((q) => _buildQuestionCard(context, colors, q)),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildQuestionCard(BuildContext context, ColorScheme colors, String question) => Padding(
-    padding: const EdgeInsets.only(bottom: 8),
-    child: Material(
-      color: colors.surfaceContainerHighest,
-      borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        onTap: () => onTap(question),
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Row(
-            children: [
-              Icon(Icons.chat_bubble_outline, size: 16, color: colors.primary),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(question, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colors.onSurface)),
-              ),
-              Icon(Icons.arrow_forward_ios, size: 12, color: colors.onSurfaceVariant),
-            ],
-          ),
-        ),
+  Widget _buildChip(BuildContext context, ColorScheme colors, String question) => GestureDetector(
+    onTap: () => onTap(question),
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: colors.outlineVariant, width: 1),
       ),
+      child: Text(question, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colors.onSurface)),
     ),
   );
 }

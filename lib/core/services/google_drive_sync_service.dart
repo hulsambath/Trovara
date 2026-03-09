@@ -81,11 +81,19 @@ class GoogleDriveSyncService {
             },
           );
 
-      // Step 4: Return success result
+      // Step 4: Sync chat history (non-blocking; errors logged but don't fail the overall sync)
+      try {
+        await ServiceLocator().chatDriveSyncService.syncChatWithGoogleDrive();
+        _logger.i('Chat history sync completed as part of Drive sync');
+      } catch (e) {
+        _logger.w('Chat history sync failed (non-fatal): $e');
+      }
+
+      // Step 5: Return success result
       if (driveData != null) {
-        return SyncResult.success('Synced with Google Drive (data merged and synchronized)');
+        return SyncResult.success('Synced notes and chat with Google Drive');
       } else {
-        return SyncResult.success('Synced with Google Drive (data backed up to cloud)');
+        return SyncResult.success('Backed up notes and chat to Google Drive');
       }
     } catch (e) {
       // Handle different types of errors with more specific messages
