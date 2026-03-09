@@ -58,6 +58,7 @@ class _ChatInputFieldState extends State<_ChatInputField> {
                 focusNode: _focusNode,
                 textInputAction: TextInputAction.send,
                 onSubmitted: (_) => _submit(),
+                onTapOutside: (_) => _focusNode.unfocus(),
                 enabled: widget.isEnabled,
                 maxLines: 6,
                 minLines: 1,

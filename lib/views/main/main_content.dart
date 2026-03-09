@@ -74,30 +74,36 @@ class _MainContentState extends State<_MainContent> {
     ),
   );
 
-  Widget _buildIOS(BuildContext context) => CupertinoPageScaffold(
-    child: Stack(
-      children: [
-        Positioned.fill(
-          bottom: kToolbarHeight,
-          child: PageView(controller: _pageController, onPageChanged: _onPageChanged, children: _pages),
-        ),
-        const Positioned(bottom: 0, left: 0, right: 0, child: ConnectivityStatus()),
-        Positioned(
-          bottom: 0,
-          left: 0,
-          right: 0,
-          child: CNTabBar(
-            currentIndex: _currentIndex,
-            onTap: _onTabTapped,
-            items: const [
-              CNTabBarItem(icon: CNSymbol('square.and.pencil'), label: 'Notes'),
-              CNTabBarItem(icon: CNSymbol('bubble.left.and.bubble.right'), label: 'Chat'),
-              CNTabBarItem(icon: CNSymbol('chart.bar'), label: 'Insights'),
-              CNTabBarItem(icon: CNSymbol('gear'), label: 'Settings'),
-            ],
+  Widget _buildIOS(BuildContext context) {
+    final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+    final isKeyboardVisible = keyboardHeight > 0;
+
+    return CupertinoPageScaffold(
+      resizeToAvoidBottomInset: false,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            bottom: isKeyboardVisible ? 0 : kToolbarHeight,
+            child: PageView(controller: _pageController, onPageChanged: _onPageChanged, children: _pages),
           ),
-        ),
-      ],
-    ),
-  );
+          const Positioned(bottom: 0, left: 0, right: 0, child: ConnectivityStatus()),
+          Positioned(
+            bottom: isKeyboardVisible ? -kToolbarHeight : 0,
+            left: 0,
+            right: 0,
+            child: CNTabBar(
+              currentIndex: _currentIndex,
+              onTap: _onTabTapped,
+              items: const [
+                CNTabBarItem(icon: CNSymbol('square.and.pencil'), label: 'Notes'),
+                CNTabBarItem(icon: CNSymbol('bubble.left.and.bubble.right'), label: 'Chat'),
+                CNTabBarItem(icon: CNSymbol('chart.bar'), label: 'Insights'),
+                CNTabBarItem(icon: CNSymbol('gear'), label: 'Settings'),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
