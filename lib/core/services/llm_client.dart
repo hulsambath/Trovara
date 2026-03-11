@@ -32,10 +32,10 @@ enum LlmProvider { openAiCompatible, gemini }
 class LlmClient {
   static const String defaultBaseUrl = 'https://openrouter.ai/api/v1';
 
-  /// Default model for OpenRouter.
+  /// Default model for OpenRouter (provider/model format).
   ///
-  /// Can be overridden via DI. `openrouter/auto` lets OpenRouter choose.
-  static const String defaultModel = 'openrouter/auto';
+  /// Can be overridden via DI. Use `openrouter/auto` to let OpenRouter choose.
+  static const String defaultModel = 'openai/gpt-3.5-turbo';
 
   /// Default model for Gemini.
   static const String defaultGeminiModel = 'gemini-1.5-flash';

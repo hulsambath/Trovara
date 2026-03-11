@@ -104,7 +104,9 @@ class GoogleDriveSyncService {
 
   /// Handles authentication and syncs data with Google Drive
   ///
-  /// This method ensures the user is signed in before attempting to sync
+  /// This method ensures the user is signed in before attempting to sync.
+  /// After successful sign-in, assigns the Google account ID to all notes
+  /// that don't yet have a userId (anonymous notes become owned).
   Future<SyncResult> syncWithAuthentication() async {
     try {
       // Handle authentication - sign in if not signed in, or re-authenticate if needed
@@ -112,10 +114,40 @@ class GoogleDriveSyncService {
         await _driveService.signIn();
       }
 
+      // Assign userId to anonymous notes (userId == null) now that we have a Google account
+      final currentUser = _driveService.currentUser;
+      if (currentUser != null) {
+        await _assignUserIdToAnonymousNotes(currentUser.id);
+      }
+
       return await syncWithGoogleDrive();
     } catch (e) {
       String errorMessage = _getErrorMessage(e);
       return SyncResult.error(errorMessage);
+    }
+  }
+
+  /// Assigns the Google account ID to all notes that have no userId.
+  ///
+  /// When a user first syncs with Google Drive, their existing local notes
+  /// (created anonymously) are claimed by setting userId to the Google
+  /// account `sub` identifier.
+  Future<void> _assignUserIdToAnonymousNotes(String googleAccountId) async {
+    try {
+      final allNotes = _noteService.notes + _noteService.deletedNotes;
+      int assigned = 0;
+      for (final note in allNotes) {
+        if (note.userId == null) {
+          note.userId = googleAccountId;
+          await _noteService.updateNote(note, skipEmbeddingRefresh: true);
+          assigned++;
+        }
+      }
+      if (assigned > 0) {
+        _logger.i('Assigned userId ($googleAccountId) to $assigned anonymous notes');
+      }
+    } catch (e) {
+      _logger.w('Error assigning userId to anonymous notes: $e');
     }
   }
 
@@ -137,57 +169,40 @@ class GoogleDriveSyncService {
     }
   }
 
-  /// Handle notes that were permanently deleted locally.
+  /// Handle notes that were permanently deleted (tombstoned) on any device.
   ///
-  /// This checks if a note exists on Drive but NOT locally (permanently deleted).
-  /// If the local deletion is more recent, the Drive file should be deleted too
-  /// to maintain consistency based on latest timestamp.
-  ///
-  /// This ensures:
-  /// - User deletes note locally and syncs
-  /// - Drive file is also deleted (based on latest deletedAt)
+  /// Uses [deletedSyncIds] (tombstones) from the local export. For each note on
+  /// Drive, resolves its [syncId]; if that syncId is in the tombstone set, the
+  /// note was permanently deleted and we delete the file from Drive so other
+  /// devices don't re-import it. Keyed by syncId so behaviour is correct across
+  /// devices (integer id is device-local and must not be used).
   Future<void> _handlePermanentlyDeletedNotes(Map<String, dynamic> driveData) async {
     try {
+      final localExport = _noteService.exportAllToJson();
+      final deletedSyncIds = Set<String>.from((localExport['deletedSyncIds'] as List<dynamic>?)?.cast<String>() ?? []);
+      if (deletedSyncIds.isEmpty) return;
+
       final driveNotes = driveData['notes'] as List<dynamic>? ?? [];
-      final localNotes = _noteService.exportAllToJson()['notes'] as List<dynamic>;
-
-      // Build set of local note IDs for quick lookup
-      final localNoteIds = <int>{};
-      for (final noteJson in localNotes) {
-        final noteData = noteJson as Map<String, dynamic>;
-        final id = noteData['id'] as int?;
-        if (id != null) {
-          localNoteIds.add(id);
-        }
-      }
-
-      // Check each Drive note
       for (final noteJson in driveNotes) {
-        final driveNoteData = noteJson as Map<String, dynamic>;
-        final id = driveNoteData['id'] as int?;
-        final driveFileId = driveNoteData['driveFileId'] as String?;
+        final noteData = noteJson as Map<String, dynamic>;
+        final syncId = _noteService.getSyncIdFromNoteJson(noteData);
+        final driveFileId = noteData['driveFileId'] as String?;
 
-        if (id == null || driveFileId == null) continue;
+        if (driveFileId == null) continue;
+        if (!deletedSyncIds.contains(syncId)) continue;
 
-        // If note exists on Drive but NOT locally, it was permanently deleted
-        if (!localNoteIds.contains(id)) {
-          _logger.i('Note $id was permanently deleted locally, deleting from Drive');
-
-          try {
-            // Delete from Drive using the driveFileId
-            await _noteService.permanentlyDeleteNoteOnDrive(driveFileId);
-            _logger.i('Successfully deleted note $id from Drive');
-          } catch (e) {
-            _logger.w('Failed to delete note $id from Drive: $e');
-            // Don't throw - continue with other notes
-          }
+        _logger.i('Note syncId=$syncId was permanently deleted (tombstone), deleting from Drive');
+        try {
+          await _noteService.permanentlyDeleteNoteOnDrive(driveFileId);
+          _logger.i('Successfully deleted note syncId=$syncId from Drive');
+        } catch (e) {
+          _logger.w('Failed to delete note syncId=$syncId from Drive: $e');
         }
       }
 
       _logger.i('Permanently deleted notes handling complete');
     } catch (e) {
       _logger.w('Error during permanently deleted notes handling: $e');
-      // Don't throw - this is optional cleanup
     }
   }
 

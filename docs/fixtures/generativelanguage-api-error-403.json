@@ -1,0 +1,25 @@
+{
+  "error": {
+    "code": 403,
+    "message": "Requests to this API generativelanguage.googleapis.com method google.ai.generativelanguage.v1beta.ModelService.ListModels are blocked.",
+    "status": "PERMISSION_DENIED",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.ErrorInfo",
+        "reason": "API_KEY_SERVICE_BLOCKED",
+        "domain": "googleapis.com",
+        "metadata": {
+          "consumer": "projects/<REDACTED>",
+          "service": "generativelanguage.googleapis.com",
+          "apiName": "generativelanguage.googleapis.com",
+          "methodName": "google.ai.generativelanguage.v1beta.ModelService.ListModels"
+        }
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.LocalizedMessage",
+        "locale": "en-US",
+        "message": "Requests to this API generativelanguage.googleapis.com method google.ai.generativelanguage.v1beta.ModelService.ListModels are blocked."
+      }
+    ]
+  }
+}

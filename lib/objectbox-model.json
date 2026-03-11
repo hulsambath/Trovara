@@ -59,7 +59,7 @@
     },
     {
       "id": "3:6317312537730891446",
-      "lastPropertyId": "17:1193297639825137982",
+      "lastPropertyId": "19:6210228650839839360",
       "name": "Note",
       "properties": [
         {
@@ -142,6 +142,18 @@
           "id": "17:1193297639825137982",
           "name": "driveFileId",
           "type": 9
+        },
+        {
+          "id": "18:5331080527125817044",
+          "name": "userId",
+          "type": 9
+        },
+        {
+          "id": "19:6210228650839839360",
+          "name": "syncId",
+          "type": 9,
+          "flags": 2048,
+          "indexId": "1:3825348798809574444"
         }
       ],
       "relations": []
@@ -339,7 +351,7 @@
     }
   ],
   "lastEntityId": "7:4384572733254933868",
-  "lastIndexId": "0:0",
+  "lastIndexId": "1:3825348798809574444",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",
   "modelVersion": 5,

@@ -28,20 +28,33 @@ class StubNoteRepository implements INoteRepository {
 
   @override
   Note? getNoteById(int id) => _notes[id];
+
+  @override
+  Note? getNoteBySync(String syncId) => _notes.values.where((n) => n.syncId == syncId).firstOrNull;
   @override
   Future<void> initialize() async {}
   @override
   List<Note> getActiveNotes() => [];
   @override
+  List<Note> getActiveNotesForUser(String? userId) => [];
+  @override
   List<Note> getAllNotes() => [];
   @override
   List<Note> searchNotes(String query) => [];
   @override
+  List<Note> searchNotesForUser(String? userId, String query) => [];
+  @override
   List<Note> getNotesByFolder(String folderId) => [];
+  @override
+  List<Note> getNotesByFolderForUser(String? userId, String folderId) => [];
   @override
   List<Note> getFavoriteNotes() => [];
   @override
+  List<Note> getFavoriteNotesForUser(String? userId) => [];
+  @override
   List<Note> getArchivedNotes() => [];
+  @override
+  List<Note> getArchivedNotesForUser(String? userId) => [];
   @override
   List<Note> getNotesByTag(String tag) => [];
   @override
@@ -49,23 +62,36 @@ class StubNoteRepository implements INoteRepository {
   @override
   List<Note> getDeletedNotes() => [];
   @override
-  Future<Note> createNote({String? title, String? contentJson, String? folderId, List<int>? customTagIds}) async =>
-      Note(title: '', contentJson: '');
+  List<Note> getDeletedNotesForUser(String? userId) => [];
   @override
-  Future<Note> createNoteWithTimestamps({
+  Future<Note> createNote({
     String? title,
     String? contentJson,
     String? folderId,
     List<int>? customTagIds,
+    String? userId,
+  }) async => Note(title: '', contentJson: '');
+  @override
+  Future<Note> createNoteWithTimestamps({
+    String? syncId,
+    String? title,
+    String? contentJson,
+    String? folderId,
+    List<int> customTagIds = const [],
     DateTime? createdAt,
     DateTime? updatedAt,
     bool isFavorite = false,
     bool isArchived = false,
     bool isDeleted = false,
     DateTime? deletedAt,
+    String? userId,
+    List<String>? moodTags,
+    List<String>? activityTags,
+    List<String>? timeTags,
+    List<String>? personalGrowthTags,
   }) async => Note(title: '', contentJson: '');
   @override
-  Future<void> updateNote(Note note) async {}
+  Future<void> updateNote(Note note, {bool preserveTimestamps = false}) async {}
   @override
   Future<void> deleteNote(int id) async {}
   @override

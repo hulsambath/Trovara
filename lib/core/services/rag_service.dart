@@ -118,8 +118,8 @@ class RagService {
       if (lastError != null && lastError.isAuthFailure) {
         return RagResult(
           answer:
-              'Gemini authentication failed while creating embeddings. '
-              'Please verify `GEMINI_API_KEY` is set to a valid Gemini API key.',
+              'Authentication failed while creating embeddings. '
+              'Please verify your configured API key is valid.',
           sourceNoteTitles: [],
           prompt: '',
           matchedChunks: 0,
@@ -215,8 +215,8 @@ class RagService {
         if (e.code == 'auth_error') {
           return RagResult(
             answer:
-                'Gemini authentication failed while generating the answer. '
-                'Please verify `GEMINI_API_KEY` is set to a valid Gemini API key.',
+                'Authentication failed while generating the answer. '
+                'Please verify your configured API key is valid and has not expired.',
             sourceNoteTitles: sourceTitles,
             prompt: prompt,
             matchedChunks: scoredChunks.length,
@@ -226,8 +226,8 @@ class RagService {
         if (e.code == 'quota_exceeded' || e.isInsufficientQuota) {
           return RagResult(
             answer:
-                'Gemini quota exceeded for this API key. Please check your Gemini plan/billing, '
-                'or replace `GEMINI_API_KEY` with a key that has available quota.',
+                'API quota exceeded for this key. Please check your plan/billing, '
+                'or configure a different API key.',
             sourceNoteTitles: sourceTitles,
             prompt: prompt,
             matchedChunks: scoredChunks.length,
@@ -237,8 +237,8 @@ class RagService {
         if (e.code == 'model_not_found') {
           return RagResult(
             answer:
-                'The configured Gemini model is not available for this API key. '
-                'Try a different Gemini model, or update the app to auto-select a supported model.',
+                'The configured AI model is not available for this API key. '
+                'Try a different model, or update the app to auto-select a supported model.',
             sourceNoteTitles: sourceTitles,
             prompt: prompt,
             matchedChunks: scoredChunks.length,
@@ -274,8 +274,8 @@ class RagService {
       final lastError = _embeddingService.lastError;
       if (lastError != null && lastError.isAuthFailure) {
         throw RagQueryException(
-          'Gemini authentication failed while creating embeddings. '
-          'Please verify `GEMINI_API_KEY` is set to a valid Gemini API key.',
+          'Authentication failed while creating embeddings. '
+          'Please verify your configured API key is valid.',
         );
       }
 
@@ -334,28 +334,21 @@ class RagService {
       if (e is LlmApiException) {
         if (e.code == 'auth_error') {
           throw RagQueryException(
-            'Gemini authentication failed while generating the answer. '
-            'Please verify `GEMINI_API_KEY` is set to a valid Gemini API key.',
+            'Authentication failed while generating the answer. '
+            'Please verify your configured API key is valid.',
           );
         }
 
         if (e.code == 'model_not_found') {
           throw RagQueryException(
-            'The configured Gemini model is not available for this API key. '
-            'Please try a different Gemini model (or let the app auto-select one after updating).',
+            'The configured AI model is not available for this API key. '
+            'Please try a different model (or let the app auto-select one after updating).',
           );
         }
 
         if (e.code == 'quota_exceeded' || e.isInsufficientQuota) {
-          if (_llmClient.provider == LlmProvider.gemini) {
-            throw RagQueryException(
-              'Gemini quota exceeded for this API key. Please check your Gemini plan/billing, '
-              'or replace `GEMINI_API_KEY` with a key that has available quota.',
-            );
-          }
-
           throw RagQueryException(
-            'OpenAI-compatible provider quota exceeded for this API key. Please check your plan/billing, '
+            'API quota exceeded for this key. Please check your plan/billing, '
             'or replace the configured API key with one that has available credits.',
           );
         }

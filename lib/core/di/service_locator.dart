@@ -78,12 +78,34 @@ class ServiceLocator {
 
   /// Get the embedding service instance
   EmbeddingService get embeddingService {
-    _embeddingService ??= EmbeddingService(
-      embeddingRepository: embeddingRepository,
-      provider: EmbeddingProvider.gemini,
-      apiKey: ConfigConstants.geminiApiKey,
-      modelName: EmbeddingService.defaultGeminiEmbeddingModel,
-    );
+    if (_embeddingService == null) {
+      if (ConfigConstants.geminiApiKey.isNotEmpty) {
+        _embeddingService = EmbeddingService(
+          embeddingRepository: embeddingRepository,
+          provider: EmbeddingProvider.gemini,
+          apiKey: ConfigConstants.geminiApiKey,
+          modelName: EmbeddingService.defaultGeminiEmbeddingModel,
+        );
+      } else if (ConfigConstants.openAiApiKey.isNotEmpty) {
+        _embeddingService = EmbeddingService(
+          embeddingRepository: embeddingRepository,
+          provider: EmbeddingProvider.openAiCompatible,
+          baseUrl: 'https://api.openai.com/v1',
+          apiKey: ConfigConstants.openAiApiKey,
+          modelName: 'text-embedding-3-small',
+        );
+      } else {
+        // Fallback to OpenRouter (default or empty)
+        _embeddingService = EmbeddingService(
+          embeddingRepository: embeddingRepository,
+          provider: EmbeddingProvider.openAiCompatible,
+          apiKey: ConfigConstants.openRouterApiKey,
+          modelName: ConfigConstants.openRouterEmbeddingModel,
+          siteUrl: ConfigConstants.openRouterSiteUrl,
+          appName: ConfigConstants.openRouterAppName,
+        );
+      }
+    }
     return _embeddingService!;
   }
 
@@ -107,11 +129,31 @@ class ServiceLocator {
 
   /// Get the LLM client instance
   LlmClient get llmClient {
-    _llmClient ??= LlmClient(
-      provider: LlmProvider.gemini,
-      apiKey: ConfigConstants.geminiApiKey,
-      modelName: LlmClient.defaultGeminiModel,
-    );
+    if (_llmClient == null) {
+      if (ConfigConstants.geminiApiKey.isNotEmpty) {
+        _llmClient = LlmClient(
+          provider: LlmProvider.gemini,
+          apiKey: ConfigConstants.geminiApiKey,
+          modelName: LlmClient.defaultGeminiModel,
+        );
+      } else if (ConfigConstants.openAiApiKey.isNotEmpty) {
+        _llmClient = LlmClient(
+          provider: LlmProvider.openAiCompatible,
+          baseUrl: 'https://api.openai.com/v1',
+          apiKey: ConfigConstants.openAiApiKey,
+          modelName: 'gpt-4o-mini',
+        );
+      } else {
+        // Fallback to OpenRouter
+        _llmClient = LlmClient(
+          provider: LlmProvider.openAiCompatible,
+          apiKey: ConfigConstants.openRouterApiKey,
+          modelName: ConfigConstants.openRouterModel,
+          siteUrl: ConfigConstants.openRouterSiteUrl,
+          appName: ConfigConstants.openRouterAppName,
+        );
+      }
+    }
     return _llmClient!;
   }
 
