@@ -144,7 +144,7 @@ class _ChatContentState extends State<_ChatContent> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Please configure your Gemini API key to start asking questions about your notes.',
+            'Please configure your API key to start asking questions about your notes.',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colors.onSurfaceVariant),
             textAlign: TextAlign.center,
           ),

@@ -1,0 +1,124 @@
+# Fix: Deterministic Note Sync (Git-Like)
+
+## Root Cause
+
+The logs expose **two compounding bugs**:
+
+### Bug 1 — Import uses device-local integer [id](file:///Users/apple/Documents/project/Trovara/lib/core/services/note_service.dart#450-459) to find notes
+[importAllFromJson](file:///Users/apple/Documents/project/Trovara/lib/core/services/note_service.dart#67-243) does:
+```dart
+if (importNote.id != 0) {
+  final existing = _noteRepository.getNoteById(importNote.id); // ← uses ObjectBox int id
+  if (existing != null) { update... } else { SKIP (assumed permanently deleted!) }
+}
+```
+ObjectBox [id](file:///Users/apple/Documents/project/Trovara/lib/core/services/note_service.dart#450-459) is a device-local auto-increment integer. Notes from Drive have their original device's integer IDs (4, 5, 6...), which won't exist on the current device's DB. So they are **silently dropped** every sync as if permanently deleted, when in fact they were never created here.
+
+### Bug 2 — Merge key is `title + createdAt` (unstable)
+The merge groups notes by `"${note['title']}_${note['createdAt']}"`. This causes:
+- Notes that share a title or where `createdAt` has millisecond drift to never match.
+- On each sync, the Drive's "orphan" notes are treated as new additions, overwriting the 3 local slots.
+
+**Net effect**: You have 11 notes on Drive but only 3 DB slots. Each sync, a different 3 Drive notes "win" by happening to match the local integer IDs 1, 2, 3 — producing the random rotation you see in the screenshots.
+
+---
+
+## Solution: UUID-Based Stable Identity (`syncId`)
+
+Like Git object hashes, each note gets a **stable, device-independent UUID** (`syncId`) that persists across devices. The merge and import both key off `syncId` instead of the integer [id](file:///Users/apple/Documents/project/Trovara/lib/core/services/note_service.dart#450-459).
+
+```
+Drive backup structure  →  each note has a "syncId" (UUID)
+Local ObjectBox note    →  has syncId field (indexed, unique)
+Merge key              →  syncId  (not title+createdAt, not int id)
+Import upsert          →  find-by-syncId, then update or create
+```
+
+Permanent deletions become explicit: a `deletedSyncIds` list is stored at the top level of the JSON to tombstone forever-deleted notes, so the import can skip them intentionally rather than by guessing from missing integer IDs.
+
+---
+
+## User Review Required
+
+> [!IMPORTANT]
+> **ObjectBox migration required**: Adding `syncId` to the [Note](file:///Users/apple/Documents/project/Trovara/lib/core/services/note_service.dart#1161-1162) model requires re-generating ObjectBox code (`flutter pub run build_runner build`). This runs automatically in the plan below but needs the app to be stopped first (or use a hot-restart).
+
+> [!WARNING]
+> **One-time data migration**: On first run after the fix, every existing local note gets a `syncId` assigned. The Drive backup is then re-uploaded with those UUIDs. This is safe but **the first sync after the update is a write-heavy migration sync**.
+
+---
+
+## Proposed Changes
+
+### Note Model
+
+#### [MODIFY] [note.dart](file:///Users/apple/Documents/project/Trovara/models/note.dart)
+- Add `String syncId` field decorated with `@Index()` for fast lookup.
+- Default factory: `syncId = const Uuid().v4()` when not provided.
+- Expose in `toJson()` / `fromJson()`.
+
+---
+
+### NoteService — Merge & Import
+
+#### [MODIFY] [note_service.dart](file:///Users/apple/Documents/project/Trovara/lib/core/services/note_service.dart)
+
+**[mergeWithRemoteData](file:///Users/apple/Documents/project/Trovara/lib/core/services/note_service.dart#625-778)**:
+- Before merging, call `_ensureSyncIds()` to assign UUIDs to any local notes that don't have one yet (migration).
+- Merge by `syncId`. If the incoming note has no `syncId`, assign one deterministically (`uuid5(title+createdAt)`) so old backups also work.
+- Return merged data + `deletedSyncIds` list (union of local deletions-in-progress tombstones and remote tombstones).
+
+**[importAllFromJson](file:///Users/apple/Documents/project/Trovara/lib/core/services/note_service.dart#67-243)**:
+- **Remove** the `if (importNote.id != 0)` integer-lookup guard entirely.
+- **New lookup**: `_noteRepository.getNoteBySync(importNote.syncId)`.
+- If the note's `syncId` is in `deletedSyncIds` list → skip (this is the new explicit tombstone check).
+- If found locally → update only fields that changed (respect `updatedAt`).
+- If not found → create (always, even if `id != 0` — the incoming id is foreign and irrelevant).
+
+**[exportAllToJson](file:///Users/apple/Documents/project/Trovara/lib/core/services/note_service.dart#49-66)**:
+- Include `deletedSyncIds` (UUIDs of permanently deleted notes, kept in a local persisted set).
+
+---
+
+### NoteRepository — Add `getNoteBySync`
+
+#### [MODIFY] [note_repository.dart](file:///Users/apple/Documents/project/Trovara/lib/core/repository/interfaces/note_repository.dart)
+- Add `Note? getNoteBySync(String syncId);`
+
+#### [MODIFY] [objectbox_note_repository.dart](file:///Users/apple/Documents/project/Trovara/lib/core/repository/implementations/objectbox_note_repository.dart)
+- Implement `getNoteBySync` using ObjectBox query on the indexed `syncId` field.
+
+---
+
+### Tombstone Storage — Permanent Delete Registry
+
+#### [MODIFY] [note_service.dart](file:///Users/apple/Documents/project/Trovara/lib/core/services/note_service.dart)
+- When a note is permanently deleted ([permanentlyDeleteNote](file:///Users/apple/Documents/project/Trovara/lib/core/services/note_service.dart#1017-1039)), write its `syncId` to a local `SharedPreferences` key `"permanentlyDeletedSyncIds"` (Set<String>).
+- [exportAllToJson](file:///Users/apple/Documents/project/Trovara/lib/core/services/note_service.dart#49-66) includes this set as `deletedSyncIds`.
+- After a successful sync where remote also confirms deletion, prune entries older than 90 days.
+
+---
+
+### GoogleDriveSyncService — Simplify
+
+#### [MODIFY] [google_drive_sync_service.dart](file:///Users/apple/Documents/project/Trovara/lib/core/services/google_drive_sync_service.dart)
+- Remove [_handlePermanentlyDeletedNotes](file:///Users/apple/Documents/project/Trovara/lib/core/services/google_drive_sync_service.dart#172-225) (replaced by tombstone list).
+- Remove [_reconcileTrashState](file:///Users/apple/Documents/project/Trovara/lib/core/services/google_drive_sync_service.dart#154-171) (merge now handles this correctly via `syncId`).
+
+---
+
+## Verification Plan
+
+### Manual Testing
+Since there are no automated sync tests, verification is manual:
+
+1. **Stop** the running app (`Ctrl+C` on [./scripts/run_app.sh](file:///Users/apple/Documents/project/Trovara/scripts/run_app.sh)).
+2. Run `flutter pub run build_runner build --delete-conflicting-outputs` to regenerate ObjectBox.
+3. Restart the app with [./scripts/run_app.sh](file:///Users/apple/Documents/project/Trovara/scripts/run_app.sh).
+4. **Sync Test**: Open Settings → tap Sync 5 times in a row. Verify the same notes appear every time.
+5. **Cross-screen consistency**: After sync, navigate away and back — same 3 (or all) notes.
+6. **Drive notes appear**: The 11 Drive notes should ALL appear locally after first sync (not just 3).
+7. **Delete test**: Permanently delete a note, sync → note gone, sync again → still gone.
+
+### Log Verification
+After fix, `DEBUG: Merge started` should show `Local notes: N, Remote notes: 11` and end with `Added: X, Merged: Y, Total: N+11-duplicates`. The import should show `notes: +X/~Y/skippedDeleted=0/err=0` (0 incorrectly skipped).

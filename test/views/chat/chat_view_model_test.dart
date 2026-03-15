@@ -50,17 +50,30 @@ class _StubNoteRepo implements INoteRepository {
   @override
   List<Note> getActiveNotes() => [];
   @override
+  List<Note> getActiveNotesForUser(String? userId) => [];
+  @override
   List<Note> getAllNotes() => [];
   @override
   Note? getNoteById(int id) => null;
+
+  @override
+  Note? getNoteBySync(String syncId) => null;
   @override
   List<Note> searchNotes(String query) => [];
   @override
+  List<Note> searchNotesForUser(String? userId, String query) => [];
+  @override
   List<Note> getNotesByFolder(String folderId) => [];
+  @override
+  List<Note> getNotesByFolderForUser(String? userId, String folderId) => [];
   @override
   List<Note> getFavoriteNotes() => [];
   @override
+  List<Note> getFavoriteNotesForUser(String? userId) => [];
+  @override
   List<Note> getArchivedNotes() => [];
+  @override
+  List<Note> getArchivedNotesForUser(String? userId) => [];
   @override
   List<Note> getNotesByTag(String tag) => [];
   @override
@@ -68,23 +81,36 @@ class _StubNoteRepo implements INoteRepository {
   @override
   List<Note> getDeletedNotes() => [];
   @override
-  Future<Note> createNote({String? title, String? contentJson, String? folderId, List<int>? customTagIds}) async =>
-      Note(title: '', contentJson: '');
+  List<Note> getDeletedNotesForUser(String? userId) => [];
   @override
-  Future<Note> createNoteWithTimestamps({
+  Future<Note> createNote({
     String? title,
     String? contentJson,
     String? folderId,
     List<int>? customTagIds,
+    String? userId,
+  }) async => Note(title: '', contentJson: '');
+  @override
+  Future<Note> createNoteWithTimestamps({
+    String? syncId,
+    String? title,
+    String? contentJson,
+    String? folderId,
+    List<int> customTagIds = const [],
     DateTime? createdAt,
     DateTime? updatedAt,
     bool isFavorite = false,
     bool isArchived = false,
     bool isDeleted = false,
     DateTime? deletedAt,
+    String? userId,
+    List<String>? moodTags,
+    List<String>? activityTags,
+    List<String>? timeTags,
+    List<String>? personalGrowthTags,
   }) async => Note(title: '', contentJson: '');
   @override
-  Future<void> updateNote(Note note) async {}
+  Future<void> updateNote(Note note, {bool preserveTimestamps = false}) async {}
   @override
   Future<void> deleteNote(int id) async {}
   @override
@@ -145,11 +171,9 @@ class _StubChatThreadRepo implements IChatThreadRepository {
   @override
   ChatThread? getThreadById(int id) => _threads.where((t) => t.id == id).firstOrNull;
   @override
-  List<ChatThread> getThreadsByNote(int noteId) =>
-      _threads.where((t) => t.noteId == noteId && !t.isDeleted).toList();
+  List<ChatThread> getThreadsByNote(int noteId) => _threads.where((t) => t.noteId == noteId && !t.isDeleted).toList();
   @override
-  List<ChatThread> getGlobalThreads() =>
-      _threads.where((t) => t.type == 'global' && !t.isDeleted).toList();
+  List<ChatThread> getGlobalThreads() => _threads.where((t) => t.type == 'global' && !t.isDeleted).toList();
   @override
   List<ChatThread> getAllThreads() => _threads.where((t) => !t.isDeleted).toList();
   @override
@@ -158,6 +182,7 @@ class _StubChatThreadRepo implements IChatThreadRepository {
     _threads.add(thread);
     return thread;
   }
+
   @override
   Future<void> updateThread(ChatThread thread) async {}
   @override
@@ -165,10 +190,12 @@ class _StubChatThreadRepo implements IChatThreadRepository {
     _threads.removeWhere((t) => t.id == thread.id);
     _threads.add(thread);
   }
+
   @override
   Future<void> deleteThread(int id) async {
     _threads.removeWhere((t) => t.id == id);
   }
+
   @override
   void addListener(Function() listener) {}
   @override
@@ -184,8 +211,7 @@ class _StubChatMessageRepo implements IChatMessageRepository {
   @override
   Future<void> initialize() async {}
   @override
-  List<ChatMessageEntity> getMessagesForThread(int threadId) =>
-      _messages.where((m) => m.threadId == threadId).toList();
+  List<ChatMessageEntity> getMessagesForThread(int threadId) => _messages.where((m) => m.threadId == threadId).toList();
   @override
   List<ChatMessageEntity> getRecentMessagesForThread(int threadId, {int limit = 50}) =>
       getMessagesForThread(threadId).reversed.take(limit).toList().reversed.toList();
@@ -195,6 +221,7 @@ class _StubChatMessageRepo implements IChatMessageRepository {
     _messages.add(message);
     return message;
   }
+
   @override
   Future<void> updateMessage(ChatMessageEntity message) async {}
   @override
@@ -202,14 +229,17 @@ class _StubChatMessageRepo implements IChatMessageRepository {
     _messages.removeWhere((m) => m.id == message.id);
     _messages.add(message);
   }
+
   @override
   Future<void> deleteMessagesForThread(int threadId) async {
     _messages.removeWhere((m) => m.threadId == threadId);
   }
+
   @override
   Future<void> deleteMessage(int id) async {
     _messages.removeWhere((m) => m.id == id);
   }
+
   @override
   void addListener(Function() listener) {}
   @override
@@ -372,10 +402,7 @@ void main() {
 
     setUp(() {
       fakeRag = _FakeRagService();
-      chatService = ChatService(
-        threadRepository: _StubChatThreadRepo(),
-        messageRepository: _StubChatMessageRepo(),
-      );
+      chatService = ChatService(threadRepository: _StubChatThreadRepo(), messageRepository: _StubChatMessageRepo());
       vm = ChatViewModel(ragService: fakeRag, chatService: chatService);
     });
 

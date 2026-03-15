@@ -56,10 +56,14 @@ class NotesViewModel extends BaseViewModel {
     }
   }
 
+  String? get _currentUserId => _driveService.currentUser?.id;
+
   void _loadNotes() {
     if (_isDisposed) return;
 
-    _notes = _noteService.notes;
+    // When signed out, show all local notes; when signed in, scope by user.
+    final userId = _currentUserId;
+    _notes = userId == null ? _noteService.notes : _noteService.notesForUser(userId);
     _notes.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     _isLoading = false;
     notifyListeners();

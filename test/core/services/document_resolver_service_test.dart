@@ -21,21 +21,34 @@ class StubNoteRepository implements INoteRepository {
   Note? getNoteById(int id) => _notes[id];
 
   @override
+  Note? getNoteBySync(String syncId) => _notes.values.where((n) => n.syncId == syncId).firstOrNull;
+
+  @override
   Future<void> initialize() async {}
 
   // ─── Unused stubs ───
   @override
   List<Note> getActiveNotes() => _notes.values.where((n) => !n.isDeleted).toList();
   @override
+  List<Note> getActiveNotesForUser(String? userId) => getActiveNotes();
+  @override
   List<Note> getAllNotes() => _notes.values.toList();
   @override
   List<Note> searchNotes(String query) => [];
   @override
+  List<Note> searchNotesForUser(String? userId, String query) => [];
+  @override
   List<Note> getNotesByFolder(String folderId) => [];
+  @override
+  List<Note> getNotesByFolderForUser(String? userId, String folderId) => [];
   @override
   List<Note> getFavoriteNotes() => [];
   @override
+  List<Note> getFavoriteNotesForUser(String? userId) => [];
+  @override
   List<Note> getArchivedNotes() => [];
+  @override
+  List<Note> getArchivedNotesForUser(String? userId) => [];
   @override
   List<Note> getNotesByTag(String tag) => [];
   @override
@@ -43,10 +56,18 @@ class StubNoteRepository implements INoteRepository {
   @override
   List<Note> getDeletedNotes() => [];
   @override
-  Future<Note> createNote({String? title, String? contentJson, String? folderId, List<int> customTagIds = const []}) =>
-      throw UnimplementedError();
+  List<Note> getDeletedNotesForUser(String? userId) => [];
+  @override
+  Future<Note> createNote({
+    String? title,
+    String? contentJson,
+    String? folderId,
+    List<int> customTagIds = const [],
+    String? userId,
+  }) => throw UnimplementedError();
   @override
   Future<Note> createNoteWithTimestamps({
+    String? syncId,
     String? title,
     String? contentJson,
     String? folderId,
@@ -57,6 +78,7 @@ class StubNoteRepository implements INoteRepository {
     bool isArchived = false,
     bool isDeleted = false,
     DateTime? deletedAt,
+    String? userId,
     String? driveFileId,
     List<String>? moodTags,
     List<String>? activityTags,
@@ -64,7 +86,7 @@ class StubNoteRepository implements INoteRepository {
     List<String>? personalGrowthTags,
   }) => throw UnimplementedError();
   @override
-  Future<void> updateNote(Note note) async {}
+  Future<void> updateNote(Note note, {bool preserveTimestamps = false}) async {}
   @override
   Future<void> deleteNote(int id) async {}
   @override

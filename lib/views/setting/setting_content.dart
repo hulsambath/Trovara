@@ -158,6 +158,21 @@ class _SettingContent extends StatelessWidget {
             ],
           ),
         ),
+        const SizedBox(height: 16),
+        Text('Search Index', style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 8),
+        Card(
+          child: Column(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.sync_problem),
+                title: const Text('Re-index all notes'),
+                subtitle: const Text('Fixes missing search results by re-embedding all notes.'),
+                onTap: () => viewModel.reembedAllNotes(context),
+              ),
+            ],
+          ),
+        ),
         const SizedBox(height: kToolbarHeight * 2),
       ],
     ),

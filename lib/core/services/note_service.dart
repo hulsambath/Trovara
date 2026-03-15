@@ -2,12 +2,14 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovara/core/repository/interfaces/folder_repository.dart';
 import 'package:trovara/core/repository/interfaces/note_repository.dart';
 import 'package:trovara/core/services/embedding_service.dart';
 import 'package:trovara/core/services/google_drive_service.dart';
 import 'package:trovara/models/folder.dart';
 import 'package:trovara/models/note.dart';
+import 'package:uuid/uuid.dart';
 
 /// Service layer for note operations.
 ///
@@ -40,6 +42,13 @@ class NoteService {
   Future<void> initialize() async {
     await _noteRepository.initialize();
     await _folderRepository.initialize();
+    // Load the permanent-delete tombstone set from disk so it's available
+    // synchronously for all subsequent import/export operations.
+    await loadTombstonesFromDisk();
+    // One-time migration: assign and persist syncIds for notes that have none
+    // (e.g. created before syncId existed or ObjectBox default empty). Ensures
+    // merge/import lookups by syncId find local notes instead of creating duplicates.
+    await _backfillSyncIdsIfNeeded();
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -49,19 +58,24 @@ class NoteService {
   /// Export notes and folders to a JSON map for Drive backup.
   ///
   /// Includes:
-  /// - All active notes
+  /// - All active notes (with their syncId UUIDs)
   /// - Soft-deleted notes (in Recently Deleted, not permanently deleted)
+  /// - [deletedSyncIds]: UUIDs of permanently deleted notes (tombstones)
   ///
   /// Excludes:
-  /// - Permanently deleted notes (not in local DB)
-  ///
-  /// This ensures permanently deleted notes stay deleted after sync.
+  /// - Permanently deleted notes (not in local DB, only their UUIDs are kept)
   Map<String, dynamic> exportAllToJson() {
-    // Use getAllNotes which includes soft-deleted but NOT permanently deleted
-    // Permanently deleted notes are NOT in the DB at all
     final notes = _noteRepository.getAllNotes().map((n) => n.toJson()).toList();
     final folders = _folderRepository.getAllFolders().map((f) => f.toJson()).toList();
-    return {'version': 1, 'exportedAt': DateTime.now().toIso8601String(), 'notes': notes, 'folders': folders};
+    // Include tombstones so other devices know what was permanently deleted
+    final deletedSyncIds = _loadDeletedSyncIds().toList();
+    return {
+      'version': 1,
+      'exportedAt': DateTime.now().toIso8601String(),
+      'notes': notes,
+      'folders': folders,
+      'deletedSyncIds': deletedSyncIds,
+    };
   }
 
   /// Import notes and folders from a JSON map. This performs an upsert.
@@ -159,41 +173,83 @@ class NoteService {
     int notesSkippedPermanentlyDeleted = 0;
     int noteErrors = 0;
 
+    // ── Merge incoming deletedSyncIds tombstones into local registry ──
+    final incomingSyncIds = (workingJson['deletedSyncIds'] as List?)?.cast<String>() ?? [];
+    if (incomingSyncIds.isNotEmpty) {
+      await _addDeletedSyncIds(incomingSyncIds);
+    }
+    final deletedSyncIds = _loadDeletedSyncIds();
+
     for (int i = 0; i < notes.length; i++) {
       try {
         final n = notes[i];
-        final importNote = Note.fromJson(Map<String, dynamic>.from(n as Map));
+        final noteMap = Map<String, dynamic>.from(n as Map);
 
-        if (importNote.id != 0) {
-          final existing = _noteRepository.getNoteById(importNote.id);
-          if (existing != null) {
-            // CRITICAL: Don't re-import permanently deleted notes.
-            // Only update if it still exists locally.
-            await _noteRepository.updateNote(importNote);
-            notesUpdated++;
-            if (verbose) {
-              _logger.d(
-                'Import note updated (source=$source): '
-                'id=${importNote.id} title=${importNote.title} updatedAt=${importNote.updatedAt.toIso8601String()} '
-                'deleted=${importNote.isDeleted}',
-              );
-            }
-            continue;
-          }
+        // Read raw syncId from JSON before constructing Note. Note.fromJson passes
+        // syncId into the constructor, which auto-generates a UUID when null, so
+        // legacy records would otherwise always get a new ID and duplicate on re-import.
+        final rawSyncId = noteMap['syncId'];
+        final syncIdFromJson = (rawSyncId is String && rawSyncId.trim().isNotEmpty) ? rawSyncId.trim() : null;
 
-          // Note doesn't exist locally -> it was permanently deleted locally; keep it deleted.
+        final importNote = Note.fromJson(noteMap);
+
+        // Use JSON syncId when present; otherwise assign deterministic ID for legacy backups.
+        final syncId = syncIdFromJson ?? _deterministicSyncId(importNote.title, importNote.createdAt);
+
+        // Tombstone check: skip notes that were permanently deleted on any device.
+        if (deletedSyncIds.contains(syncId)) {
           notesSkippedPermanentlyDeleted++;
           if (verbose) {
-            _logger.d(
-              'Import note skipped (permanently deleted locally, source=$source): id=${importNote.id} title=${importNote.title}',
-            );
-          } else {
-            _logger.i('Skipping import of permanently deleted note ${importNote.id} (source=$source)');
+            _logger.d('Import note skipped (tombstone, source=$source): syncId=$syncId title=${importNote.title}');
           }
           continue;
         }
 
+        // Look up the note by its stable UUID (NOT by integer id).
+        final existing = _noteRepository.getNoteBySync(syncId);
+
+        if (existing != null) {
+          // Note exists locally: update only fields that are potentially newer.
+          // Respect updatedAt so we don't regress to older data.
+          final incomingUpdatedAt = importNote.updatedAt;
+          if (incomingUpdatedAt.isAfter(existing.updatedAt) || source == 'google-drive-sync') {
+            // Apply all fields from the merged/winner note.
+            // Preserve the local ObjectBox id and the stable syncId.
+            existing
+              ..title = importNote.title
+              ..contentJson = importNote.contentJson
+              ..folderId = importNote.folderId
+              ..customTagIds = importNote.customTagIds
+              ..moodTags = importNote.moodTags
+              ..activityTags = importNote.activityTags
+              ..timeTags = importNote.timeTags
+              ..personalGrowthTags = importNote.personalGrowthTags
+              ..isFavorite = importNote.isFavorite
+              ..isArchived = importNote.isArchived
+              ..isDeleted = importNote.isDeleted
+              ..deletedAt = importNote.deletedAt
+              ..driveFileId = importNote.driveFileId
+              ..userId = importNote.userId
+              ..updatedAt = importNote.updatedAt;
+            await _noteRepository.updateNote(existing, preserveTimestamps: true);
+            notesUpdated++;
+            if (verbose) {
+              _logger.d('Import note updated (source=$source): syncId=$syncId title=${importNote.title}');
+            }
+          } else {
+            // Local is newer — no update needed (local wins).
+            if (verbose) {
+              _logger.d(
+                'Import note skipped (local is newer, source=$source): syncId=$syncId title=${importNote.title}',
+              );
+            }
+          }
+          continue;
+        }
+
+        // Note does not exist locally → create it with the original syncId preserved.
         await createNoteWithTimestamps(
+          syncId: syncId,
           title: importNote.title,
           contentJson: importNote.contentJson,
           folderId: importNote.folderId,
@@ -204,14 +260,15 @@ class NoteService {
           isArchived: importNote.isArchived,
           isDeleted: importNote.isDeleted,
           deletedAt: importNote.deletedAt,
+          userId: importNote.userId,
+          moodTags: importNote.moodTags,
+          activityTags: importNote.activityTags,
+          timeTags: importNote.timeTags,
+          personalGrowthTags: importNote.personalGrowthTags,
         );
         notesCreated++;
         if (verbose) {
-          _logger.d(
-            'Import note created (source=$source): '
-            'title=${importNote.title} createdAt=${importNote.createdAt.toIso8601String()} '
-            'folderId=${importNote.folderId} contentChars=${importNote.contentJson.length}',
-          );
+          _logger.d('Import note created (source=$source): syncId=$syncId title=${importNote.title}');
         }
       } catch (e, st) {
         noteErrors++;
@@ -373,6 +430,7 @@ class NoteService {
           'isDeleted': isDeleted,
           'deletedAt': deletedAt?.toIso8601String() ?? '',
           'driveFileId': null,
+          'userId': null,
           'folderId': folderId,
           'customTagIds': const <int>[],
           'moodTags': const <String>[],
@@ -670,15 +728,27 @@ class NoteService {
     final localNotes = (localData['notes'] as List<dynamic>).cast<Map<String, dynamic>>();
     final remoteNotes = (remoteData['notes'] as List<dynamic>).cast<Map<String, dynamic>>();
 
+    _logger.i('Sync merge started. Local notes: ${localNotes.length}, Remote notes: ${remoteNotes.length}');
+
+    // ── Build maps keyed by syncId ──
+    // If a note has no syncId (legacy backup), generate one from title+createdAt.
     final localNotesMap = <String, Map<String, dynamic>>{};
     final remoteNotesMap = <String, Map<String, dynamic>>{};
 
     for (final note in localNotes) {
-      final key = '${note['title']}_${note['createdAt']}';
+      final rawSyncId = note['syncId'] as String?;
+      final key = (rawSyncId != null && rawSyncId.isNotEmpty)
+          ? rawSyncId
+          : _deterministicSyncId(note['title'] as String? ?? '', _parseCreatedAtStable(note));
+      note['syncId'] = key;
       localNotesMap[key] = note;
     }
     for (final note in remoteNotes) {
-      final key = '${note['title']}_${note['createdAt']}';
+      final rawSyncId = note['syncId'] as String?;
+      final key = (rawSyncId != null && rawSyncId.isNotEmpty)
+          ? rawSyncId
+          : _deterministicSyncId(note['title'] as String? ?? '', _parseCreatedAtStable(note));
+      note['syncId'] = key;
       remoteNotesMap[key] = note;
     }
 
@@ -760,6 +830,8 @@ class NoteService {
       );
     }
 
+    _logger.i('Sync merge done. Added: $notesAdded, Merged: $notesMerged, Total: ${mergedData['notes'].length}');
+
     return mergedData;
   }
 
@@ -772,12 +844,14 @@ class NoteService {
     String? contentJson,
     String? folderId,
     List<int> customTagIds = const [],
+    String? userId,
   }) async {
     final note = await _noteRepository.createNote(
       title: title,
       contentJson: contentJson,
       folderId: folderId,
       customTagIds: customTagIds,
+      userId: userId,
     );
 
     final folder = _folderRepository.getFolderById(folderId ?? 'default');
@@ -794,6 +868,7 @@ class NoteService {
 
   /// Create a note with preserved timestamps (for import / sync operations).
   Future<Note> createNoteWithTimestamps({
+    String? syncId,
     String? title,
     String? contentJson,
     String? folderId,
@@ -804,8 +879,14 @@ class NoteService {
     bool isArchived = false,
     bool isDeleted = false,
     DateTime? deletedAt,
+    String? userId,
+    List<String>? moodTags,
+    List<String>? activityTags,
+    List<String>? timeTags,
+    List<String>? personalGrowthTags,
   }) async {
     final note = await _noteRepository.createNoteWithTimestamps(
+      syncId: syncId,
       title: title,
       contentJson: contentJson,
       folderId: folderId,
@@ -816,6 +897,11 @@ class NoteService {
       isArchived: isArchived,
       isDeleted: isDeleted,
       deletedAt: deletedAt,
+      userId: userId,
+      moodTags: moodTags,
+      activityTags: activityTags,
+      timeTags: timeTags,
+      personalGrowthTags: personalGrowthTags,
     );
 
     // Only bump folder count for active notes.
@@ -830,10 +916,19 @@ class NoteService {
     return note;
   }
 
-  Future<void> updateNote(Note note) async {
-    await _noteRepository.updateNote(note);
-    // Re-embed asynchronously (non-blocking)
-    _embeddingService?.embedNote(note);
+  /// Updates a note in the repository.
+  ///
+  /// When [skipEmbeddingRefresh] is true, re-embedding is skipped. Use for
+  /// metadata-only updates (e.g. assigning userId) to avoid unnecessary
+  /// embedding work and API usage.
+  ///
+  /// When [preserveTimestamps] is true, [note.updatedAt] is not overwritten
+  /// (e.g. for syncId backfill or import/sync so merges don't lose remote wins).
+  Future<void> updateNote(Note note, {bool skipEmbeddingRefresh = false, bool preserveTimestamps = false}) async {
+    await _noteRepository.updateNote(note, preserveTimestamps: preserveTimestamps);
+    if (!skipEmbeddingRefresh) {
+      _embeddingService?.embedNote(note);
+    }
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -878,6 +973,10 @@ class NoteService {
   Future<void> permanentDeleteNote(int noteId) async {
     final note = _noteRepository.getNoteById(noteId);
     if (note == null) return;
+
+    // Register the syncId as permanently deleted BEFORE removing the record.
+    // This ensures all future syncs know this note was intentionally removed.
+    await registerPermanentlyDeletedSyncId(note.syncId);
 
     // Only touch folder count if the note is still "active".
     if (!note.isDeleted) {
@@ -1022,19 +1121,12 @@ class NoteService {
 
   /// Reconcile local trash state with Google Drive during sync.
   ///
-  /// This is called during the sync process to ensure:
-  /// - If Drive says a note is trashed, mark it as trashed locally
-  /// - If Drive says a note is not trashed (and previously was), restore it
-  /// - If Drive says a note is deleted (removed=true), delete it locally
-  /// - Drive state ALWAYS overrides local state (latest timestamp wins)
-  ///
-  /// This ensures consistency after offline changes or Drive external changes.
-  /// Uses timestamps to determine which state is more recent when there's conflict.
+  /// Looks up the local note by [syncId] (from the note JSON, or deterministic
+  /// for legacy). Ensures Drive's trash state is reflected locally. Drive is
+  /// the source of truth; timestamps resolve conflicts.
   Future<void> reconcileTrashStateWithDrive(Map<String, dynamic> driveNoteJson) async {
-    if (driveNoteJson['id'] == null) return;
-
-    final noteId = driveNoteJson['id'] as int;
-    final note = _noteRepository.getNoteById(noteId);
+    final syncId = getSyncIdFromNoteJson(driveNoteJson);
+    final note = _noteRepository.getNoteBySync(syncId);
     if (note == null) return;
 
     // Check Drive trash state and timestamps
@@ -1054,48 +1146,53 @@ class NoteService {
     bool shouldBeTrashed = isTrashedOnDrive;
 
     if (isTrashedOnDrive && isLocallyTrashed && driveDeletedAt != null && note.deletedAt != null) {
-      // Both trashed: use the latest deletion timestamp
       final driveIsNewer = driveDeletedAt.isAfter(note.deletedAt!);
-      shouldBeTrashed = true; // Both are trashed, so definitely trash
+      shouldBeTrashed = true;
       if (driveIsNewer) {
         _logger.i(
           'Drive deletion is newer ($driveDeletedAt vs ${note.deletedAt}), '
-          'updating local deletedAt timestamp for note $noteId',
+          'updating local deletedAt for note syncId=$syncId',
         );
         note.deletedAt = driveDeletedAt;
       }
     } else if (isTrashedOnDrive != isLocallyTrashed) {
-      // Different trash states: Drive is source of truth
       shouldBeTrashed = isTrashedOnDrive;
     }
 
-    // Apply the resolved trash state
     if (shouldBeTrashed && !isLocallyTrashed) {
-      _logger.i('Drive reports note $noteId is trashed, marking as deleted locally');
+      _logger.i('Drive reports note syncId=$syncId is trashed, marking as deleted locally');
       note.softDelete();
-      // Use Drive's deletedAt if provided
       if (driveDeletedAt != null) {
         note.deletedAt = driveDeletedAt;
       }
       await _noteRepository.updateNote(note);
     } else if (!shouldBeTrashed && isLocallyTrashed) {
-      _logger.i('Drive reports note $noteId is active, restoring locally');
+      _logger.i('Drive reports note syncId=$syncId is active, restoring locally');
       note.restoreFromTrash();
       await _noteRepository.updateNote(note);
     } else if (shouldBeTrashed && isLocallyTrashed && driveDeletedAt != null) {
-      // Both trashed but Drive has newer timestamp: update local
       if (driveDeletedAt.isAfter(note.deletedAt ?? DateTime.now())) {
-        _logger.i('Updating deletedAt timestamp from Drive for note $noteId');
+        _logger.i('Updating deletedAt from Drive for note syncId=$syncId');
         note.deletedAt = driveDeletedAt;
         await _noteRepository.updateNote(note);
       }
     }
 
-    // Update driveFileId if present
     if (driveNoteJson['driveFileId'] != null) {
       note.driveFileId = driveNoteJson['driveFileId'] as String;
       await _noteRepository.updateNote(note);
     }
+  }
+
+  /// Returns the stable syncId for a note from its JSON. Uses [syncId] if
+  /// present and non-empty; otherwise a deterministic id from title+createdAt.
+  /// Used by sync/merge to key notes consistently across devices.
+  String getSyncIdFromNoteJson(Map<String, dynamic> noteJson) {
+    final raw = noteJson['syncId'];
+    if (raw is String && raw.trim().isNotEmpty) return raw.trim();
+    final title = noteJson['title'] as String? ?? '';
+    final createdAt = _parseCreatedAtStable(noteJson);
+    return _deterministicSyncId(title, createdAt);
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -1123,11 +1220,19 @@ class NoteService {
   /// All active (non-deleted) notes.
   List<Note> get notes => _noteRepository.getActiveNotes();
 
+  /// Active notes owned by [userId] (includes anonymous notes).
+  List<Note> notesForUser(String? userId) => _noteRepository.getActiveNotesForUser(userId);
+
   /// All soft-deleted notes.
   List<Note> get deletedNotes => _noteRepository.getDeletedNotes();
 
+  /// Soft-deleted notes owned by [userId] (includes anonymous notes).
+  List<Note> deletedNotesForUser(String? userId) => _noteRepository.getDeletedNotesForUser(userId);
+
   List<Note> get favoriteNotes => _noteRepository.getFavoriteNotes();
+  List<Note> favoriteNotesForUser(String? userId) => _noteRepository.getFavoriteNotesForUser(userId);
   List<Note> get archivedNotes => _noteRepository.getArchivedNotes();
+  List<Note> archivedNotesForUser(String? userId) => _noteRepository.getArchivedNotesForUser(userId);
   List<String> get allTags => _noteRepository.getAllTags();
   int get totalNotes => _noteRepository.totalNotes;
   int get totalWords => _noteRepository.totalWords;
@@ -1135,7 +1240,10 @@ class NoteService {
 
   Note? getNote(int noteId) => _noteRepository.getNoteById(noteId);
   List<Note> searchNotes(String query) => _noteRepository.searchNotes(query);
+  List<Note> searchNotesForUser(String? userId, String query) => _noteRepository.searchNotesForUser(userId, query);
   List<Note> getNotesByFolder(String folderId) => _noteRepository.getNotesByFolder(folderId);
+  List<Note> getNotesByFolderForUser(String? userId, String folderId) =>
+      _noteRepository.getNotesByFolderForUser(userId, folderId);
   List<Note> getNotesByTag(String tag) => _noteRepository.getNotesByTag(tag);
 
   Future<Folder> createFolder({required String name, String? description, String? color}) =>
@@ -1178,5 +1286,97 @@ class NoteService {
   void dispose() {
     _noteRepository.dispose();
     _folderRepository.dispose();
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  Private sync helpers
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  static const _kDeletedSyncIdsKey = 'permanentlyDeletedSyncIds';
+
+  /// Generates a deterministic UUID-v5-like string from a note's title and
+  /// createdAt timestamp. Used to assign stable identities to legacy backups
+  /// that were created before the [syncId] field existed.
+  ///
+  /// This is NOT cryptographically strong — it's just a stable fingerprint.
+  String _deterministicSyncId(String title, DateTime createdAt) {
+    // Namespace UUID for Trovara deterministic IDs (randomly chosen constant).
+    const ns = Namespace.url;
+    final name = '${title.trim()}|${createdAt.toUtc().toIso8601String()}';
+    return const Uuid().v5(ns.value, name);
+  }
+
+  /// Parses [createdAt] from a note map for deterministic syncId generation.
+  /// Uses a fixed epoch when missing or invalid so the same note yields the same
+  /// syncId across devices/runs (avoids DateTime.now() which would break matching).
+  DateTime _parseCreatedAtStable(Map<String, dynamic> note) {
+    final raw = note['createdAt'] as String? ?? '';
+    return DateTime.tryParse(raw) ?? DateTime.utc(1970, 1, 1);
+  }
+
+  /// One-time migration: assign and persist a deterministic syncId for any note
+  /// that has none (empty or null). Notes created before syncId existed or with
+  /// ObjectBox default empty syncId would otherwise be missed by merge/import
+  /// lookups (getNoteBySync), causing duplicates on first sync.
+  Future<void> _backfillSyncIdsIfNeeded() async {
+    final allNotes = _noteRepository.getAllNotes();
+    for (final note in allNotes) {
+      if (note.syncId.isEmpty) {
+        note.syncId = _deterministicSyncId(note.title, note.createdAt);
+        await updateNote(note, skipEmbeddingRefresh: true, preserveTimestamps: true);
+        _logger.d('Backfilled syncId for note id=${note.id} title=${note.title}');
+      }
+    }
+  }
+
+  /// Load the set of permanently-deleted note syncIds from local storage.
+  /// Returns an empty set if nothing has been stored yet.
+  Set<String> _loadDeletedSyncIds() =>
+      // SharedPreferences is not async-friendly in a synchronous context,
+      // so we keep a lazy in-memory cache that is populated on first access.
+      _deletedSyncIdsCache;
+
+  /// Merge [newIds] into the persistent tombstone registry and persist to disk.
+  /// Awaited so tombstones are durable before the caller continues (e.g. before
+  /// deleting the note record), avoiding loss if the app terminates soon after.
+  Future<void> _addDeletedSyncIds(Iterable<String> newIds) async {
+    _deletedSyncIdsCache.addAll(newIds);
+    await _persistDeletedSyncIds();
+  }
+
+  /// Register [syncId] as permanently deleted so it is excluded by all future imports.
+  /// Awaits persistence so the tombstone is durable before returning.
+  Future<void> registerPermanentlyDeletedSyncId(String syncId) async {
+    await _addDeletedSyncIds([syncId]);
+  }
+
+  // In-memory cache so we don't need async SharedPreferences in sync code.
+  final Set<String> _deletedSyncIdsCache = {};
+  bool _tombstonesLoaded = false;
+
+  /// Call once (or lazily) to populate the cache from SharedPreferences.
+  Future<void> loadTombstonesFromDisk() async {
+    if (_tombstonesLoaded) return;
+    _tombstonesLoaded = true;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString(_kDeletedSyncIdsKey);
+      if (raw != null && raw.isNotEmpty) {
+        final list = (jsonDecode(raw) as List).cast<String>();
+        _deletedSyncIdsCache.addAll(list);
+      }
+    } catch (e) {
+      _logger.w('Failed to load tombstones from disk: $e');
+    }
+  }
+
+  Future<void> _persistDeletedSyncIds() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final encoded = jsonEncode(_deletedSyncIdsCache.toList());
+      await prefs.setString(_kDeletedSyncIdsKey, encoded);
+    } catch (e) {
+      _logger.w('Failed to persist tombstones: $e');
+    }
   }
 }

@@ -91,7 +91,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(3, 6317312537730891446),
     name: 'Note',
-    lastPropertyId: const obx_int.IdUid(17, 1193297639825137982),
+    lastPropertyId: const obx_int.IdUid(19, 6210228650839839360),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -189,6 +189,19 @@ final _entities = <obx_int.ModelEntity>[
         name: 'driveFileId',
         type: 9,
         flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(18, 5331080527125817044),
+        name: 'userId',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(19, 6210228650839839360),
+        name: 'syncId',
+        type: 9,
+        flags: 2048,
+        indexId: const obx_int.IdUid(1, 3825348798809574444),
       ),
     ],
     relations: <obx_int.ModelRelation>[],
@@ -461,7 +474,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
   final model = obx_int.ModelInfo(
     entities: _entities,
     lastEntityId: const obx_int.IdUid(7, 4384572733254933868),
-    lastIndexId: const obx_int.IdUid(0, 0),
+    lastIndexId: const obx_int.IdUid(1, 3825348798809574444),
     lastRelationId: const obx_int.IdUid(0, 0),
     lastSequenceId: const obx_int.IdUid(0, 0),
     retiredEntityUids: const [7373197808855322801],
@@ -599,7 +612,11 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final driveFileIdOffset = object.driveFileId == null
             ? null
             : fbb.writeString(object.driveFileId!);
-        fbb.startTable(18);
+        final userIdOffset = object.userId == null
+            ? null
+            : fbb.writeString(object.userId!);
+        final syncIdOffset = fbb.writeString(object.syncId);
+        fbb.startTable(20);
         fbb.addInt64(0, object.id);
         fbb.addOffset(1, titleOffset);
         fbb.addOffset(2, contentJsonOffset);
@@ -616,6 +633,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addBool(14, object.isDeleted);
         fbb.addInt64(15, object.deletedAt?.millisecondsSinceEpoch);
         fbb.addOffset(16, driveFileIdOffset);
+        fbb.addOffset(17, userIdOffset);
+        fbb.addOffset(18, syncIdOffset);
         fbb.finish(fbb.endTable());
         return object.id;
       },
@@ -633,6 +652,9 @@ obx_int.ModelDefinition getObjectBoxModel() {
           4,
           0,
         );
+        final syncIdParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 40, '');
         final titleParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 6, '');
@@ -669,6 +691,9 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final driveFileIdParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGetNullable(buffer, rootOffset, 36);
+        final userIdParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 38);
         final folderIdParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 18, '');
@@ -694,6 +719,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
         ).vTableGet(buffer, rootOffset, 28, []);
         final object = Note(
           id: idParam,
+          syncId: syncIdParam,
           title: titleParam,
           contentJson: contentJsonParam,
           createdAt: createdAtParam,
@@ -703,6 +729,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
           isDeleted: isDeletedParam,
           deletedAt: deletedAtParam,
           driveFileId: driveFileIdParam,
+          userId: userIdParam,
           folderId: folderIdParam,
           customTagIds: customTagIdsParam,
           moodTags: moodTagsParam,
@@ -1141,6 +1168,16 @@ class Note_ {
   /// See [Note.driveFileId].
   static final driveFileId = obx.QueryStringProperty<Note>(
     _entities[1].properties[15],
+  );
+
+  /// See [Note.userId].
+  static final userId = obx.QueryStringProperty<Note>(
+    _entities[1].properties[16],
+  );
+
+  /// See [Note.syncId].
+  static final syncId = obx.QueryStringProperty<Note>(
+    _entities[1].properties[17],
   );
 }
 

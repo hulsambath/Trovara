@@ -1,0 +1,25 @@
+{
+  "error": {
+    "code": 403,
+    "message": "Requests to this API generativelanguage.googleapis.com method google.ai.generativelanguage.v1beta.GenerativeService.EmbedContent are blocked.",
+    "status": "PERMISSION_DENIED",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.ErrorInfo",
+        "reason": "API_KEY_SERVICE_BLOCKED",
+        "domain": "googleapis.com",
+        "metadata": {
+          "apiName": "generativelanguage.googleapis.com",
+          "methodName": "google.ai.generativelanguage.v1beta.GenerativeService.EmbedContent",
+          "service": "generativelanguage.googleapis.com",
+          "consumer": "projects/<REDACTED>"
+        }
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.LocalizedMessage",
+        "locale": "en-US",
+        "message": "Requests to this API generativelanguage.googleapis.com method google.ai.generativelanguage.v1beta.GenerativeService.EmbedContent are blocked."
+      }
+    ]
+  }
+}

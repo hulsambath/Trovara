@@ -1,14 +1,25 @@
+import 'package:objectbox/objectbox.dart';
 import 'package:trovara/core/services/text_parser_service.dart';
 import 'package:trovara/models/activity_tag.dart';
 import 'package:trovara/models/custom_tag.dart';
 import 'package:trovara/models/mood_tag.dart';
 import 'package:trovara/models/personal_growth_tag.dart';
 import 'package:trovara/models/time_tag.dart';
-import 'package:objectbox/objectbox.dart';
+import 'package:uuid/uuid.dart';
 
 @Entity()
 class Note {
   int id;
+
+  /// Stable, device-independent unique identifier for sync.
+  ///
+  /// This UUID is assigned once when a note is created and never changes,
+  /// even across devices or after the note is re-imported from a backup.
+  /// The sync engine uses this instead of the ObjectBox integer [id] to
+  /// match notes across devices (similar to a Git object hash).
+  @Index()
+  String syncId;
+
   String title;
   String contentJson;
   DateTime createdAt;
@@ -28,6 +39,11 @@ class Note {
   /// Can be null for notes that haven't been synced to Drive yet.
   String? driveFileId;
 
+  /// Google account `sub` (unique identifier) of the note owner.
+  /// Null means the note was created anonymously (not signed in).
+  /// Assigned when the user syncs with Google Drive for the first time.
+  String? userId;
+
   String folderId;
   List<int> customTagIds;
   List<String> moodTags;
@@ -37,6 +53,7 @@ class Note {
 
   Note({
     this.id = 0,
+    String? syncId,
     required this.title,
     required this.contentJson,
     DateTime? createdAt,
@@ -46,13 +63,15 @@ class Note {
     this.isDeleted = false,
     this.deletedAt,
     this.driveFileId,
+    this.userId,
     this.folderId = 'default',
     List<int>? customTagIds,
     List<String>? moodTags,
     List<String>? activityTags,
     List<String>? timeTags,
     List<String>? personalGrowthTags,
-  }) : createdAt = createdAt ?? DateTime.now(),
+  }) : syncId = syncId ?? const Uuid().v4(),
+       createdAt = createdAt ?? DateTime.now(),
        updatedAt = updatedAt ?? DateTime.now(),
        customTagIds = customTagIds ?? [],
        moodTags = moodTags ?? [],
@@ -208,6 +227,7 @@ class Note {
 
   Map<String, dynamic> toJson() => {
     'id': id,
+    'syncId': syncId,
     'title': title,
     'contentJson': contentJson,
     'createdAt': createdAt.toIso8601String(),
@@ -217,6 +237,7 @@ class Note {
     'isDeleted': isDeleted,
     'deletedAt': deletedAt?.toIso8601String(),
     'driveFileId': driveFileId,
+    'userId': userId,
     'folderId': folderId,
     'customTagIds': customTagIds,
     'moodTags': moodTags,
@@ -227,6 +248,7 @@ class Note {
 
   factory Note.fromJson(Map<String, dynamic> json) => Note(
     id: json['id'] as int? ?? 0,
+    syncId: json['syncId'] as String?,
     title: json['title'] as String,
     contentJson: json['contentJson'] as String,
     createdAt: DateTime.parse(json['createdAt'] as String),
@@ -238,6 +260,7 @@ class Note {
         ? DateTime.tryParse(json['deletedAt'] as String)
         : null,
     driveFileId: json['driveFileId'] as String?,
+    userId: json['userId'] as String?,
     folderId: json['folderId'] as String? ?? 'default',
     customTagIds: List<int>.from(json['customTagIds'] as List? ?? []),
     moodTags: List<String>.from(json['moodTags'] as List? ?? []),

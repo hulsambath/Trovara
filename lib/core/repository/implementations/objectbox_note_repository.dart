@@ -31,24 +31,31 @@ class ObjectBoxNoteRepository extends BaseRepository implements INoteRepository 
   List<Note> getActiveNotes() => _noteBox.query(Note_.isDeleted.equals(false)).build().find();
 
   @override
+  List<Note> getActiveNotesForUser(String? userId) {
+    if (userId == null) return getActiveNotes();
+    final condition = Note_.isDeleted.equals(false) & _userOwnershipCondition(userId);
+    return _noteBox.query(condition).build().find();
+  }
+
+  @override
   List<Note> getAllNotes() => _noteBox.getAll();
 
   @override
   Note? getNoteById(int id) => _noteBox.get(id);
 
   @override
+  Note? getNoteBySync(String syncId) => _noteBox.query(Note_.syncId.equals(syncId)).build().findFirst();
+
+  @override
   List<Note> searchNotes(String query) {
     if (query.isEmpty) return getActiveNotes();
+    return _filterBySearchQuery(getActiveNotes(), query);
+  }
 
-    final lowercaseQuery = query.toLowerCase();
-    return getActiveNotes()
-        .where(
-          (note) =>
-              note.title.toLowerCase().contains(lowercaseQuery) ||
-              note.contentJson.toLowerCase().contains(lowercaseQuery) ||
-              note.customTagIds.any((tagId) => tagId.toString().contains(lowercaseQuery)),
-        )
-        .toList();
+  @override
+  List<Note> searchNotesForUser(String? userId, String query) {
+    if (query.isEmpty) return getActiveNotesForUser(userId);
+    return _filterBySearchQuery(getActiveNotesForUser(userId), query);
   }
 
   @override
@@ -56,12 +63,33 @@ class ObjectBoxNoteRepository extends BaseRepository implements INoteRepository 
       _noteBox.query(Note_.folderId.equals(folderId) & Note_.isDeleted.equals(false)).build().find();
 
   @override
+  List<Note> getNotesByFolderForUser(String? userId, String folderId) {
+    if (userId == null) return getNotesByFolder(folderId);
+    final condition = Note_.folderId.equals(folderId) & Note_.isDeleted.equals(false) & _userOwnershipCondition(userId);
+    return _noteBox.query(condition).build().find();
+  }
+
+  @override
   List<Note> getFavoriteNotes() =>
       _noteBox.query(Note_.isFavorite.equals(true) & Note_.isDeleted.equals(false)).build().find();
 
   @override
+  List<Note> getFavoriteNotesForUser(String? userId) {
+    if (userId == null) return getFavoriteNotes();
+    final condition = Note_.isFavorite.equals(true) & Note_.isDeleted.equals(false) & _userOwnershipCondition(userId);
+    return _noteBox.query(condition).build().find();
+  }
+
+  @override
   List<Note> getArchivedNotes() =>
       _noteBox.query(Note_.isArchived.equals(true) & Note_.isDeleted.equals(false)).build().find();
+
+  @override
+  List<Note> getArchivedNotesForUser(String? userId) {
+    if (userId == null) return getArchivedNotes();
+    final condition = Note_.isArchived.equals(true) & Note_.isDeleted.equals(false) & _userOwnershipCondition(userId);
+    return _noteBox.query(condition).build().find();
+  }
 
   @override
   List<Note> getNotesByTag(String tag) => [];
@@ -74,6 +102,32 @@ class ObjectBoxNoteRepository extends BaseRepository implements INoteRepository 
   @override
   List<Note> getDeletedNotes() => _noteBox.query(Note_.isDeleted.equals(true)).build().find();
 
+  @override
+  List<Note> getDeletedNotesForUser(String? userId) {
+    if (userId == null) return getDeletedNotes();
+    final condition = Note_.isDeleted.equals(true) & _userOwnershipCondition(userId);
+    return _noteBox.query(condition).build().find();
+  }
+
+  // ───────────────────── Private helpers ─────────────────────
+
+  /// Builds an ObjectBox condition that matches notes owned by [userId] or
+  /// anonymous notes (userId is null). Only called when [userId] is non-null;
+  /// callers bypass the filter and use unscoped queries when userId is null.
+  Condition<Note> _userOwnershipCondition(String userId) => Note_.userId.equals(userId) | Note_.userId.isNull();
+
+  List<Note> _filterBySearchQuery(List<Note> notes, String query) {
+    final lowercaseQuery = query.toLowerCase();
+    return notes
+        .where(
+          (note) =>
+              note.title.toLowerCase().contains(lowercaseQuery) ||
+              note.contentJson.toLowerCase().contains(lowercaseQuery) ||
+              note.customTagIds.any((tagId) => tagId.toString().contains(lowercaseQuery)),
+        )
+        .toList();
+  }
+
   // ───────────────────── Mutations ─────────────────────
 
   @override
@@ -82,12 +136,14 @@ class ObjectBoxNoteRepository extends BaseRepository implements INoteRepository 
     String? contentJson,
     String? folderId,
     List<int> customTagIds = const [],
+    String? userId,
   }) async {
     final note = Note(
       title: title ?? 'Untitled',
       contentJson: contentJson ?? '{"ops":[{"insert":"\\n"}]}',
       folderId: folderId ?? 'default',
       customTagIds: customTagIds,
+      userId: userId,
     );
 
     final id = _noteBox.put(note);
@@ -99,6 +155,7 @@ class ObjectBoxNoteRepository extends BaseRepository implements INoteRepository 
 
   @override
   Future<Note> createNoteWithTimestamps({
+    String? syncId,
     String? title,
     String? contentJson,
     String? folderId,
@@ -109,8 +166,14 @@ class ObjectBoxNoteRepository extends BaseRepository implements INoteRepository 
     bool isArchived = false,
     bool isDeleted = false,
     DateTime? deletedAt,
+    String? userId,
+    List<String>? moodTags,
+    List<String>? activityTags,
+    List<String>? timeTags,
+    List<String>? personalGrowthTags,
   }) async {
     final note = Note(
+      syncId: syncId,
       title: title ?? 'Untitled',
       contentJson: contentJson ?? '{"ops":[{"insert":"\\n"}]}',
       folderId: folderId ?? 'default',
@@ -121,6 +184,11 @@ class ObjectBoxNoteRepository extends BaseRepository implements INoteRepository 
       isArchived: isArchived,
       isDeleted: isDeleted,
       deletedAt: deletedAt,
+      userId: userId,
+      moodTags: moodTags,
+      activityTags: activityTags,
+      timeTags: timeTags,
+      personalGrowthTags: personalGrowthTags,
     );
 
     final id = _noteBox.put(note);
@@ -131,8 +199,10 @@ class ObjectBoxNoteRepository extends BaseRepository implements INoteRepository 
   }
 
   @override
-  Future<void> updateNote(Note note) async {
-    note.updatedAt = DateTime.now();
+  Future<void> updateNote(Note note, {bool preserveTimestamps = false}) async {
+    if (!preserveTimestamps) {
+      note.updatedAt = DateTime.now();
+    }
     _noteBox.put(note);
     notifyListeners();
   }

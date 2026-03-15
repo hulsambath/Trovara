@@ -65,11 +65,16 @@ class _NotesContent extends StatelessWidget {
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate((context, index) {
           final note = viewModel.notes[index];
-          return NoteCard(
-            note: note,
-            onTap: () => viewModel.openNote(context, note),
-            onLongPress: () => viewModel.showNoteOptions(context, note),
-            onToggleFavorite: () => viewModel.toggleFavorite(note),
+          return Column(
+            children: [
+              if (index != 0) const SizedBox(height: 16),
+              NoteCard(
+                note: note,
+                onTap: () => viewModel.openNote(context, note),
+                onLongPress: () => viewModel.showNoteOptions(context, note),
+                onToggleFavorite: () => viewModel.toggleFavorite(note),
+              ),
+            ],
           );
         }, childCount: viewModel.notes.length),
       ),

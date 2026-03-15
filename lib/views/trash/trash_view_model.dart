@@ -44,10 +44,14 @@ class TrashViewModel extends BaseViewModel {
     _loadDeletedNotes();
   }
 
+  String? get _currentUserId => _driveService.currentUser?.id;
+
   void _loadDeletedNotes() {
     if (_isDisposed) return;
 
-    _deletedNotes = _noteService.deletedNotes
+    // When signed out, show all deleted notes; when signed in, scope by user.
+    final userId = _currentUserId;
+    _deletedNotes = (userId == null ? _noteService.deletedNotes : _noteService.deletedNotesForUser(userId))
       ..sort((a, b) {
         final aDate = a.deletedAt ?? a.updatedAt;
         final bDate = b.deletedAt ?? b.updatedAt;

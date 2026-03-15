@@ -219,6 +219,34 @@ class SettingViewModel extends BaseViewModel {
     }
   }
 
+  Future<void> reembedAllNotes(BuildContext context) async {
+    String? successMessage;
+    String? errorMessage;
+
+    await NmLoadingOverlay.showProcessing(context, () async {
+      try {
+        final embeddingService = ServiceLocator().embeddingService;
+        // If embeddings are not available (e.g., no API key / not initialized),
+        // avoid reporting success and show an actionable error instead.
+        if (!embeddingService.isAvailable) {
+          errorMessage = 'Embeddings are not configured. Please set up an embeddings API key before re-indexing notes.';
+          return;
+        }
+        final notes = _noteService.notes;
+        await embeddingService.reembedAll(notes);
+        successMessage = 'Successfully re-indexed ${notes.length} notes';
+      } catch (e) {
+        errorMessage = 'Failed to re-index notes: $e';
+      }
+    });
+
+    if (successMessage != null && context.mounted) {
+      NmToast.success(context, successMessage!);
+    } else if (errorMessage != null && context.mounted) {
+      NmToast.error(context, errorMessage!);
+    }
+  }
+
   /// Open the Recently Deleted notes screen.
   void openRecentlyDeleted(BuildContext context) {
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => const TrashView()));

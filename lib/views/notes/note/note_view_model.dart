@@ -7,6 +7,7 @@ import 'package:flutter_quill/flutter_quill.dart';
 import 'package:trovara/core/base/base_view_model.dart';
 import 'package:trovara/core/di/service_locator.dart';
 import 'package:trovara/core/services/custom_tag_service.dart';
+import 'package:trovara/core/services/google_drive_service.dart';
 import 'package:trovara/core/services/note_service.dart';
 import 'package:trovara/models/note.dart';
 import 'package:trovara/widgets/nm_toast.dart';
@@ -15,6 +16,7 @@ class NoteViewModel extends BaseViewModel {
   final String? title;
   final NoteService _noteService = ServiceLocator().noteService;
   final CustomTagService _customTagService = ServiceLocator().customTagService;
+  final GoogleDriveService _driveService = ServiceLocator().googleDriveService;
 
   late QuillController quillController;
   late ScrollController scrollController;
@@ -306,12 +308,12 @@ class NoteViewModel extends BaseViewModel {
     if (_currentNote != null) {
       try {
         if (_isNewNote) {
-          // Create a new note with basic information first
           _currentNote = await _noteService.createNote(
             title: titleController.text,
             contentJson: jsonEncode(quillController.document.toDelta().toJson()),
             folderId: _currentNote!.folderId,
             customTagIds: _currentNote!.customTagIds,
+            userId: _driveService.currentUser?.id,
           );
 
           // Now update the note with all tag information (moodTags, activityTags, timeTags, personalGrowthTags)

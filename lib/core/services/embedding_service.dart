@@ -21,7 +21,7 @@ enum EmbeddingProvider { openAiCompatible, gemini }
 /// - Provide query embedding for similarity search (Step 2)
 class EmbeddingService {
   static const String defaultBaseUrl = 'https://openrouter.ai/api/v1';
-  static const String defaultEmbeddingModel = 'openai/text-embedding-3-small';
+  static const String defaultEmbeddingModel = 'openai/text-embedding-3-large';
   static const String defaultGeminiEmbeddingModel = 'gemini-embedding-001';
   static const int _maxChunkChars = 2000; // ~500 tokens
   static const int _overlapChars = 200; // overlap between chunks
