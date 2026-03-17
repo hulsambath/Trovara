@@ -52,6 +52,16 @@ Answer ONLY based on the provided note context below. If the answer cannot be fo
 
 Be concise, helpful, and reference specific notes by title when possible.''';
 
+  /// Single-turn optimized system prompt (no source mentions).
+  static const String singleTurnSystemPrompt =
+      '''You are an assistant answering questions based on user-provided information.
+
+Guidelines:
+- Respond clearly and naturally
+- Do not copy text directly
+- Do not mention sources or context
+- If the answer is not available, say you don't know''';
+
   // ═══════════════════════════════════════════════════════════════════════════
   //  Public API
   // ═══════════════════════════════════════════════════════════════════════════
@@ -134,6 +144,49 @@ Be concise, helpful, and reference specific notes by title when possible.''';
       '${prompt.length} chars total',
     );
 
+    return prompt;
+  }
+
+  /// Build a single-turn prompt from top chunk context maps.
+  ///
+  /// Expected map shape: `title`, `date`, `folder`, `tags`, `text`.
+  String? buildSingleTurn({required String userQuery, required List<Map<String, String>> topChunkContexts}) {
+    final q = userQuery.trim();
+    if (q.isEmpty) return null;
+    if (topChunkContexts.isEmpty) return null;
+
+    final infoBuf = StringBuffer();
+    bool wroteAnyContext = false;
+    for (final c in topChunkContexts) {
+      final title = (c['title'] ?? '').trim();
+      final date = (c['date'] ?? '').trim();
+      final folder = (c['folder'] ?? '').trim();
+      final tags = (c['tags'] ?? '').trim();
+      final text = (c['text'] ?? '').trim();
+      if (text.isEmpty) continue;
+
+      wroteAnyContext = true;
+      if (title.isNotEmpty) infoBuf.writeln('- Title: $title');
+      if (date.isNotEmpty) infoBuf.writeln('  Date: $date');
+      if (folder.isNotEmpty) infoBuf.writeln('  Folder: $folder');
+      if (tags.isNotEmpty) infoBuf.writeln('  Tags: $tags');
+      infoBuf.writeln('  Text: $text');
+      infoBuf.writeln();
+    }
+
+    if (!wroteAnyContext) return null;
+
+    final buf = StringBuffer();
+    buf.writeln(singleTurnSystemPrompt);
+    buf.writeln();
+    buf.writeln('Question:');
+    buf.writeln(q);
+    buf.writeln();
+    buf.writeln('Information:');
+    buf.write(infoBuf.toString());
+
+    final prompt = buf.toString().trimRight();
+    _logger.d('Built single-turn prompt: ${topChunkContexts.length} chunk(s), ${prompt.length} chars');
     return prompt;
   }
 

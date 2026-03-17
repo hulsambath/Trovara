@@ -384,5 +384,33 @@ void main() {
         expect(maps.first['folder'], 'Default');
       });
     });
+
+    group('resolveTopChunksToContext', () {
+      test('fills topKChunks after filtering missing/deleted notes', () {
+        noteRepo.addNote(_note(id: 1, title: 'Deleted', isDeleted: true));
+        noteRepo.addNote(_note(id: 2, title: 'Live A'));
+        noteRepo.addNote(_note(id: 3, title: 'Live B'));
+        noteRepo.addNote(_note(id: 4, title: 'Live C'));
+
+        final chunks = [
+          // These would previously consume the window and hide valid chunks later.
+          _scored(noteId: 999, score: 0.99, chunkText: 'missing note'),
+          _scored(noteId: 1, score: 0.98, chunkText: 'deleted note'),
+          _scored(noteId: 998, score: 0.97, chunkText: 'missing note 2'),
+          // Valid chunks later in the ranked list.
+          _scored(noteId: 2, score: 0.50, chunkText: 'A1'),
+          _scored(noteId: 3, score: 0.49, chunkText: 'B1'),
+          _scored(noteId: 4, score: 0.48, chunkText: 'C1'),
+        ];
+
+        final ctx = resolver.resolveTopChunksToContext(chunks, topKChunks: 3);
+
+        expect(ctx.length, 3);
+        expect(ctx[0]['title'], 'Live A');
+        expect(ctx[0]['text'], 'A1');
+        expect(ctx[1]['title'], 'Live B');
+        expect(ctx[2]['title'], 'Live C');
+      });
+    });
   });
 }

@@ -54,6 +54,9 @@ class LlmClient {
   final String _baseUrl;
   final String? _siteUrl;
   final String? _appName;
+  final double _temperature;
+  final double _topP;
+  final int _maxOutputTokens;
   final Logger _logger = Logger();
 
   http.Client? _client;
@@ -69,12 +72,18 @@ class LlmClient {
     String baseUrl = defaultBaseUrl,
     String? siteUrl,
     String? appName,
+    double temperature = defaultTemperature,
+    double topP = defaultTopP,
+    int maxOutputTokens = defaultMaxOutputTokens,
   }) : _provider = provider,
        _apiKey = apiKey,
        _modelName = modelName,
        _baseUrl = baseUrl,
        _siteUrl = siteUrl,
-       _appName = appName;
+       _appName = appName,
+       _temperature = temperature,
+       _topP = topP,
+       _maxOutputTokens = maxOutputTokens;
 
   /// Whether the client has been successfully initialized with a valid API key.
   bool get isAvailable => _isInitialized && _apiKey.isNotEmpty;
@@ -311,7 +320,14 @@ class LlmClient {
     try {
       if (_provider == LlmProvider.gemini) {
         try {
-          final res = await _geminiModel!.generateContent([Content.text(prompt)]);
+          final res = await _geminiModel!.generateContent(
+            [Content.text(prompt)],
+            generationConfig: GenerationConfig(
+              temperature: _temperature,
+              topP: _topP,
+              maxOutputTokens: _maxOutputTokens,
+            ),
+          );
           final text = res.text ?? '';
           if (text.isEmpty) {
             _logger.w('LLM returned empty response');
@@ -322,7 +338,14 @@ class LlmClient {
         } catch (e) {
           if (_isGeminiModelNotFound(e)) {
             await _resolveGeminiModelForGeneration();
-            final res = await _geminiModel!.generateContent([Content.text(prompt)]);
+            final res = await _geminiModel!.generateContent(
+              [Content.text(prompt)],
+              generationConfig: GenerationConfig(
+                temperature: _temperature,
+                topP: _topP,
+                maxOutputTokens: _maxOutputTokens,
+              ),
+            );
             final text = res.text ?? '';
             if (text.isEmpty) {
               _logger.w('LLM returned empty response');
@@ -345,9 +368,9 @@ class LlmClient {
           'messages': [
             {'role': 'user', 'content': prompt},
           ],
-          'temperature': defaultTemperature,
-          'top_p': defaultTopP,
-          'max_tokens': defaultMaxOutputTokens,
+          'temperature': _temperature,
+          'top_p': _topP,
+          'max_tokens': _maxOutputTokens,
         }),
       );
 
@@ -400,7 +423,14 @@ class LlmClient {
 
         var yieldedAny = false;
         try {
-          await for (final res in _geminiModel!.generateContentStream([Content.text(prompt)])) {
+          await for (final res in _geminiModel!.generateContentStream(
+            [Content.text(prompt)],
+            generationConfig: GenerationConfig(
+              temperature: _temperature,
+              topP: _topP,
+              maxOutputTokens: _maxOutputTokens,
+            ),
+          )) {
             final text = res.text ?? '';
             if (text.isNotEmpty) {
               yieldedAny = true;
@@ -420,7 +450,14 @@ class LlmClient {
             }
 
             try {
-              await for (final res in _geminiModel!.generateContentStream([Content.text(prompt)])) {
+              await for (final res in _geminiModel!.generateContentStream(
+                [Content.text(prompt)],
+                generationConfig: GenerationConfig(
+                  temperature: _temperature,
+                  topP: _topP,
+                  maxOutputTokens: _maxOutputTokens,
+                ),
+              )) {
                 final text = res.text ?? '';
                 if (text.isNotEmpty) {
                   yield text;
@@ -450,9 +487,9 @@ class LlmClient {
           'messages': [
             {'role': 'user', 'content': prompt},
           ],
-          'temperature': defaultTemperature,
-          'top_p': defaultTopP,
-          'max_tokens': defaultMaxOutputTokens,
+          'temperature': _temperature,
+          'top_p': _topP,
+          'max_tokens': _maxOutputTokens,
           'stream': true,
         });
 

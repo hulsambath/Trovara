@@ -421,6 +421,55 @@ void main() {
   });
 
   // ─────────────────────────────────────────────────────────────────────────
+  //  buildSingleTurn
+  // ─────────────────────────────────────────────────────────────────────────
+
+  group('buildSingleTurn', () {
+    test('returns null when no contexts', () {
+      final prompt = promptBuilder.buildSingleTurn(userQuery: 'test', topChunkContexts: []);
+      expect(prompt, isNull);
+    });
+
+    test('returns null when all contexts have empty text', () {
+      final prompt = promptBuilder.buildSingleTurn(
+        userQuery: 'test',
+        topChunkContexts: [
+          {'title': 'A', 'date': '2026-02-20', 'folder': 'Journal', 'tags': 'mood: calm', 'text': '   '},
+          {'title': 'B', 'text': ''},
+        ],
+      );
+      expect(prompt, isNull);
+    });
+
+    test('formats Question and Information sections', () {
+      final prompt = promptBuilder.buildSingleTurn(
+        userQuery: 'What did I write about meditation?',
+        topChunkContexts: [
+          {
+            'title': 'Morning Meditation',
+            'date': '2026-02-20',
+            'folder': 'Journal',
+            'tags': 'mood: calm',
+            'text': 'Meditated for 20 minutes.',
+          },
+        ],
+      )!;
+
+      expect(prompt, contains(PromptBuilderService.singleTurnSystemPrompt));
+      expect(prompt, contains('Question:'));
+      expect(prompt, contains('What did I write about meditation?'));
+      expect(prompt, contains('Information:'));
+      expect(prompt, contains('Text: Meditated for 20 minutes.'));
+    });
+
+    test('does not include source/context wording in system prompt', () {
+      final sys = PromptBuilderService.singleTurnSystemPrompt.toLowerCase();
+      expect(sys, isNot(contains('context:')));
+      expect(sys, contains('do not mention sources or context'));
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
   //  estimateTokenCount
   // ─────────────────────────────────────────────────────────────────────────
 

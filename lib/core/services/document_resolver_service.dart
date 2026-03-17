@@ -143,6 +143,60 @@ class DocumentResolverService {
     }).toList();
   }
 
+  /// Resolve scored embedding chunks into **chunk-level** context maps.
+  ///
+  /// Unlike [resolveToContextMaps], this does NOT group by note. It returns the
+  /// top [topKChunks] chunks globally (in the incoming order) and attaches note
+  /// metadata for each chunk.
+  ///
+  /// Each entry contains: `title`, `date`, `folder`, `tags`, `text`.
+  List<Map<String, String>> resolveTopChunksToContext(List<ScoredEmbedding> scoredChunks, {int topKChunks = 3}) {
+    if (scoredChunks.isEmpty) return [];
+
+    final limit = topKChunks.clamp(1, 20);
+
+    // Resolve only as many *valid* chunks as needed. We cannot truncate before
+    // filtering, otherwise missing/deleted notes can consume the entire window.
+    final noteMetaById = <int, Map<String, String>?>{};
+    Map<String, String>? getMeta(int noteId) {
+      if (noteMetaById.containsKey(noteId)) return noteMetaById[noteId];
+
+      final note = _noteService.getNote(noteId);
+      if (note == null || note.isDeleted) {
+        noteMetaById[noteId] = null;
+        return null;
+      }
+      final folder = _noteService.getFolder(note.folderId);
+
+      final tags = <String>[];
+      if (note.moodTags.isNotEmpty) tags.add('mood: ${note.moodTags.join(", ")}');
+      if (note.activityTags.isNotEmpty) tags.add('activity: ${note.activityTags.join(", ")}');
+      if (note.timeTags.isNotEmpty) tags.add('time: ${note.timeTags.join(", ")}');
+      if (note.personalGrowthTags.isNotEmpty) {
+        tags.add('growth: ${note.personalGrowthTags.join(", ")}');
+      }
+
+      final meta = <String, String>{
+        'title': note.title,
+        'date': note.createdAt.toIso8601String().split('T')[0],
+        'folder': folder?.name ?? 'Default',
+        'tags': tags.join(' | '),
+      };
+      noteMetaById[noteId] = meta;
+      return meta;
+    }
+
+    final out = <Map<String, String>>[];
+    for (final chunk in scoredChunks) {
+      if (out.length >= limit) break;
+      final meta = getMeta(chunk.embedding.noteId);
+      if (meta == null) continue;
+      out.add({...meta, 'text': chunk.embedding.chunkText});
+    }
+
+    return out;
+  }
+
   // ═══════════════════════════════════════════════════════════════════════════
   //  Private Helpers
   // ═══════════════════════════════════════════════════════════════════════════
