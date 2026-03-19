@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:crypto/crypto.dart';
+
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
@@ -21,7 +23,7 @@ enum EmbeddingProvider { openAiCompatible, gemini }
 /// - Provide query embedding for similarity search (Step 2)
 class EmbeddingService {
   static const String defaultBaseUrl = 'https://openrouter.ai/api/v1';
-  static const String defaultEmbeddingModel = 'openai/text-embedding-3-large';
+  static const String defaultEmbeddingModel = 'openai/text-embedding-3-small:v1';
   static const String defaultGeminiEmbeddingModel = 'gemini-embedding-001';
   static const int _maxChunkChars = 2000; // ~500 tokens
   static const int _overlapChars = 200; // overlap between chunks
@@ -123,24 +125,31 @@ class EmbeddingService {
     }
 
     try {
-      final title = note.title.trim();
-      final content = TextParserService.parseQuillContent(note.contentJson).trim();
-      final textForChunking = content.isEmpty ? title : content;
-      if (textForChunking.isEmpty) {
+      final embeddingInputs = buildEmbeddingInputs(note);
+      if (embeddingInputs.isEmpty) {
         _logger.d('Skipping empty note ${note.id}');
         return;
       }
 
+      final signature = computeContentSignature(
+        embeddingInputs,
+        modelName: _modelName,
+        maxChunkChars: _maxChunkChars,
+        overlapChars: _overlapChars,
+      );
+
       // Remove old embeddings for this note
       await _embeddingRepository.deleteByNoteId(note.id);
 
-      // Chunk the text
+      // Chunk the text (needed for chunkText storage)
+      final title = note.title.trim();
+      final content = TextParserService.parseQuillContent(note.contentJson).trim();
+      final textForChunking = content.isEmpty ? title : content;
       final chunks = _chunkText(textForChunking);
 
       // Generate and save embeddings for each chunk
       for (int i = 0; i < chunks.length; i++) {
-        final embeddingInput = content.isEmpty ? chunks[i] : _buildEmbeddingInput(title: title, chunkText: chunks[i]);
-        final vector = await _generateEmbedding(embeddingInput);
+        final vector = await _generateEmbedding(embeddingInputs[i]);
         if (vector == null) {
           _logger.w('Failed to generate embedding for note ${note.id} chunk $i');
           _addToPendingQueue(note);
@@ -153,6 +162,7 @@ class EmbeddingService {
           chunkText: chunks[i],
           embeddingData: NoteEmbedding.serializeEmbedding(vector),
           modelVersion: _modelName,
+          contentSignature: signature,
           noteUpdatedAt: note.updatedAt,
         );
 
@@ -188,11 +198,37 @@ class EmbeddingService {
     _logger.d('Deleted embeddings for note $noteId');
   }
 
-  /// Check if a note's embeddings are stale (note updated after embedding).
+  /// Check if a note's embeddings are stale.
+  ///
+  /// Staleness is determined by:
+  /// 1. No embeddings exist → stale
+  /// 2. Model version mismatch → stale
+  /// 3. Content signature comparison (if signature exists)
+  /// 4. Lazy fallback to `noteUpdatedAt` when signature is empty
   Future<bool> isNoteStale(Note note) async {
     final embeddings = _embeddingRepository.getEmbeddingsByNoteId(note.id);
     if (embeddings.isEmpty) return true;
-    return embeddings.first.noteUpdatedAt.isBefore(note.updatedAt);
+
+    final stored = embeddings.first;
+
+    // Model version mismatch → stale
+    if (stored.modelVersion != _modelName) return true;
+
+    // Lazy fallback: no signature yet → use updatedAt
+    if (stored.contentSignature.isEmpty) {
+      return stored.noteUpdatedAt.isBefore(note.updatedAt);
+    }
+
+    // Signature-based check
+    final inputs = buildEmbeddingInputs(note);
+    if (inputs.isEmpty) return true;
+    final currentSig = computeContentSignature(
+      inputs,
+      modelName: _modelName,
+      maxChunkChars: _maxChunkChars,
+      overlapChars: _overlapChars,
+    );
+    return stored.contentSignature != currentSig;
   }
 
   /// Re-embed all notes whose content has changed since last embedding.
@@ -254,6 +290,46 @@ class EmbeddingService {
   /// - Prefers to break at sentence boundaries (". ") or newlines
   /// - Skips empty chunks
   List<String> chunkText(String text) => _chunkText(text);
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  Content signature
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Build the exact embedding-input strings for a note.
+  ///
+  /// This is the single source-of-truth for what text gets sent to the
+  /// embedding API, used by both [embedNote] and [isNoteStale].
+  List<String> buildEmbeddingInputs(Note note) {
+    final title = note.title.trim();
+    final content = TextParserService.parseQuillContent(note.contentJson).trim();
+    final textForChunking = content.isEmpty ? title : content;
+    if (textForChunking.isEmpty) return [];
+    final chunks = _chunkText(textForChunking);
+    return chunks
+        .map((chunk) => content.isEmpty ? chunk : _buildEmbeddingInput(title: title, chunkText: chunk))
+        .toList();
+  }
+
+  /// Compute a deterministic SHA-256 content signature from embedding inputs.
+  ///
+  /// The hash includes the model name and chunking parameters so that any
+  /// change to chunking rules naturally invalidates old signatures.
+  static String computeContentSignature(
+    List<String> embeddingInputs, {
+    required String modelName,
+    required int maxChunkChars,
+    required int overlapChars,
+  }) {
+    final buffer = StringBuffer();
+    buffer.writeln('model=$modelName');
+    buffer.writeln('maxChunk=$maxChunkChars');
+    buffer.writeln('overlap=$overlapChars');
+    for (final input in embeddingInputs) {
+      buffer.writeln('---');
+      buffer.writeln(input.replaceAll('\r\n', '\n').trim());
+    }
+    return sha256.convert(utf8.encode(buffer.toString())).toString();
+  }
 
   List<String> _chunkText(String text) {
     if (text.length <= _maxChunkChars) return [text];

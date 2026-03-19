@@ -97,13 +97,13 @@ lib/
 
 ### Provider choice: Google Gemini
 
-| Criteria            | Gemini                               | OpenAI                               | On-Device          |
-| ------------------- | ------------------------------------ | ------------------------------------ | ------------------ |
-| Ecosystem alignment | ✅ Google Sign-In already integrated | ❌ New vendor                        | ❌ No Dart support |
-| Free tier           | ✅ Generous (1500 req/day)           | ❌ Paid only                         | ✅ Free            |
-| Embedding model     | `text-embedding-004` (768 dims)      | `text-embedding-3-small` (1536 dims) | N/A                |
-| Generative model    | `gemini-2.0-flash`                   | `gpt-4o-mini`                        | N/A                |
-| Dart SDK            | ✅ `google_generative_ai`            | ❌ No official SDK                   | N/A                |
+| Criteria            | Gemini                               | OpenAI                                  | On-Device          |
+| ------------------- | ------------------------------------ | --------------------------------------- | ------------------ |
+| Ecosystem alignment | ✅ Google Sign-In already integrated | ❌ New vendor                           | ❌ No Dart support |
+| Free tier           | ✅ Generous (1500 req/day)           | ❌ Paid only                            | ✅ Free            |
+| Embedding model     | `text-embedding-004` (768 dims)      | `text-embedding-3-small:v1` (1536 dims) | N/A                |
+| Generative model    | `gemini-2.0-flash`                   | `gpt-4o-mini`                           | N/A                |
+| Dart SDK            | ✅ `google_generative_ai`            | ❌ No official SDK                      | N/A                |
 
 **Decision: Gemini** — native Dart SDK, aligns with existing Google infra, generous free tier.
 

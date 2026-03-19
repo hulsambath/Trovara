@@ -46,7 +46,7 @@ enum ConfigConstants {
       case OPENROUTER_EMBEDDING_MODEL:
         return const String.fromEnvironment(
           'OPENROUTER_EMBEDDING_MODEL',
-          defaultValue: 'openai/text-embedding-3-small',
+          defaultValue: 'openai/text-embedding-3-small:v1',
         );
     }
   }

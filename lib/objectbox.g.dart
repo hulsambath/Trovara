@@ -813,15 +813,16 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final chunkTextOffset = fbb.writeString(object.chunkText);
         final embeddingDataOffset = fbb.writeString(object.embeddingData);
         final modelVersionOffset = fbb.writeString(object.modelVersion);
-        fbb.startTable(9);
+        final contentSignatureOffset = fbb.writeString(object.contentSignature); fbb.startTable(10);
         fbb.addInt64(0, object.id);
         fbb.addInt64(1, object.noteId);
         fbb.addInt64(2, object.chunkIndex);
         fbb.addOffset(3, chunkTextOffset);
         fbb.addOffset(4, embeddingDataOffset);
         fbb.addOffset(5, modelVersionOffset);
-        fbb.addInt64(6, object.createdAt.millisecondsSinceEpoch);
-        fbb.addInt64(7, object.noteUpdatedAt.millisecondsSinceEpoch);
+        fbb.addOffset(6, contentSignatureOffset);
+        fbb.addInt64(7, object.createdAt.millisecondsSinceEpoch);
+        fbb.addInt64(8, object.noteUpdatedAt.millisecondsSinceEpoch);
         fbb.finish(fbb.endTable());
         return object.id;
       },
@@ -855,16 +856,20 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final modelVersionParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 14, '');
+        final contentSignatureParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 16, '');
         final createdAtParam = DateTime.fromMillisecondsSinceEpoch(
-          const fb.Int64Reader().vTableGet(buffer, rootOffset, 16, 0),
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 18, 0),
         );
         final noteUpdatedAtParam = DateTime.fromMillisecondsSinceEpoch(
-          const fb.Int64Reader().vTableGet(buffer, rootOffset, 18, 0),
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 20, 0),
         );
         final object = NoteEmbedding(
           id: idParam,
           noteId: noteIdParam,
           chunkIndex: chunkIndexParam,
+          contentSignature: contentSignatureParam,
           chunkText: chunkTextParam,
           embeddingData: embeddingDataParam,
           modelVersion: modelVersionParam,
@@ -1246,14 +1251,20 @@ class NoteEmbedding_ {
     _entities[3].properties[5],
   );
 
+
+  /// See [NoteEmbedding.contentSignature].
+  static final contentSignature = obx.QueryStringProperty<NoteEmbedding>(
+    _entities[3].properties[6],
+  );
+
   /// See [NoteEmbedding.createdAt].
   static final createdAt = obx.QueryDateProperty<NoteEmbedding>(
-    _entities[3].properties[6],
+    _entities[3].properties[7],
   );
 
   /// See [NoteEmbedding.noteUpdatedAt].
   static final noteUpdatedAt = obx.QueryDateProperty<NoteEmbedding>(
-    _entities[3].properties[7],
+    _entities[3].properties[8],
   );
 }
 
