@@ -20,8 +20,10 @@ import 'package:trovara/core/services/embedding_service.dart';
 import 'package:trovara/core/services/google_drive_service.dart';
 import 'package:trovara/core/services/google_drive_sync_service.dart';
 import 'package:trovara/core/services/llm_client.dart';
+import 'package:trovara/core/services/multi_query_expansion_service.dart';
 import 'package:trovara/core/services/note_service.dart';
 import 'package:trovara/core/services/prompt_builder_service.dart';
+import 'package:trovara/core/services/query_rewrite_service.dart';
 import 'package:trovara/core/services/rag_service.dart';
 import 'package:trovara/core/services/vector_search_service.dart';
 
@@ -44,6 +46,9 @@ class ServiceLocator {
   DocumentResolverService? _documentResolverService;
   PromptBuilderService? _promptBuilderService;
   LlmClient? _llmClient;
+  LlmClient? _rewriteLlmClient;
+  QueryRewriteService? _queryRewriteService;
+  MultiQueryExpansionService? _multiQueryExpansionService;
   RagService? _ragService;
   GoogleDriveService? _googleDriveService;
   GoogleDriveSyncService? _googleDriveSyncService;
@@ -157,13 +162,64 @@ class ServiceLocator {
     return _llmClient!;
   }
 
+  /// LLM client used for query rewriting/expansion (separate config).
+  LlmClient get rewriteLlmClient {
+    if (_rewriteLlmClient == null) {
+      if (ConfigConstants.geminiApiKey.isNotEmpty) {
+        _rewriteLlmClient = LlmClient(
+          provider: LlmProvider.gemini,
+          apiKey: ConfigConstants.geminiApiKey,
+          modelName: LlmClient.defaultGeminiModel,
+          temperature: 0.0,
+          topP: 1.0,
+          maxOutputTokens: 256,
+        );
+      } else if (ConfigConstants.openAiApiKey.isNotEmpty) {
+        _rewriteLlmClient = LlmClient(
+          provider: LlmProvider.openAiCompatible,
+          baseUrl: 'https://api.openai.com/v1',
+          apiKey: ConfigConstants.openAiApiKey,
+          modelName: 'gpt-4o-mini',
+          temperature: 0.0,
+          topP: 1.0,
+          maxOutputTokens: 256,
+        );
+      } else {
+        _rewriteLlmClient = LlmClient(
+          provider: LlmProvider.openAiCompatible,
+          apiKey: ConfigConstants.openRouterApiKey,
+          modelName: ConfigConstants.openRouterModel,
+          siteUrl: ConfigConstants.openRouterSiteUrl,
+          appName: ConfigConstants.openRouterAppName,
+          temperature: 0.0,
+          topP: 1.0,
+          maxOutputTokens: 256,
+        );
+      }
+    }
+    return _rewriteLlmClient!;
+  }
+
+  QueryRewriteService get queryRewriteService {
+    _queryRewriteService ??= QueryRewriteService(llmClient: rewriteLlmClient);
+    return _queryRewriteService!;
+  }
+
+  MultiQueryExpansionService get multiQueryExpansionService {
+    _multiQueryExpansionService ??= MultiQueryExpansionService(llmClient: rewriteLlmClient);
+    return _multiQueryExpansionService!;
+  }
+
   /// Get the RAG service instance
   RagService get ragService {
     _ragService ??= RagService(
       embeddingService: embeddingService,
       vectorSearchService: vectorSearchService,
+      documentResolverService: documentResolverService,
       promptBuilderService: promptBuilderService,
       llmClient: llmClient,
+      queryRewriteService: queryRewriteService,
+      multiQueryExpansionService: multiQueryExpansionService,
     );
     return _ragService!;
   }
@@ -226,6 +282,7 @@ class ServiceLocator {
     await customTagService.initialize();
     await embeddingService.initialize();
     await llmClient.initialize();
+    await rewriteLlmClient.initialize();
     await chatService.initialize();
   }
 
@@ -255,6 +312,9 @@ class ServiceLocator {
     _documentResolverService = null;
     _promptBuilderService = null;
     _llmClient = null;
+    _rewriteLlmClient = null;
+    _queryRewriteService = null;
+    _multiQueryExpansionService = null;
     _ragService = null;
   }
 }

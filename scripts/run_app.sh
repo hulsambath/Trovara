@@ -9,6 +9,8 @@ PROJECT="trovara"
 ENVIRONMENT=""
 PLATFORM=""
 DECRYPT_CREDENTIALS=true
+# Run mode: debug (default), profile, or release. Can be overridden via RUN_MODE env var.
+RUN_MODE="${RUN_MODE:-debug}"
 
 # Colors for output
 RED='\033[0;31m'
@@ -140,6 +142,7 @@ show_summary() {
 
   echo -e "${BLUE}📱 Platform:${NC} $PLATFORM_NAME"
   echo -e "${BLUE}🔧 Environment:${NC} $ENVIRONMENT"
+  echo -e "${BLUE}🏃 Run mode:${NC} $RUN_MODE"
   echo ""
   echo "  1) Start/Run"
   echo "  2) Change Configuration"
@@ -270,7 +273,7 @@ fi
 print_step "📋 Using config: $CONFIG_FILE"
 
 # Prepare Flutter command
-FLUTTER_CMD="flutter run --release --dart-define-from-file=$CONFIG_FILE"
+FLUTTER_CMD="flutter run --dart-define-from-file=$CONFIG_FILE"
 
 # Use the flavor-specific entry point if it exists (e.g. lib/main_staging.dart)
 ENTRY_POINT="lib/main_${ENVIRONMENT}.dart"
@@ -287,6 +290,19 @@ fi
 if [[ -z "$PLATFORM" ]]; then
   FLUTTER_CMD="$FLUTTER_CMD --flavor $ENVIRONMENT"
 fi
+
+# Apply run mode (debug/profile/release). Default is debug (no flag).
+case "$RUN_MODE" in
+  release)
+    FLUTTER_CMD="$FLUTTER_CMD --release"
+    ;;
+  profile)
+    FLUTTER_CMD="$FLUTTER_CMD --profile"
+    ;;
+  debug|*)
+    # Default Flutter run mode is debug; no extra flag needed.
+    ;;
+esac
 
 print_step "📱 Running Flutter app..."
 

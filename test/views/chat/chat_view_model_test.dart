@@ -8,8 +8,10 @@ import 'package:trovara/core/services/chat_service.dart';
 import 'package:trovara/core/services/document_resolver_service.dart';
 import 'package:trovara/core/services/embedding_service.dart';
 import 'package:trovara/core/services/llm_client.dart';
+import 'package:trovara/core/services/multi_query_expansion_service.dart';
 import 'package:trovara/core/services/note_service.dart';
 import 'package:trovara/core/services/prompt_builder_service.dart';
+import 'package:trovara/core/services/query_rewrite_service.dart';
 import 'package:trovara/core/services/rag_service.dart';
 import 'package:trovara/core/services/vector_search_service.dart';
 import 'package:trovara/models/chat_message.dart';
@@ -269,12 +271,17 @@ class _FakeRagService extends RagService {
        super(
          embeddingService: EmbeddingService(embeddingRepository: _StubEmbeddingRepo(), apiKey: 'fake'),
          vectorSearchService: VectorSearchService(repository: _StubEmbeddingRepo()),
+         documentResolverService: DocumentResolverService(
+           noteService: NoteService(noteRepository: _StubNoteRepo(), folderRepository: _StubFolderRepo()),
+         ),
          promptBuilderService: PromptBuilderService(
            documentResolver: DocumentResolverService(
              noteService: NoteService(noteRepository: _StubNoteRepo(), folderRepository: _StubFolderRepo()),
            ),
          ),
          llmClient: LlmClient(apiKey: 'fake'),
+         queryRewriteService: QueryRewriteService(llmClient: LlmClient(apiKey: 'fake')),
+         multiQueryExpansionService: MultiQueryExpansionService(llmClient: LlmClient(apiKey: 'fake')),
        );
 
   @override

@@ -5,8 +5,10 @@ import 'package:trovara/core/repository/interfaces/note_repository.dart';
 import 'package:trovara/core/services/document_resolver_service.dart';
 import 'package:trovara/core/services/embedding_service.dart';
 import 'package:trovara/core/services/llm_client.dart';
+import 'package:trovara/core/services/multi_query_expansion_service.dart';
 import 'package:trovara/core/services/note_service.dart';
 import 'package:trovara/core/services/prompt_builder_service.dart';
+import 'package:trovara/core/services/query_rewrite_service.dart';
 import 'package:trovara/core/services/rag_service.dart';
 import 'package:trovara/core/services/vector_search_service.dart';
 import 'package:trovara/models/folder.dart';
@@ -245,6 +247,34 @@ class FakeLlmClient extends LlmClient {
   }
 }
 
+class FakeQueryRewriteService extends QueryRewriteService {
+  final String Function(String) _fn;
+  int calls = 0;
+  FakeQueryRewriteService({required String Function(String) rewriteFn})
+    : _fn = rewriteFn,
+      super(llmClient: FakeLlmClient());
+
+  @override
+  Future<String> rewrite(String userQuery) async {
+    calls++;
+    return _fn(userQuery);
+  }
+}
+
+class FakeMultiQueryExpansionService extends MultiQueryExpansionService {
+  final List<String> Function(String) _fn;
+  int calls = 0;
+  FakeMultiQueryExpansionService({required List<String> Function(String) expandFn})
+    : _fn = expandFn,
+      super(llmClient: FakeLlmClient());
+
+  @override
+  Future<List<String>> expand(String rewrittenQuery, {int count = 3}) async {
+    calls++;
+    return _fn(rewrittenQuery);
+  }
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 //  Test Helpers
 // ═══════════════════════════════════════════════════════════════════════════
@@ -286,7 +316,8 @@ NoteEmbedding _makeEmbedding({
 /// The [queryVector] is what the fake embedding service returns for any query.
 /// The [llmResponse] is what the fake LLM returns.
 /// Returns the service along with the fake LLM client for assertions.
-({RagService service, FakeLlmClient llm}) _buildRagService({
+({RagService service, FakeLlmClient llm, FakeQueryRewriteService rewrite, FakeMultiQueryExpansionService expand})
+_buildRagService({
   required StubNoteRepository noteRepo,
   required StubFolderRepository folderRepo,
   required StubEmbeddingRepository embeddingRepo,
@@ -301,15 +332,20 @@ NoteEmbedding _makeEmbedding({
   final promptBuilder = PromptBuilderService(documentResolver: docResolver);
 
   final fakeLlm = FakeLlmClient(response: llmResponse, shouldThrow: llmShouldThrow);
+  final rewrite = FakeQueryRewriteService(rewriteFn: (q) => q);
+  final expand = FakeMultiQueryExpansionService(expandFn: (q) => [q]);
 
   final service = RagService(
     embeddingService: embeddingService,
     vectorSearchService: vectorSearch,
+    documentResolverService: docResolver,
     promptBuilderService: promptBuilder,
     llmClient: fakeLlm,
+    queryRewriteService: rewrite,
+    multiQueryExpansionService: expand,
   );
 
-  return (service: service, llm: fakeLlm);
+  return (service: service, llm: fakeLlm, rewrite: rewrite, expand: expand);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -361,7 +397,13 @@ void main() {
 
   group('RagService.query', () {
     test('returns error when embedding fails', () async {
-      final (:service, :llm) = _buildRagService(
+      final note = _makeNote(id: 1, title: 'Seed');
+      noteRepo.seed([note]);
+      embeddingRepo.seed([
+        _makeEmbedding(noteId: 1, vector: [0.5, 0.5, 0.5]),
+      ]);
+
+      final (:service, :llm, rewrite: _, expand: _) = _buildRagService(
         noteRepo: noteRepo,
         folderRepo: folderRepo,
         embeddingRepo: embeddingRepo,
@@ -378,7 +420,7 @@ void main() {
 
     test('returns message when no chunks match', () async {
       // No embeddings in repository → search returns empty
-      final (:service, :llm) = _buildRagService(
+      final (:service, :llm, rewrite: _, expand: _) = _buildRagService(
         noteRepo: noteRepo,
         folderRepo: folderRepo,
         embeddingRepo: embeddingRepo,
@@ -399,7 +441,7 @@ void main() {
         _makeEmbedding(noteId: 1, vector: [0.5, 0.5, 0.5]),
       ]);
 
-      final (:service, :llm) = _buildRagService(
+      final (:service, :llm, rewrite: _, expand: _) = _buildRagService(
         noteRepo: noteRepo,
         folderRepo: folderRepo,
         embeddingRepo: embeddingRepo,
@@ -419,7 +461,7 @@ void main() {
         _makeEmbedding(noteId: 1, chunkText: 'Meditated for 20 minutes', vector: [0.5, 0.5, 0.5]),
       ]);
 
-      final (:service, :llm) = _buildRagService(
+      final (:service, :llm, rewrite: _, expand: _) = _buildRagService(
         noteRepo: noteRepo,
         folderRepo: folderRepo,
         embeddingRepo: embeddingRepo,
@@ -433,7 +475,8 @@ void main() {
       expect(result.sourceNoteTitles, contains('Morning Meditation'));
       expect(result.matchedChunks, equals(1));
       expect(result.prompt, isNotEmpty);
-      expect(result.prompt, contains('Morning Meditation'));
+      expect(result.prompt, contains('Question:'));
+      expect(result.prompt, contains('Information:'));
       expect(llm.generateCalled, isTrue);
     });
 
@@ -450,7 +493,7 @@ void main() {
         _makeEmbedding(noteId: 2, chunkText: 'chunk B', vector: [0.95, 0.3, 0.0]),
       ]);
 
-      final (:service, llm: _) = _buildRagService(
+      final (:service, llm: _, rewrite: _, expand: _) = _buildRagService(
         noteRepo: noteRepo,
         folderRepo: folderRepo,
         embeddingRepo: embeddingRepo,
@@ -472,7 +515,7 @@ void main() {
         _makeEmbedding(noteId: 1, vector: [0.5, 0.5, 0.5]),
       ]);
 
-      final (:service, llm: _) = _buildRagService(
+      final (:service, llm: _, rewrite: _, expand: _) = _buildRagService(
         noteRepo: noteRepo,
         folderRepo: folderRepo,
         embeddingRepo: embeddingRepo,
@@ -488,7 +531,7 @@ void main() {
       expect(result.prompt, isNotEmpty);
     });
 
-    test('respects maxNotes parameter', () async {
+    test('ignores maxNotes parameter in single-turn mode', () async {
       final notes = List.generate(10, (i) => _makeNote(id: i + 1, title: 'Note ${i + 1}'));
       noteRepo.seed(notes);
       for (final n in notes) {
@@ -497,16 +540,17 @@ void main() {
         ]);
       }
 
-      final (:service, llm: _) = _buildRagService(
+      final (:service, llm: _, rewrite: _, expand: _) = _buildRagService(
         noteRepo: noteRepo,
         folderRepo: folderRepo,
         embeddingRepo: embeddingRepo,
         queryVector: [0.5, 0.5, 0.5],
       );
 
-      final result = await service.query('test', maxNotes: 3);
+      final a = await service.query('test', maxNotes: 1);
+      final b = await service.query('test', maxNotes: 10);
 
-      expect(result.sourceNoteTitles.length, lessThanOrEqualTo(3));
+      expect(a.sourceNoteTitles, equals(b.sourceNoteTitles));
     });
 
     test('prompt contains user question', () async {
@@ -516,7 +560,7 @@ void main() {
         _makeEmbedding(noteId: 1, vector: [0.5, 0.5, 0.5]),
       ]);
 
-      final (:service, :llm) = _buildRagService(
+      final (:service, :llm, rewrite: _, expand: _) = _buildRagService(
         noteRepo: noteRepo,
         folderRepo: folderRepo,
         embeddingRepo: embeddingRepo,
@@ -525,7 +569,59 @@ void main() {
 
       await service.query('What about meditation?');
 
-      expect(llm.lastPrompt, contains('User question: What about meditation?'));
+      expect(llm.lastPrompt, contains('Question:'));
+      expect(llm.lastPrompt, contains('What about meditation?'));
+    });
+
+    test('invokes query rewrite and multi-query expansion', () async {
+      final note = _makeNote(id: 1, title: 'Note');
+      noteRepo.seed([note]);
+      embeddingRepo.seed([
+        _makeEmbedding(noteId: 1, chunkText: 'Meditated for 20 minutes', vector: [0.5, 0.5, 0.5]),
+      ]);
+
+      final (:service, :rewrite, :expand, llm: _) = _buildRagService(
+        noteRepo: noteRepo,
+        folderRepo: folderRepo,
+        embeddingRepo: embeddingRepo,
+        queryVector: [0.5, 0.5, 0.5],
+      );
+
+      await service.query('meditation?');
+
+      expect(rewrite.calls, equals(1));
+      expect(expand.calls, equals(1));
+    });
+
+    test('rrfFuse selects expected top-3 from 3×5 pools', () {
+      // Three ranked lists (5 each). Key format is noteId:chunkIndex.
+      final q1 = ['1:0', '2:0', '3:0', '4:0', '5:0'];
+      final q2 = ['2:0', '6:0', '7:0', '1:0', '8:0'];
+      final q3 = ['9:0', '2:0', '10:0', '1:0', '11:0'];
+
+      // Similarities only matter for tie-breaks; provide a deterministic map.
+      final sim = <String, double>{
+        for (final k in {...q1, ...q2, ...q3}) k: 0.5,
+      };
+
+      final fused = RagService.rrfFuse(rankedKeysPerQuery: [q1, q2, q3], similarityByKey: sim);
+      final top3 = fused.take(3).map((e) => e.key).toList();
+
+      // `2:0` appears very high across lists, `1:0` appears in all lists,
+      // and `9:0` wins as the strongest single-list head among remaining candidates.
+      expect(top3, equals(['2:0', '1:0', '9:0']));
+    });
+
+    test('rrfFuse tie-breaks by noteId asc then chunkIndex asc', () {
+      final q1 = ['2:1', '1:2'];
+      final q2 = ['1:2', '2:1'];
+      final sim = {'1:2': 0.5, '2:1': 0.5};
+
+      final fused = RagService.rrfFuse(rankedKeysPerQuery: [q1, q2], similarityByKey: sim);
+
+      // RRF ties and similarity ties → noteId asc decides.
+      expect(fused.first.key, equals('1:2'));
+      expect(fused[1].key, equals('2:1'));
     });
   });
 
@@ -534,32 +630,36 @@ void main() {
   // ─────────────────────────────────────────────────────────────────────────
 
   group('RagService.queryStream', () {
-    test('throws error when embedding fails', () async {
-      final (:service, llm: _) = _buildRagService(
+    test('emits error message when embedding fails', () async {
+      final note = _makeNote(id: 1, title: 'Seed');
+      noteRepo.seed([note]);
+      embeddingRepo.seed([
+        _makeEmbedding(noteId: 1, vector: [0.5, 0.5, 0.5]),
+      ]);
+
+      final (:service, llm: _, rewrite: _, expand: _) = _buildRagService(
         noteRepo: noteRepo,
         folderRepo: folderRepo,
         embeddingRepo: embeddingRepo,
         queryVector: null,
       );
 
-      await expectLater(
-        service.queryStream('test').toList(),
-        throwsA(isA<RagQueryException>().having((e) => e.message, 'message', contains('unable to process'))),
-      );
+      final chunks = await service.queryStream('test').toList();
+      expect(chunks.length, equals(1));
+      expect(chunks.first, contains('unable to process'));
     });
 
-    test('throws error when no results found', () async {
-      final (:service, llm: _) = _buildRagService(
+    test('emits error message when no results found (no indexed notes)', () async {
+      final (:service, llm: _, rewrite: _, expand: _) = _buildRagService(
         noteRepo: noteRepo,
         folderRepo: folderRepo,
         embeddingRepo: embeddingRepo,
         queryVector: [0.5, 0.5, 0.5],
       );
 
-      await expectLater(
-        service.queryStream('test').toList(),
-        throwsA(isA<RagQueryException>().having((e) => e.message, 'message', contains("haven't been indexed"))),
-      );
+      final chunks = await service.queryStream('test').toList();
+      expect(chunks.length, equals(1));
+      expect(chunks.first, contains("haven't been indexed"));
     });
 
     test('streams answer tokens', () async {
@@ -569,7 +669,7 @@ void main() {
         _makeEmbedding(noteId: 1, vector: [0.5, 0.5, 0.5]),
       ]);
 
-      final (:service, llm: _) = _buildRagService(
+      final (:service, llm: _, rewrite: _, expand: _) = _buildRagService(
         noteRepo: noteRepo,
         folderRepo: folderRepo,
         embeddingRepo: embeddingRepo,
@@ -587,14 +687,14 @@ void main() {
       expect(combined, contains('word3'));
     });
 
-    test('throws error when LLM stream fails', () async {
+    test('emits error message when LLM stream fails', () async {
       final note = _makeNote(id: 1, title: 'Note');
       noteRepo.seed([note]);
       embeddingRepo.seed([
         _makeEmbedding(noteId: 1, vector: [0.5, 0.5, 0.5]),
       ]);
 
-      final (:service, llm: _) = _buildRagService(
+      final (:service, llm: _, rewrite: _, expand: _) = _buildRagService(
         noteRepo: noteRepo,
         folderRepo: folderRepo,
         embeddingRepo: embeddingRepo,
@@ -602,10 +702,9 @@ void main() {
         llmShouldThrow: true,
       );
 
-      await expectLater(
-        service.queryStream('test').toList(),
-        throwsA(isA<RagQueryException>().having((e) => e.message, 'message', contains('something went wrong'))),
-      );
+      final chunks = await service.queryStream('test').toList();
+      expect(chunks.length, equals(1));
+      expect(chunks.first, contains('something went wrong'));
     });
   });
 
@@ -615,7 +714,7 @@ void main() {
 
   group('RagService.getSourceTitles', () {
     test('returns empty when embedding fails', () async {
-      final (:service, llm: _) = _buildRagService(
+      final (:service, llm: _, rewrite: _, expand: _) = _buildRagService(
         noteRepo: noteRepo,
         folderRepo: folderRepo,
         embeddingRepo: embeddingRepo,
@@ -633,7 +732,7 @@ void main() {
         _makeEmbedding(noteId: 1, vector: [0.5, 0.5, 0.5]),
       ]);
 
-      final (:service, llm: _) = _buildRagService(
+      final (:service, llm: _, rewrite: _, expand: _) = _buildRagService(
         noteRepo: noteRepo,
         folderRepo: folderRepo,
         embeddingRepo: embeddingRepo,
@@ -651,7 +750,7 @@ void main() {
 
   group('isAvailable', () {
     test('returns true when both services are available', () {
-      final (:service, llm: _) = _buildRagService(
+      final (:service, llm: _, rewrite: _, expand: _) = _buildRagService(
         noteRepo: noteRepo,
         folderRepo: folderRepo,
         embeddingRepo: embeddingRepo,
