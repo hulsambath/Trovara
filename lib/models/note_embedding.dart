@@ -31,6 +31,13 @@ class NoteEmbedding {
   /// Used to detect stale embeddings when the model is upgraded.
   String modelVersion;
 
+  /// Deterministic signature of the exact text passed to the embeddings
+  /// API (per note), including chunking parameters.
+  ///
+  /// Used to detect stale embeddings when the note content changes while
+  /// ignoring metadata-only `Note.updatedAt` churn.
+  String contentSignature;
+
   /// Timestamp when this embedding was generated.
   DateTime createdAt;
 
@@ -45,6 +52,7 @@ class NoteEmbedding {
     required this.chunkText,
     required this.embeddingData,
     required this.modelVersion,
+    this.contentSignature = '',
     DateTime? createdAt,
     required this.noteUpdatedAt,
   }) : createdAt = createdAt ?? DateTime.now();

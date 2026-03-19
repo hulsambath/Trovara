@@ -97,7 +97,7 @@ class ServiceLocator {
           provider: EmbeddingProvider.openAiCompatible,
           baseUrl: 'https://api.openai.com/v1',
           apiKey: ConfigConstants.openAiApiKey,
-          modelName: 'text-embedding-3-small',
+          modelName: 'text-embedding-3-small:v1',
         );
       } else {
         // Fallback to OpenRouter (default or empty)
