@@ -10,6 +10,7 @@ plugins {
 
 import java.util.Properties
 import java.io.FileInputStream
+import org.gradle.api.GradleException
 import org.gradle.api.Project
 
 // Function to determine credentials directory based on flavor
@@ -98,18 +99,6 @@ android {
         versionName = flutter.versionName
     }
 
-    flavorDimensions += "environment"
-    productFlavors {
-        create("staging") {
-            applicationIdSuffix = ".staging"
-            versionNameSuffix = "-staging"
-        }
-        create("prod") {
-            applicationIdSuffix = ""
-            versionNameSuffix = ""
-        }
-    }
-
     signingConfigs {
         if (stagingSigning.isComplete) {
             create("stagingRelease") {
@@ -135,28 +124,48 @@ android {
         }
     }
 
-    buildTypes {
-        release {
-            // Flavor-specific signing is applied below via productFlavors
-            signingConfig = signingConfigs.getByName("debug")
+    flavorDimensions += "environment"
+    productFlavors {
+        create("staging") {
+            applicationIdSuffix = ".staging"
+            versionNameSuffix = "-staging"
+            if (stagingSigning.isComplete) {
+                signingConfig = signingConfigs.getByName("stagingRelease")
+            }
         }
-        debug {
-            signingConfig = signingConfigs.getByName("debug")
+        create("prod") {
+            applicationIdSuffix = ""
+            versionNameSuffix = ""
+            if (prodSigning.isComplete) {
+                signingConfig = signingConfigs.getByName("prodRelease")
+            }
         }
     }
 
-    // Assign the correct signing config per flavor
-    productFlavors.configureEach {
-        val config = when (name) {
-            "prod" -> if (prodSigning.isComplete) signingConfigs.getByName("prodRelease") else null
-            else   -> if (stagingSigning.isComplete) signingConfigs.getByName("stagingRelease") else null
+    buildTypes {
+        release {
+            // Signing is set per product flavor (stagingRelease / prodRelease only). Do not fall back
+            // to the other flavor’s key here — that would sign `prod` builds with the staging keystore.
         }
-        if (config != null) {
-            signingConfig = config
+        debug {
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
 }
 
 flutter {
     source = "../.."
+}
+
+// Fail fast if `prod` release is built without prod credentials (avoids silently using staging key).
+gradle.taskGraph.whenReady {
+    if (prodSigning.isComplete) return@whenReady
+    val prodReleaseArtifacts = setOf("bundleProdRelease", "assembleProdRelease")
+    if (allTasks.any { it.name in prodReleaseArtifacts }) {
+        throw GradleException(
+            "Prod flavor requires prod signing. Add credentials at " +
+                "${project.getCredentialsDir("prod")}/keystore.properties " +
+                "(run: cd ../../credentials && ./scripts/generate-keystore.sh --project trovara --env prod).",
+        )
+    }
 }

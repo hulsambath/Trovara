@@ -51,6 +51,19 @@ class Note {
   List<String> timeTags;
   List<String> personalGrowthTags;
 
+  /// The platform this note was originally created or imported from.
+  ///
+  /// One of: 'trovara' | 'obsidian' | 'notion' | 'storypad' | 'manual'
+  /// Defaults to 'trovara' for notes created natively.
+  String source;
+
+  /// Internal link targets extracted from Obsidian [[wikilinks]] or
+  /// Notion @-mentions during import.
+  ///
+  /// Each entry is the raw link target string (e.g. `"Meeting Notes"`).
+  /// Used to preserve graph relationships for future RAG graph traversal.
+  List<String> internalLinks;
+
   Note({
     this.id = 0,
     String? syncId,
@@ -70,6 +83,8 @@ class Note {
     List<String>? activityTags,
     List<String>? timeTags,
     List<String>? personalGrowthTags,
+    this.source = 'trovara',
+    List<String>? internalLinks,
   }) : syncId = syncId ?? const Uuid().v4(),
        createdAt = createdAt ?? DateTime.now(),
        updatedAt = updatedAt ?? DateTime.now(),
@@ -77,11 +92,22 @@ class Note {
        moodTags = moodTags ?? [],
        activityTags = activityTags ?? [],
        timeTags = timeTags ?? [],
-       personalGrowthTags = personalGrowthTags ?? [];
+       personalGrowthTags = personalGrowthTags ?? [],
+       internalLinks = internalLinks ?? [];
 
   String get content => TextParserService.parseQuillContent(contentJson);
   int get wordCount => TextParserService.calculateWordCount(contentJson);
   int get characterCount => TextParserService.calculateCharacterCount(contentJson);
+
+  /// Flat list of all tag labels across every tag category.
+  /// Used by exporters to produce a unified frontmatter `tags:` list.
+  List<String> get allTags => [
+    ...moodTags,
+    ...activityTags,
+    ...timeTags,
+    ...personalGrowthTags,
+    ...customTagObjects.map((t) => t.name),
+  ];
 
   void toggleFavorite() {
     isFavorite = !isFavorite;
@@ -244,6 +270,8 @@ class Note {
     'activityTags': activityTags,
     'timeTags': timeTags,
     'personalGrowthTags': personalGrowthTags,
+    'source': source,
+    'internalLinks': internalLinks,
   };
 
   factory Note.fromJson(Map<String, dynamic> json) => Note(
@@ -267,6 +295,8 @@ class Note {
     activityTags: List<String>.from(json['activityTags'] as List? ?? []),
     timeTags: List<String>.from(json['timeTags'] as List? ?? []),
     personalGrowthTags: List<String>.from(json['personalGrowthTags'] as List? ?? []),
+    source: json['source'] as String? ?? 'trovara',
+    internalLinks: List<String>.from(json['internalLinks'] as List? ?? []),
   );
 
   @override

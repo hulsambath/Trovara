@@ -12,8 +12,8 @@ import 'package:trovara/core/repository/interfaces/custom_tag_repository.dart';
 import 'package:trovara/core/repository/interfaces/embedding_repository.dart';
 import 'package:trovara/core/repository/interfaces/folder_repository.dart';
 import 'package:trovara/core/repository/interfaces/note_repository.dart';
-import 'package:trovara/core/services/chat_drive_sync_service.dart';
-import 'package:trovara/core/services/chat_service.dart';
+import 'package:trovara/core/services/chat/chat_drive_sync_service.dart';
+import 'package:trovara/core/services/chat/chat_service.dart';
 import 'package:trovara/core/services/custom_tag_service.dart';
 import 'package:trovara/core/services/document_resolver_service.dart';
 import 'package:trovara/core/services/embedding_service.dart';
@@ -97,7 +97,7 @@ class ServiceLocator {
           provider: EmbeddingProvider.openAiCompatible,
           baseUrl: 'https://api.openai.com/v1',
           apiKey: ConfigConstants.openAiApiKey,
-          modelName: 'text-embedding-3-small:v1',
+          modelName: ConfigConstants.openAiEmbeddingModel,
         );
       } else {
         // Fallback to OpenRouter (default or empty)
@@ -231,6 +231,7 @@ class ServiceLocator {
       folderRepository: folderRepository,
       driveService: googleDriveService,
       embeddingService: embeddingService,
+      customTagService: customTagService,
     );
     return _noteService!;
   }

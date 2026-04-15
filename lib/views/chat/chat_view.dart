@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:trovara/core/base/view_model_provider.dart';
 import 'package:trovara/core/di/service_locator.dart';
-import 'package:trovara/core/services/chat_service.dart';
+import 'package:trovara/core/services/chat/chat_service.dart';
 import 'package:trovara/models/chat_message.dart';
 import 'package:trovara/models/chat_thread.dart';
 

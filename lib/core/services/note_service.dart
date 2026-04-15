@@ -3,8 +3,12 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trovara/core/import/adapters/storypad_adapter.dart';
+import 'package:trovara/core/import/converters/markdown_to_quill.dart';
+import 'package:trovara/core/import/import_adapter.dart';
 import 'package:trovara/core/repository/interfaces/folder_repository.dart';
 import 'package:trovara/core/repository/interfaces/note_repository.dart';
+import 'package:trovara/core/services/custom_tag_service.dart';
 import 'package:trovara/core/services/embedding_service.dart';
 import 'package:trovara/core/services/google_drive_service.dart';
 import 'package:trovara/models/folder.dart';
@@ -26,6 +30,7 @@ class NoteService {
   final IFolderRepository _folderRepository;
   final GoogleDriveService? _driveService;
   final EmbeddingService? _embeddingService;
+  final CustomTagService? _customTagService;
   final Logger _logger = Logger();
 
   NoteService({
@@ -33,10 +38,12 @@ class NoteService {
     required IFolderRepository folderRepository,
     GoogleDriveService? driveService,
     EmbeddingService? embeddingService,
+    CustomTagService? customTagService,
   }) : _noteRepository = noteRepository,
        _folderRepository = folderRepository,
        _driveService = driveService,
-       _embeddingService = embeddingService;
+       _embeddingService = embeddingService,
+       _customTagService = customTagService;
 
   /// Initialize both repositories
   Future<void> initialize() async {
@@ -76,6 +83,134 @@ class NoteService {
       'folders': folders,
       'deletedSyncIds': deletedSyncIds,
     };
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  //  Adapter-based import (Obsidian / Notion / Storypad / …)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// Import notes from any platform using the adapter pattern.
+  ///
+  /// Pipeline:
+  /// 1. [adapter.parse] → `List<ImportedNote>` (Markdown content)
+  /// 2. [MarkdownToQuillConverter.convert] → Quill Delta JSON
+  /// 3. Upsert into ObjectBox (syncId-based merge: local-wins or newer-wins)
+  /// 4. [EmbeddingService.reembedStaleNotes] (hash-gated, no wasted API calls)
+  ///
+  /// Returns an [ImportResult] with counts of created, updated, and skipped notes.
+  Future<ImportResult> importFromAdapter(
+    NoteImportAdapter adapter,
+    dynamic rawInput, {
+    String? targetFolderId,
+    bool verbose = false,
+  }) async {
+    _logger.i('importFromAdapter: adapter=${adapter.sourceName}');
+    final stopwatch = Stopwatch()..start();
+
+    final List<ImportedNote> importedNotes;
+    try {
+      importedNotes = await adapter.parse(rawInput);
+    } catch (e, st) {
+      _logger.e('importFromAdapter: parse failed adapter=${adapter.sourceName}: $e', error: e, stackTrace: st);
+      return const ImportResult(created: 0, updated: 0, skipped: 0, errors: ['Parse failed']);
+    }
+
+    _logger.i('importFromAdapter: parsed ${importedNotes.length} note(s) from ${adapter.sourceName}');
+
+    int created = 0, updated = 0, skipped = 0;
+    final errors = <String>[];
+    final deletedSyncIds = _loadDeletedSyncIds();
+
+    for (int i = 0; i < importedNotes.length; i++) {
+      final imported = importedNotes[i];
+      try {
+        // Convert Markdown → Quill Delta (internal format)
+        final contentJson = MarkdownToQuillConverter.convert(imported.markdownContent);
+
+        // Resolve ImportedNote.tags to persisted CustomTag IDs (if tag service available).
+        final importedCustomTagIds = await _resolveImportedCustomTagIds(imported.tags);
+
+        // Derive a stable syncId from the title + createdAt so re-imports
+        // don't create duplicates even for notes without an explicit id.
+        final stableCreatedAt = imported.createdAt ?? _syntheticCreatedAtForImport(imported);
+        final syncId = _deterministicSyncId(imported.title, stableCreatedAt);
+
+        // Tombstone check
+        if (deletedSyncIds.contains(syncId)) {
+          skipped++;
+          if (verbose) _logger.d('importFromAdapter: skipped (tombstone) title=${imported.title}');
+          continue;
+        }
+
+        final existing = _noteRepository.getNoteBySync(syncId);
+
+        if (existing != null) {
+          // Always merge imported tags into the existing note, even when we skip
+          // content updates due to timestamps. This keeps the UI promise that
+          // tags are preserved on re-import, without making the note look newer.
+          final mergedCustomTagIds = {...existing.customTagIds, ...importedCustomTagIds}.toList();
+          final tagsChanged = mergedCustomTagIds.length != existing.customTagIds.length;
+
+          // If the source doesn't provide updatedAt (common for plain Markdown),
+          // treat it as "no known modification time" rather than "updated now"
+          // so repeated imports don't clobber local edits.
+          final incomingUpdated = imported.updatedAt ?? imported.createdAt ?? stableCreatedAt;
+          if (incomingUpdated.isAfter(existing.updatedAt)) {
+            existing
+              ..title = imported.title
+              ..contentJson = contentJson
+              ..folderId = targetFolderId ?? imported.folderId ?? existing.folderId
+              ..source = adapter.sourceName
+              ..internalLinks = imported.internalLinks
+              ..customTagIds = mergedCustomTagIds
+              ..updatedAt = incomingUpdated;
+            await _noteRepository.updateNote(existing, preserveTimestamps: true);
+            updated++;
+            if (verbose) _logger.d('importFromAdapter: updated syncId=$syncId title=${imported.title}');
+          } else {
+            if (tagsChanged) {
+              existing.customTagIds = mergedCustomTagIds;
+              // Tag-only change: preserve timestamps and skip embedding refresh.
+              await updateNote(existing, skipEmbeddingRefresh: true, preserveTimestamps: true);
+            }
+            skipped++;
+            if (verbose) _logger.d('importFromAdapter: skipped (local newer) title=${imported.title}');
+          }
+        } else {
+          await createNoteWithTimestamps(
+            syncId: syncId,
+            title: imported.title,
+            contentJson: contentJson,
+            folderId: targetFolderId ?? imported.folderId ?? 'default',
+            customTagIds: importedCustomTagIds,
+            createdAt: stableCreatedAt,
+            updatedAt: imported.updatedAt ?? imported.createdAt ?? stableCreatedAt,
+            source: adapter.sourceName,
+            internalLinks: imported.internalLinks,
+          );
+          created++;
+          if (verbose) _logger.d('importFromAdapter: created syncId=$syncId title=${imported.title}');
+        }
+      } catch (e, st) {
+        errors.add('note[$i] title="${imported.title}": $e');
+        _logger.e('importFromAdapter: note failed index=$i title=${imported.title}: $e', error: e, stackTrace: st);
+      }
+    }
+
+    _logger.i(
+      'importFromAdapter complete adapter=${adapter.sourceName} '
+      'created=$created updated=$updated skipped=$skipped errors=${errors.length} '
+      'elapsedMs=${stopwatch.elapsedMilliseconds}',
+    );
+
+    // Hash-gated re-embed: only notes whose content actually changed are re-sent
+    try {
+      await _embeddingService?.reembedStaleNotes(_noteRepository.getActiveNotes());
+    } catch (e, st) {
+      _logger.e('importFromAdapter: post-import embedding failed: $e', error: e, stackTrace: st);
+    }
+
+    return ImportResult(created: created, updated: updated, skipped: skipped, errors: errors);
   }
 
   /// Import notes and folders from a JSON map. This performs an upsert.
@@ -292,15 +427,9 @@ class NoteService {
     }
   }
 
-  bool _looksLikeStorypadBackup(Map<String, dynamic> json) {
-    if (json.containsKey('notes') || json.containsKey('folders')) return false;
-    if (!json.containsKey('tables')) return false;
+  bool _looksLikeStorypadBackup(Map<String, dynamic> json) => _storypadAdapter.canHandle(json);
 
-    // Observed Storypad keyset: {meta_data, tables, version}
-    final hasMeta = json.containsKey('meta_data') || json.containsKey('metaData');
-    final hasVersion = json.containsKey('version');
-    return hasMeta || hasVersion;
-  }
+  final StorypadAdapter _storypadAdapter = StorypadAdapter();
 
   Map<String, dynamic> _convertStorypadBackupToTrovaraJson(
     Map<String, dynamic> storypadJson, {
@@ -884,6 +1013,8 @@ class NoteService {
     List<String>? activityTags,
     List<String>? timeTags,
     List<String>? personalGrowthTags,
+    String source = 'trovara',
+    List<String>? internalLinks,
   }) async {
     final note = await _noteRepository.createNoteWithTimestamps(
       syncId: syncId,
@@ -903,6 +1034,16 @@ class NoteService {
       timeTags: timeTags,
       personalGrowthTags: personalGrowthTags,
     );
+
+    // Apply new fields that the repository interface doesn't expose yet.
+    // This is intentionally a lightweight update (no embedding refresh,
+    // no timestamp change) — just persisting source + link metadata.
+    if (source != 'trovara' || (internalLinks != null && internalLinks.isNotEmpty)) {
+      note
+        ..source = source
+        ..internalLinks = internalLinks ?? [];
+      await _noteRepository.updateNote(note, preserveTimestamps: true);
+    }
 
     // Only bump folder count for active notes.
     if (!isDeleted) {
@@ -1312,6 +1453,47 @@ class NoteService {
   DateTime _parseCreatedAtStable(Map<String, dynamic> note) {
     final raw = note['createdAt'] as String? ?? '';
     return DateTime.tryParse(raw) ?? DateTime.utc(1970, 1, 1);
+  }
+
+  /// When adapter imports omit timestamps (common for plain Markdown),
+  /// we still need a deterministic createdAt to build a stable syncId.
+  /// This must never depend on wall-clock time.
+  DateTime _syntheticCreatedAtForImport(ImportedNote imported) {
+    // Include title + body so two untimestamped notes with the same title
+    // don't automatically collide.
+    final seed = '${imported.title.trim()}\n${imported.markdownContent}';
+    final seconds = _stableHash32(seed);
+    return DateTime.utc(1970, 1, 1).add(Duration(seconds: seconds));
+  }
+
+  /// Simple deterministic non-crypto 32-bit hash (FNV-1a).
+  int _stableHash32(String input) {
+    const int fnvOffset = 0x811C9DC5;
+    const int fnvPrime = 0x01000193;
+    int hash = fnvOffset;
+    for (final unit in utf8.encode(input)) {
+      hash ^= unit;
+      hash = (hash * fnvPrime) & 0xFFFFFFFF;
+    }
+    // Keep in signed int range but deterministic.
+    return hash & 0x7FFFFFFF;
+  }
+
+  Future<List<int>> _resolveImportedCustomTagIds(List<String> rawTags) async {
+    if (rawTags.isEmpty) return const [];
+    final svc = _customTagService;
+    if (svc == null) return const [];
+
+    final normalized = rawTags.map((t) => t.replaceAll('#', '').trim()).where((t) => t.isNotEmpty).toSet().toList();
+
+    if (normalized.isEmpty) return const [];
+
+    final ids = <int>[];
+    for (final name in normalized) {
+      final tag = await svc.createOrGetCustomTag(name);
+      ids.add(tag.id);
+    }
+    return ids;
   }
 
   /// One-time migration: assign and persist a deterministic syncId for any note

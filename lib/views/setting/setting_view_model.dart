@@ -1,14 +1,19 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
+import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:trovara/core/base/base_view_model.dart';
 import 'package:trovara/core/di/service_locator.dart';
+import 'package:trovara/core/export/exporters/markdown_exporter.dart';
+import 'package:trovara/core/import/adapters/notion_adapter.dart';
+import 'package:trovara/core/import/adapters/obsidian_adapter.dart';
 import 'package:trovara/core/services/google_drive_service.dart';
 import 'package:trovara/core/services/google_drive_sync_service.dart';
 import 'package:trovara/core/services/note_service.dart';
@@ -36,7 +41,6 @@ class SettingViewModel extends BaseViewModel {
   }
 
   Future<void> _refreshAccount() async {
-    // Try to get from current user first, then fallback to stored values
     final currentUser = _driveService.currentUser;
     if (currentUser != null) {
       _accountName = currentUser.displayName;
@@ -50,16 +54,18 @@ class SettingViewModel extends BaseViewModel {
     notifyListeners();
   }
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  Google account
+  // ═══════════════════════════════════════════════════════════════════════════
+
   Future<void> signInGoogle(BuildContext context) async {
     try {
       await _driveService.signIn();
       NmToast.success(context, 'Google sign-in complete');
       await _refreshAccount();
-      // Automatically sync data after successful sign-in
       await _autoSyncAfterSignIn(context);
     } catch (e) {
       String errorMessage = 'Google sign-in failed';
-
       if (e.toString().contains('network') || e.toString().contains('connection')) {
         errorMessage = 'Network error. Please check your internet connection.';
       } else if (e.toString().contains('cancelled')) {
@@ -67,52 +73,32 @@ class SettingViewModel extends BaseViewModel {
       } else {
         errorMessage = 'Sign-in failed: ${e.toString().split(':').last.trim()}';
       }
-
       NmToast.error(context, errorMessage);
     }
   }
 
-  /// Automatically sync data after successful sign-in
   Future<void> _autoSyncAfterSignIn(BuildContext context) async {
     try {
-      // Step 1: Pull data from Google Drive
       final driveData = await _driveService.downloadJsonFromAppData('trovara_backup.json');
-
-      // Step 2: Merge local and remote data
       Map<String, dynamic> mergedData;
       if (driveData != null) {
-        // Merge local and remote data
         mergedData = await _noteService.mergeWithRemoteData(driveData);
-
-        // Apply the merged data locally
         await _noteService.importAllFromJson(mergedData, source: 'google-drive-auto-sync', verbose: false);
-
-        // Step 3: Push merged data to Google Drive
         await _driveService.uploadJsonToAppData(fileName: 'trovara_backup.json', json: mergedData);
-
         NmToast.success(context, 'Data automatically synced from Google Drive');
       } else {
-        // No remote data exists, backup local data
         final localData = _noteService.exportAllToJson();
         await _driveService.uploadJsonToAppData(fileName: 'trovara_backup.json', json: localData);
-
         NmToast.success(context, 'Local data backed up to Google Drive');
       }
     } catch (e) {
-      // Log the error but don't show to user for auto-sync failures
       if (kDebugMode) print('Auto-sync after sign-in failed: $e');
-      // Don't show error toast for auto-sync failures to avoid overwhelming the user
     }
   }
 
   Future<void> syncWithGoogleDrive(BuildContext context) async {
-    // Use the dedicated sync service with loading overlay and toast
     final result = await _syncService.syncWithLoadingOverlay(context);
-
-    // Refresh account info after sync
     await _refreshAccount();
-
-    // Show result toast
     _syncService.showSyncResultToast(context, result);
   }
 
@@ -126,6 +112,10 @@ class SettingViewModel extends BaseViewModel {
     }
   }
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  JSON Export / Import (original Trovara format)
+  // ═══════════════════════════════════════════════════════════════════════════
+
   Future<void> exportToFile(BuildContext context) async {
     String? successMessage;
     String? errorMessage;
@@ -133,13 +123,11 @@ class SettingViewModel extends BaseViewModel {
     await NmLoadingOverlay.showProcessing(context, () async {
       try {
         String? targetPath;
-        // Prefer native save dialog on desktop/web
         try {
           final saveLocation = await getSaveLocation(suggestedName: 'trovara_export.json');
           if (saveLocation != null) targetPath = saveLocation.path;
         } catch (_) {}
 
-        // On mobile let user pick a folder via FilePicker if available
         if (targetPath == null) {
           try {
             final dir = await FilePicker.platform.getDirectoryPath(dialogTitle: 'Choose folder to save export');
@@ -147,7 +135,6 @@ class SettingViewModel extends BaseViewModel {
           } catch (_) {}
         }
 
-        // Fallback to app documents if user cancels
         targetPath ??= '${(await getApplicationDocumentsDirectory()).path}/trovara_export.json';
 
         final jsonMap = _noteService.exportAllToJson();
@@ -160,12 +147,8 @@ class SettingViewModel extends BaseViewModel {
       }
     });
 
-    // Show toast after loading dialog is dismissed
-    if (successMessage != null) {
-      NmToast.success(context, successMessage!);
-    } else if (errorMessage != null) {
-      NmToast.error(context, errorMessage!);
-    }
+    if (successMessage != null) NmToast.success(context, successMessage!);
+    if (errorMessage != null) NmToast.error(context, errorMessage!);
   }
 
   Future<void> importFromFile(BuildContext context) async {
@@ -174,26 +157,49 @@ class SettingViewModel extends BaseViewModel {
 
     await NmLoadingOverlay.showProcessing(context, () async {
       try {
-        String? path;
+        String? jsonText;
+        String? pickedPath;
+
         try {
-          final typeGroup = const XTypeGroup(label: 'json', extensions: ['json']);
+          final typeGroup = const XTypeGroup(
+            label: 'JSON',
+            extensions: ['json', 'JSON'],
+            mimeTypes: ['application/json', 'text/json'],
+            uniformTypeIdentifiers: ['public.json'],
+          );
           final picked = await openFile(acceptedTypeGroups: [typeGroup]);
-          path = picked?.path;
+          if (picked != null) {
+            pickedPath = picked.path;
+            jsonText = await picked.readAsString();
+          }
         } catch (_) {}
 
-        if (path == null) {
+        if (jsonText == null) {
           try {
-            final result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['json']);
-            path = result?.files.single.path;
+            final result = await FilePicker.platform.pickFiles(
+              type: FileType.custom,
+              allowedExtensions: const ['json', 'JSON'],
+              withData: true,
+            );
+            if (result != null && result.files.isNotEmpty) {
+              final f = result.files.single;
+              pickedPath = f.path;
+              if (f.bytes != null) {
+                jsonText = utf8.decode(f.bytes!);
+              } else if (f.path != null) {
+                jsonText = await XFile(f.path!).readAsString();
+              }
+            }
           } catch (_) {}
         }
 
-        path ??= '${(await getApplicationDocumentsDirectory()).path}/trovara_export.json';
+        if (jsonText == null) {
+          return;
+        }
 
-        final text = await XFile(path).readAsString();
-        _logger.i('Import file selected: path=$path chars=${text.length}');
+        _logger.i('Import file selected: path=$pickedPath chars=${jsonText.length}');
 
-        final decoded = jsonDecode(text);
+        final decoded = jsonDecode(jsonText);
         if (decoded is! Map<String, dynamic>) {
           throw FormatException('Expected top-level JSON object, got ${decoded.runtimeType}');
         }
@@ -211,13 +217,165 @@ class SettingViewModel extends BaseViewModel {
       }
     });
 
-    // Show toast after loading dialog is dismissed
-    if (successMessage != null) {
-      NmToast.success(context, successMessage!);
-    } else if (errorMessage != null) {
-      NmToast.error(context, errorMessage!);
-    }
+    if (successMessage != null) NmToast.success(context, successMessage!);
+    if (errorMessage != null) NmToast.error(context, errorMessage!);
   }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  Markdown Export (Obsidian-compatible)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  Future<void> exportAsMarkdown(BuildContext context) async {
+    String? successMessage;
+    String? errorMessage;
+
+    await NmLoadingOverlay.show(context, () async {
+      try {
+        String? targetPath;
+        try {
+          final saveLocation = await getSaveLocation(
+            suggestedName: 'trovara_notes.md',
+            acceptedTypeGroups: [
+              const XTypeGroup(label: 'Markdown', extensions: ['md']),
+            ],
+          );
+          if (saveLocation != null) targetPath = saveLocation.path;
+        } catch (_) {}
+
+        if (targetPath == null) {
+          try {
+            final dir = await FilePicker.platform.getDirectoryPath(
+              dialogTitle: 'Choose folder to save Markdown export',
+            );
+            if (dir != null) targetPath = '$dir/trovara_notes.md';
+          } catch (_) {}
+        }
+
+        targetPath ??= '${(await getApplicationDocumentsDirectory()).path}/trovara_notes.md';
+
+        final notes = _noteService.notes.where((n) => !n.isDeleted).toList();
+        final markdown = MarkdownExporter.exportNotes(notes);
+        final data = utf8.encode(markdown);
+        final file = XFile.fromData(data, name: 'trovara_notes.md', mimeType: 'text/markdown');
+        await file.saveTo(targetPath);
+        successMessage = 'Exported ${notes.length} note(s) to $targetPath';
+      } catch (e) {
+        errorMessage = 'Markdown export failed: $e';
+      }
+    }, message: 'Exporting…');
+
+    if (successMessage != null && context.mounted) NmToast.success(context, successMessage!);
+    if (errorMessage != null && context.mounted) NmToast.error(context, errorMessage!);
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  Obsidian Import
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  Future<void> importFromObsidian(BuildContext context) async {
+    // Pick multiple .md files (simulates vault folder selection)
+    List<PlatformFile>? pickedFiles;
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['md'],
+        allowMultiple: true,
+        dialogTitle: 'Select Obsidian vault Markdown files',
+      );
+      pickedFiles = result?.files;
+    } catch (e) {
+      NmToast.error(context, 'Could not open file picker: $e');
+      return;
+    }
+
+    if (pickedFiles == null || pickedFiles.isEmpty) return;
+    final picked = pickedFiles;
+
+    String? successMessage;
+    String? errorMessage;
+
+    await NmLoadingOverlay.show(context, () async {
+      try {
+        // Build the {path, content} list the adapter expects
+        final files = <Map<String, dynamic>>[];
+        final baseDir = _commonBaseDir(picked.map((pf) => pf.path).whereType<String>().toList());
+        for (final pf in picked) {
+          final absPath = pf.path;
+          if (absPath == null) continue;
+          final content = await File(absPath).readAsString();
+          files.add({'path': _relativePickedPath(absPath, baseDir, fallbackName: pf.name), 'content': content});
+        }
+
+        final adapter = ObsidianAdapter();
+        final result = await _noteService.importFromAdapter(adapter, files, verbose: kDebugMode);
+        successMessage =
+            'Obsidian import complete — '
+            '${result.created} created, ${result.updated} updated, ${result.skipped} skipped'
+            '${result.errors.isNotEmpty ? ', ${result.errors.length} error(s)' : ''}';
+      } catch (e) {
+        errorMessage = 'Obsidian import failed: $e';
+      }
+    }, message: 'Importing Obsidian vault…');
+
+    if (successMessage != null && context.mounted) NmToast.success(context, successMessage!);
+    if (errorMessage != null && context.mounted) NmToast.error(context, errorMessage!);
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  Notion Import
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  Future<void> importFromNotion(BuildContext context) async {
+    // Pick .md files from a Notion export
+    List<PlatformFile>? pickedFiles;
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['md', 'csv'],
+        allowMultiple: true,
+        dialogTitle: 'Select Notion export files (.md and .csv)',
+      );
+      pickedFiles = result?.files;
+    } catch (e) {
+      NmToast.error(context, 'Could not open file picker: $e');
+      return;
+    }
+
+    if (pickedFiles == null || pickedFiles.isEmpty) return;
+    final picked = pickedFiles;
+
+    String? successMessage;
+    String? errorMessage;
+
+    await NmLoadingOverlay.show(context, () async {
+      try {
+        final files = <Map<String, dynamic>>[];
+        final baseDir = _commonBaseDir(picked.map((pf) => pf.path).whereType<String>().toList());
+        for (final pf in picked) {
+          final absPath = pf.path;
+          if (absPath == null) continue;
+          final content = await File(absPath).readAsString();
+          files.add({'path': _relativePickedPath(absPath, baseDir, fallbackName: pf.name), 'content': content});
+        }
+
+        final adapter = NotionAdapter();
+        final result = await _noteService.importFromAdapter(adapter, files, verbose: kDebugMode);
+        successMessage =
+            'Notion import complete — '
+            '${result.created} created, ${result.updated} updated, ${result.skipped} skipped'
+            '${result.errors.isNotEmpty ? ', ${result.errors.length} error(s)' : ''}';
+      } catch (e) {
+        errorMessage = 'Notion import failed: $e';
+      }
+    }, message: 'Importing Notion export…');
+
+    if (successMessage != null && context.mounted) NmToast.success(context, successMessage!);
+    if (errorMessage != null && context.mounted) NmToast.error(context, errorMessage!);
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  Search index
+  // ═══════════════════════════════════════════════════════════════════════════
 
   Future<void> reembedAllNotes(BuildContext context) async {
     String? successMessage;
@@ -226,8 +384,6 @@ class SettingViewModel extends BaseViewModel {
     await NmLoadingOverlay.showProcessing(context, () async {
       try {
         final embeddingService = ServiceLocator().embeddingService;
-        // If embeddings are not available (e.g., no API key / not initialized),
-        // avoid reporting success and show an actionable error instead.
         if (!embeddingService.isAvailable) {
           errorMessage = 'Embeddings are not configured. Please set up an embeddings API key before re-indexing notes.';
           return;
@@ -240,15 +396,52 @@ class SettingViewModel extends BaseViewModel {
       }
     });
 
-    if (successMessage != null && context.mounted) {
-      NmToast.success(context, successMessage!);
-    } else if (errorMessage != null && context.mounted) {
-      NmToast.error(context, errorMessage!);
-    }
+    if (successMessage != null && context.mounted) NmToast.success(context, successMessage!);
+    if (errorMessage != null && context.mounted) NmToast.error(context, errorMessage!);
   }
 
-  /// Open the Recently Deleted notes screen.
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  Navigation
+  // ═══════════════════════════════════════════════════════════════════════════
+
   void openRecentlyDeleted(BuildContext context) {
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => const TrashView()));
+  }
+
+  /// Compute a stable base directory shared by all picked files so we can
+  /// pass adapters a relative path that preserves subfolder structure.
+  String? _commonBaseDir(List<String> absolutePaths) {
+    if (absolutePaths.isEmpty) return null;
+    final dirParts = absolutePaths.map((fp) => p.split(p.normalize(p.dirname(fp)))).toList();
+    if (dirParts.isEmpty) return null;
+
+    final first = dirParts.first;
+    int commonLen = first.length;
+    for (final parts in dirParts.skip(1)) {
+      commonLen = commonLen < parts.length ? commonLen : parts.length;
+      for (int i = 0; i < commonLen; i++) {
+        if (parts[i] != first[i]) {
+          commonLen = i;
+          break;
+        }
+      }
+      if (commonLen == 0) break;
+    }
+
+    if (commonLen == 0) return null;
+    return p.joinAll(first.take(commonLen));
+  }
+
+  String _relativePickedPath(String absolutePath, String? baseDir, {required String fallbackName}) {
+    if (baseDir == null || baseDir.isEmpty) return fallbackName;
+    try {
+      final rel = p.relative(p.normalize(absolutePath), from: p.normalize(baseDir));
+      // If relative path escapes the base dir, fall back to filename.
+      if (rel.startsWith('..')) return fallbackName;
+      // Normalize to forward slashes for adapter regexes and portability.
+      return rel.replaceAll('\\', '/');
+    } catch (_) {
+      return fallbackName;
+    }
   }
 }

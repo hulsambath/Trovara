@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:trovara/core/base/view_model_provider.dart';
+import 'package:trovara/widgets/quill_divider_embed_builder.dart';
 import 'package:trovara/widgets/tages/unified_tags_icon_button.dart';
 
 import 'note_view_model.dart';

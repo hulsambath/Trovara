@@ -66,7 +66,7 @@ class _NoteContent extends StatelessWidget {
             controller: viewModel.quillController,
             focusNode: viewModel.focusNode,
             scrollController: viewModel.scrollController,
-            config: const QuillEditorConfig(),
+            config: const QuillEditorConfig(embedBuilders: [QuillDividerEmbedBuilder()]),
           ),
         ),
       ],

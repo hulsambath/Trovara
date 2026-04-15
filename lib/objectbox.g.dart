@@ -91,7 +91,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(3, 6317312537730891446),
     name: 'Note',
-    lastPropertyId: const obx_int.IdUid(19, 6210228650839839360),
+    lastPropertyId: const obx_int.IdUid(21, 7892836430628886448),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -203,6 +203,18 @@ final _entities = <obx_int.ModelEntity>[
         flags: 2048,
         indexId: const obx_int.IdUid(1, 3825348798809574444),
       ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(20, 8261363560340761305),
+        name: 'source',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(21, 7892836430628886448),
+        name: 'internalLinks',
+        type: 30,
+        flags: 0,
+      ),
     ],
     relations: <obx_int.ModelRelation>[],
     backlinks: <obx_int.ModelBacklink>[],
@@ -256,7 +268,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(5, 6866622907400243735),
     name: 'NoteEmbedding',
-    lastPropertyId: const obx_int.IdUid(8, 2315417692093281007),
+    lastPropertyId: const obx_int.IdUid(9, 1201818448703780749),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -305,6 +317,12 @@ final _entities = <obx_int.ModelEntity>[
         id: const obx_int.IdUid(8, 2315417692093281007),
         name: 'noteUpdatedAt',
         type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(9, 1201818448703780749),
+        name: 'contentSignature',
+        type: 9,
         flags: 0,
       ),
     ],
@@ -616,7 +634,11 @@ obx_int.ModelDefinition getObjectBoxModel() {
             ? null
             : fbb.writeString(object.userId!);
         final syncIdOffset = fbb.writeString(object.syncId);
-        fbb.startTable(20);
+        final sourceOffset = fbb.writeString(object.source);
+        final internalLinksOffset = fbb.writeList(
+          object.internalLinks.map(fbb.writeString).toList(growable: false),
+        );
+        fbb.startTable(22);
         fbb.addInt64(0, object.id);
         fbb.addOffset(1, titleOffset);
         fbb.addOffset(2, contentJsonOffset);
@@ -635,6 +657,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addOffset(16, driveFileIdOffset);
         fbb.addOffset(17, userIdOffset);
         fbb.addOffset(18, syncIdOffset);
+        fbb.addOffset(19, sourceOffset);
+        fbb.addOffset(20, internalLinksOffset);
         fbb.finish(fbb.endTable());
         return object.id;
       },
@@ -717,6 +741,13 @@ obx_int.ModelDefinition getObjectBoxModel() {
           fb.StringReader(asciiOptimization: true),
           lazy: false,
         ).vTableGet(buffer, rootOffset, 28, []);
+        final sourceParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 42, '');
+        final internalLinksParam = const fb.ListReader<String>(
+          fb.StringReader(asciiOptimization: true),
+          lazy: false,
+        ).vTableGet(buffer, rootOffset, 44, []);
         final object = Note(
           id: idParam,
           syncId: syncIdParam,
@@ -736,6 +767,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
           activityTags: activityTagsParam,
           timeTags: timeTagsParam,
           personalGrowthTags: personalGrowthTagsParam,
+          source: sourceParam,
+          internalLinks: internalLinksParam,
         );
 
         return object;
@@ -813,16 +846,17 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final chunkTextOffset = fbb.writeString(object.chunkText);
         final embeddingDataOffset = fbb.writeString(object.embeddingData);
         final modelVersionOffset = fbb.writeString(object.modelVersion);
-        final contentSignatureOffset = fbb.writeString(object.contentSignature); fbb.startTable(10);
+        final contentSignatureOffset = fbb.writeString(object.contentSignature);
+        fbb.startTable(10);
         fbb.addInt64(0, object.id);
         fbb.addInt64(1, object.noteId);
         fbb.addInt64(2, object.chunkIndex);
         fbb.addOffset(3, chunkTextOffset);
         fbb.addOffset(4, embeddingDataOffset);
         fbb.addOffset(5, modelVersionOffset);
-        fbb.addOffset(6, contentSignatureOffset);
-        fbb.addInt64(7, object.createdAt.millisecondsSinceEpoch);
-        fbb.addInt64(8, object.noteUpdatedAt.millisecondsSinceEpoch);
+        fbb.addInt64(6, object.createdAt.millisecondsSinceEpoch);
+        fbb.addInt64(7, object.noteUpdatedAt.millisecondsSinceEpoch);
+        fbb.addOffset(8, contentSignatureOffset);
         fbb.finish(fbb.endTable());
         return object.id;
       },
@@ -858,21 +892,21 @@ obx_int.ModelDefinition getObjectBoxModel() {
         ).vTableGet(buffer, rootOffset, 14, '');
         final contentSignatureParam = const fb.StringReader(
           asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 16, '');
+        ).vTableGet(buffer, rootOffset, 20, '');
         final createdAtParam = DateTime.fromMillisecondsSinceEpoch(
-          const fb.Int64Reader().vTableGet(buffer, rootOffset, 18, 0),
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 16, 0),
         );
         final noteUpdatedAtParam = DateTime.fromMillisecondsSinceEpoch(
-          const fb.Int64Reader().vTableGet(buffer, rootOffset, 20, 0),
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 18, 0),
         );
         final object = NoteEmbedding(
           id: idParam,
           noteId: noteIdParam,
           chunkIndex: chunkIndexParam,
-          contentSignature: contentSignatureParam,
           chunkText: chunkTextParam,
           embeddingData: embeddingDataParam,
           modelVersion: modelVersionParam,
+          contentSignature: contentSignatureParam,
           createdAt: createdAtParam,
           noteUpdatedAt: noteUpdatedAtParam,
         );
@@ -1184,6 +1218,16 @@ class Note_ {
   static final syncId = obx.QueryStringProperty<Note>(
     _entities[1].properties[17],
   );
+
+  /// See [Note.source].
+  static final source = obx.QueryStringProperty<Note>(
+    _entities[1].properties[18],
+  );
+
+  /// See [Note.internalLinks].
+  static final internalLinks = obx.QueryStringVectorProperty<Note>(
+    _entities[1].properties[19],
+  );
 }
 
 /// [CustomTag] entity fields to define ObjectBox queries.
@@ -1251,19 +1295,18 @@ class NoteEmbedding_ {
     _entities[3].properties[5],
   );
 
-
-  /// See [NoteEmbedding.contentSignature].
-  static final contentSignature = obx.QueryStringProperty<NoteEmbedding>(
-    _entities[3].properties[6],
-  );
-
   /// See [NoteEmbedding.createdAt].
   static final createdAt = obx.QueryDateProperty<NoteEmbedding>(
-    _entities[3].properties[7],
+    _entities[3].properties[6],
   );
 
   /// See [NoteEmbedding.noteUpdatedAt].
   static final noteUpdatedAt = obx.QueryDateProperty<NoteEmbedding>(
+    _entities[3].properties[7],
+  );
+
+  /// See [NoteEmbedding.contentSignature].
+  static final contentSignature = obx.QueryStringProperty<NoteEmbedding>(
     _entities[3].properties[8],
   );
 }
