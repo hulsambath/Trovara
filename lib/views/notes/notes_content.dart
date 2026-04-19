@@ -34,6 +34,12 @@ class _NotesContent extends StatelessWidget {
     snap: true,
     title: Text('Trovara', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600)),
     actions: [
+      // ── Search ─────────────────────────────────────────────────────────
+      IconButton(
+        icon: const Icon(Icons.search),
+        onPressed: () => context.push('/search'),
+        tooltip: 'Search & filter notes',
+      ),
       IconButton(
         icon: const Icon(Icons.add),
         onPressed: () => viewModel.createNewNote(context),
@@ -82,9 +88,25 @@ class _NotesContent extends StatelessWidget {
   }
 
   Widget _buildEmptyState(BuildContext context) => Center(
-    child: Text(
-      'No notes yet',
-      style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(
+          Icons.note_add_outlined,
+          size: 56,
+          color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
+        ),
+        const SizedBox(height: 16),
+        Text(
+          'No notes yet',
+          style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Tap + to create your first note',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+        ),
+      ],
     ),
   );
 

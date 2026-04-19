@@ -1,11 +1,11 @@
 name: trovara
 description: "Trovara"
 publish_to: "none"
-version: 0.1.0+2
+version: 1.0.0+3
 
 environment:
   sdk: ^3.8.1
-  flutter: ">=3.41.2 <4.0.0"
+  flutter: ">=3.38.0 <4.0.0"
 
 dependencies:
   go_router: ^14.6.2

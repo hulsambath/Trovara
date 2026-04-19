@@ -22,6 +22,39 @@ import 'package:intl/intl.dart';
 /// 4. Strips auto-generated Notion metadata lines
 /// 5. Maps sub-folder structure → Trovara folder IDs
 class NotionAdapter implements NoteImportAdapter {
+  /// Keys allowed for Notion's `**Key:** value` (colon inside bold) export shape.
+  /// Other `**Phrase:**` lines are treated as normal content (e.g. intro headings).
+  static const Set<String> _notionInnerColonPropertyKeys = {
+    'tags',
+    'tag',
+    'labels',
+    'created',
+    'created time',
+    'date created',
+    'last edited',
+    'last edited time',
+    'updated',
+    'modified',
+    'status',
+    'type',
+    'name',
+    'title',
+    'date',
+    'author',
+    'icon',
+    'url',
+    'related to',
+    'owner',
+    'assign',
+    'assignee',
+    'priority',
+    'due',
+    'due date',
+    'category',
+    'area',
+    'project',
+  };
+
   @override
   String get sourceName => 'notion';
 
@@ -84,16 +117,28 @@ class NotionAdapter implements NoteImportAdapter {
     // Collect consecutive Notion property lines (bold key: value)
     while (bodyStart < bodyLines.length) {
       final line = bodyLines[bodyStart].trim();
-      // Notion commonly exports properties as: **Key:** value
-      // but sometimes they appear as: **Key**: value
-      // Accept both and normalize key by trimming any trailing ":".
-      final propMatch =
-          RegExp(r'^\*\*([^*]+)\*\*:?(\s*):?\s*(.*)$').firstMatch(line) ??
-          RegExp(r'^\*\*([^*]+):\*\*\s*(.*)$').firstMatch(line);
+
+      // Prefer explicit separator: colon AFTER closing `**` → `**Key**: value`
+      final outerColon = RegExp(r'^\*\*([^*]+)\*\*:\s*(.*)$').firstMatch(line);
+      // Notion export shape `**Key:** value` (colon before closing bold) — only for known keys
+      // so lines like `**Introduction:** This chapter…` stay in the body.
+      final innerColon = RegExp(r'^\*\*([^*]+):\*\*\s*(.*)$').firstMatch(line);
+
+      RegExpMatch? propMatch;
+      if (outerColon != null) {
+        propMatch = outerColon;
+      } else if (innerColon != null) {
+        final rawKeyInner = (innerColon.group(1) ?? '').trim();
+        final keyNorm = rawKeyInner.replaceAll(RegExp(r':\s*$'), '').trim().toLowerCase();
+        if (_notionInnerColonPropertyKeys.contains(keyNorm)) {
+          propMatch = innerColon;
+        }
+      }
+
       if (propMatch != null) {
         final rawKey = (propMatch.group(1) ?? '').trim();
         final key = rawKey.replaceAll(RegExp(r':\s*$'), '').trim().toLowerCase();
-        final value = (propMatch.groupCount >= 3 ? propMatch.group(3) : propMatch.group(2)) ?? '';
+        final value = propMatch.group(2) ?? '';
         propertyLines[key] = value.trim();
         bodyStart++;
       } else if (line.isEmpty && bodyStart < bodyLines.length - 1) {

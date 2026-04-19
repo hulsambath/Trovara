@@ -80,11 +80,19 @@ class ObsidianAdapter implements NoteImportAdapter {
     String body = text;
 
     if (text.startsWith('---\n')) {
-      final end = text.indexOf('\n---\n', 4);
-      if (end != -1) {
-        final yamlBlock = text.substring(4, end);
+      // Closing fence: either `\n---\n` (body follows) or `\n---` at EOF (no trailing newline).
+      final endWithBody = text.indexOf('\n---\n', 4);
+      if (endWithBody != -1) {
+        final yamlBlock = text.substring(4, endWithBody);
         frontmatter = _parseFrontmatter(yamlBlock);
-        body = text.substring(end + 5);
+        body = text.substring(endWithBody + 5);
+      } else if (text.endsWith('\n---')) {
+        final endAtEof = text.lastIndexOf('\n---');
+        if (endAtEof >= 4) {
+          final yamlBlock = text.substring(4, endAtEof);
+          frontmatter = _parseFrontmatter(yamlBlock);
+          body = text.substring(endAtEof + 4);
+        }
       }
     }
 
