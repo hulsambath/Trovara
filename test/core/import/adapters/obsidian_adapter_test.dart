@@ -150,6 +150,15 @@ void main() {
       expect(notes.first.updatedAt, isNull);
     });
 
+    test('closing --- at EOF preserves frontmatter and title', () async {
+      const md = '---\ntitle: End Of File Fence\n---';
+      final notes = await adapter.parse(md);
+      expect(notes, hasLength(1));
+      expect(notes.first.title, 'End Of File Fence');
+      expect(notes.first.markdownContent, isEmpty);
+      expect(notes.first.rawMetadata['title'], 'End Of File Fence');
+    });
+
     test('stores raw frontmatter in rawMetadata', () async {
       const md = '---\ntitle: Meta Test\nauthor: Sambath\n---\nBody.';
       final notes = await adapter.parse(md);

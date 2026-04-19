@@ -158,6 +158,28 @@ void main() {
       expect(notes.first.rawMetadata.containsKey('tags'), isTrue);
       expect(notes.first.rawMetadata.containsKey('created'), isTrue);
     });
+
+    test('does not treat bold intro line **Introduction:** as a property', () async {
+      final input = [
+        {
+          'path': 'note.md',
+          'content': '# My Page\n**Introduction:** This is not metadata, it is prose.\n\nMore body.',
+        },
+      ];
+      final notes = await adapter.parse(input);
+      expect(notes.first.rawMetadata, isEmpty);
+      expect(notes.first.markdownContent, contains('**Introduction:** This is not metadata'));
+      expect(notes.first.markdownContent, contains('More body.'));
+    });
+
+    test('accepts **Key**: value with colon after closing bold (any key)', () async {
+      final input = [
+        {'path': 'note.md', 'content': '# Note\n**Department**: Engineering\n\nBody text.'},
+      ];
+      final notes = await adapter.parse(input);
+      expect(notes.first.rawMetadata['department'], 'Engineering');
+      expect(notes.first.markdownContent, 'Body text.');
+    });
   });
 
   // ── CSV files skipped ──────────────────────────────────────────────────────
