@@ -313,6 +313,21 @@ void main() {
       expect(vm.filteredNotes.map((n) => n.id), [1]);
     });
 
+    test('matches text spanning Quill line breaks', () {
+      final noteWithLineBreak = Note(
+        title: 'Line break note',
+        contentJson: '{"ops":[{"insert":"hello"},{"insert":"\\n"},{"insert":"world"},{"insert":"\\n"}]}',
+        createdAt: DateTime(2024, 1, 1),
+        updatedAt: DateTime(2024, 1, 1),
+      )..id = 1;
+      final repo = _SearchTestNoteRepo([
+        noteWithLineBreak,
+        _note(id: 2, title: 'Other', body: 'hello everyone'),
+      ]);
+      final vm = _vm(repo, currentUserIdForTest: () => null)..setQuery('hello world');
+      expect(vm.filteredNotes.map((n) => n.id), [1]);
+    });
+
     test('empty and whitespace-only query does not filter by text', () {
       final repo = _SearchTestNoteRepo([_note(id: 1), _note(id: 2)]);
       final vm = _vm(repo, currentUserIdForTest: () => null)..setQuery('   ');

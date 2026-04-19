@@ -24,8 +24,11 @@ class TextParserService {
         if (op is Map<String, dynamic> && op.containsKey('insert')) {
           final insert = op['insert'];
           if (insert is String) {
-            // Skip newlines and excessive whitespace
-            if (insert != '\n') {
+            // Keep structural separation for line breaks so words from adjacent
+            // lines don't get merged (important for search + word count).
+            if (insert == '\n') {
+              plainText.write(' ');
+            } else {
               plainText.write(insert);
             }
           }
