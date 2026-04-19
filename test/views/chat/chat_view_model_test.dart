@@ -4,7 +4,7 @@ import 'package:trovara/core/repository/interfaces/chat_thread_repository.dart';
 import 'package:trovara/core/repository/interfaces/embedding_repository.dart';
 import 'package:trovara/core/repository/interfaces/folder_repository.dart';
 import 'package:trovara/core/repository/interfaces/note_repository.dart';
-import 'package:trovara/core/services/chat_service.dart';
+import 'package:trovara/core/services/chat/chat_service.dart';
 import 'package:trovara/core/services/document_resolver_service.dart';
 import 'package:trovara/core/services/embedding_service.dart';
 import 'package:trovara/core/services/llm_client.dart';

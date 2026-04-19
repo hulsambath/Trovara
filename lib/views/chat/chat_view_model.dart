@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:logger/logger.dart';
 import 'package:trovara/core/base/base_view_model.dart';
 import 'package:trovara/core/di/service_locator.dart';
-import 'package:trovara/core/services/chat_service.dart';
+import 'package:trovara/core/services/chat/chat_service.dart';
 import 'package:trovara/core/services/rag_service.dart';
 import 'package:trovara/models/chat_message.dart';
 import 'package:trovara/models/chat_thread.dart';

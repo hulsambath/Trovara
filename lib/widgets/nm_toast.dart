@@ -20,7 +20,15 @@ class NmToast {
     Duration duration = const Duration(seconds: 4),
   }) {
     if (!context.mounted) return;
-    _queue.add(_ToastEntry(context: context, message: message, icon: icon, style: style, duration: duration));
+
+    // IMPORTANT: resolve the overlay *now* while the context is still mounted.
+    // We must not keep a BuildContext around and later call Overlay.of(context),
+    // because the original context may have been disposed by the time the toast
+    // is shown (causing "Looking up a deactivated widget's ancestor is unsafe").
+    final overlay = Overlay.maybeOf(context, rootOverlay: true);
+    if (overlay == null) return;
+
+    _queue.add(_ToastEntry(overlay: overlay, message: message, icon: icon, style: style, duration: duration));
     if (!_isShowing) _showNext();
   }
 
@@ -64,7 +72,13 @@ class NmToast {
     _isShowing = true;
     final entry = _queue.removeAt(0);
 
-    final overlay = Overlay.of(entry.context);
+    if (!entry.overlay.mounted) {
+      // Overlay is no longer alive; skip this toast and continue.
+      _showNext();
+      return;
+    }
+
+    final overlay = entry.overlay;
     late OverlayEntry overlayEntry;
 
     overlayEntry = OverlayEntry(
@@ -94,14 +108,14 @@ enum NmToastStyle { normal, success, error, warning, info }
 
 class _ToastEntry {
   const _ToastEntry({
-    required this.context,
+    required this.overlay,
     required this.message,
     this.icon,
     required this.style,
     required this.duration,
   });
 
-  final BuildContext context;
+  final OverlayState overlay;
   final String message;
   final Widget? icon;
   final NmToastStyle style;

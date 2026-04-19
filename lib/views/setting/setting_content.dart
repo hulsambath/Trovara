@@ -7,12 +7,14 @@ class _SettingContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Setting'), surfaceTintColor: Colors.transparent),
+    appBar: AppBar(title: const Text('Settings'), surfaceTintColor: Colors.transparent),
     body: ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       children: [
-        // User Profile Section
+        // ── User Profile ───────────────────────────────────────────────────
         if (viewModel.isSignedIn) ...[
+          _buildSectionLabel(context, 'Account'),
+          const SizedBox(height: 8),
           Card(
             child: Padding(
               padding: const EdgeInsets.all(12),
@@ -46,7 +48,7 @@ class _SettingContent extends StatelessWidget {
                   ),
                   IconButton(
                     style: IconButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
-                    icon: const Icon(Icons.logout, weight: 4),
+                    icon: const Icon(Icons.logout),
                     onPressed: () => _showLogoutConfirmationDialog(context),
                     tooltip: 'Sign out',
                   ),
@@ -56,7 +58,10 @@ class _SettingContent extends StatelessWidget {
           ),
           const SizedBox(height: 16),
         ],
+
         if (!viewModel.isSignedIn) ...[
+          _buildSectionLabel(context, 'Account'),
+          const SizedBox(height: 8),
           Card(
             child: ListTile(
               leading: const Icon(Icons.login),
@@ -66,6 +71,10 @@ class _SettingContent extends StatelessWidget {
           ),
           const SizedBox(height: 16),
         ],
+
+        // ── Appearance ─────────────────────────────────────────────────────
+        _buildSectionLabel(context, 'Appearance'),
+        const SizedBox(height: 8),
         Consumer<ThemeProvider>(
           builder: (context, themeProvider, _) => Card(
             child: ListTile(
@@ -90,7 +99,7 @@ class _SettingContent extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
                 Card(
                   child: ListTile(
                     leading: Icon(Icons.palette_outlined, color: Theme.of(context).colorScheme.primary),
@@ -105,78 +114,178 @@ class _SettingContent extends StatelessWidget {
           },
         ),
         const SizedBox(height: 16),
+
+        // ── Google Drive Sync ──────────────────────────────────────────────
         if (viewModel.isSignedIn) ...[
+          _buildSectionLabel(context, 'Cloud Sync'),
+          const SizedBox(height: 8),
           Card(
-            child: Padding(
-              padding: const EdgeInsets.all(8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ListTile(
-                    leading: SvgPicture.asset('assets/icons/google drive.svg', width: 24, height: 24),
-                    title: const Text('Sync with Google Drive'),
-                    subtitle: const Text('Backup and restore data'),
-                    trailing: const Icon(Icons.sync),
-                    onTap: () => viewModel.syncWithGoogleDrive(context),
-                  ),
-                ],
-              ),
+            child: ListTile(
+              leading: SvgPicture.asset('assets/icons/google drive.svg', width: 24, height: 24),
+              title: const Text('Sync with Google Drive'),
+              subtitle: const Text('Backup and restore all notes'),
+              trailing: const Icon(Icons.sync),
+              onTap: () => viewModel.syncWithGoogleDrive(context),
             ),
           ),
+          const SizedBox(height: 16),
         ],
-        const SizedBox(height: 16),
-        Text('Notes', style: Theme.of(context).textTheme.titleMedium),
+
+        // ── Notes ──────────────────────────────────────────────────────────
+        _buildSectionLabel(context, 'Notes'),
         const SizedBox(height: 8),
         Card(
-          child: Column(
-            children: [
-              ListTile(
-                leading: const Icon(Icons.delete_outline),
-                title: const Text('Recently deleted'),
-                subtitle: const Text('Notes here are kept for 30 days before being removed forever'),
-                onTap: () => viewModel.openRecentlyDeleted(context),
-              ),
-            ],
+          child: ListTile(
+            leading: const Icon(Icons.delete_outline),
+            title: const Text('Recently Deleted'),
+            subtitle: const Text('Notes here are kept for 30 days before being removed forever'),
+            onTap: () => viewModel.openRecentlyDeleted(context),
           ),
         ),
         const SizedBox(height: 16),
-        Text('Local Export/Import', style: Theme.of(context).textTheme.titleMedium),
+
+        // ── Export ─────────────────────────────────────────────────────────
+        _buildSectionLabel(context, 'Export'),
         const SizedBox(height: 8),
         Card(
           child: Column(
             children: [
               ListTile(
-                leading: const Icon(Icons.file_download),
-                title: const Text('Export to file'),
+                leading: Icon(Icons.data_object, color: Theme.of(context).colorScheme.primary),
+                title: const Text('Export as JSON'),
+                subtitle: const Text('Full backup — import back into Trovara on any device'),
+                trailing: const Icon(Icons.chevron_right),
                 onTap: () => viewModel.exportToFile(context),
               ),
+              const Divider(height: 1, indent: 56),
               ListTile(
-                leading: const Icon(Icons.file_upload),
-                title: const Text('Import from file'),
-                onTap: () => viewModel.importFromFile(context),
+                leading: Icon(Icons.text_snippet_outlined, color: Theme.of(context).colorScheme.primary),
+                title: const Text('Export as Markdown'),
+                subtitle: const Text('Obsidian-compatible .md file with YAML frontmatter'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => viewModel.exportAsMarkdown(context),
               ),
             ],
           ),
         ),
         const SizedBox(height: 16),
-        Text('Search Index', style: Theme.of(context).textTheme.titleMedium),
+
+        // ── Import ─────────────────────────────────────────────────────────
+        _buildSectionLabel(context, 'Import'),
+        const SizedBox(height: 8),
+        _buildImportInfoBanner(context),
         const SizedBox(height: 8),
         Card(
           child: Column(
             children: [
+              // Trovara JSON
               ListTile(
-                leading: const Icon(Icons.sync_problem),
-                title: const Text('Re-index all notes'),
-                subtitle: const Text('Fixes missing search results by re-embedding all notes.'),
-                onTap: () => viewModel.reembedAllNotes(context),
+                leading: _buildPlatformIcon(
+                  context,
+                  icon: Icons.data_object,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                title: const Text('Trovara backup (.json)'),
+                subtitle: const Text('Restore from a previous Trovara export'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => viewModel.importFromFile(context),
+              ),
+              const Divider(height: 1, indent: 56),
+              // Obsidian
+              ListTile(
+                leading: _buildPlatformIcon(context, icon: Icons.diamond_outlined, color: const Color(0xFF7E56C2)),
+                title: const Text('Obsidian vault (.md files)'),
+                subtitle: const Text('Select .md files from your vault — preserves [[wikilinks]] & tags'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => viewModel.importFromObsidian(context),
+              ),
+              const Divider(height: 1, indent: 56),
+              // Notion
+              ListTile(
+                leading: _buildPlatformIcon(
+                  context,
+                  icon: Icons.article_outlined,
+                  color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.black87,
+                ),
+                title: const Text('Notion export (.md / .csv)'),
+                subtitle: const Text('Select exported Markdown files from Notion'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => viewModel.importFromNotion(context),
               ),
             ],
           ),
         ),
+        const SizedBox(height: 16),
+
+        // ── Search Index ───────────────────────────────────────────────────
+        _buildSectionLabel(context, 'Search Index'),
+        const SizedBox(height: 8),
+        Card(
+          child: ListTile(
+            leading: Icon(Icons.manage_search, color: Theme.of(context).colorScheme.primary),
+            title: const Text('Re-index all notes'),
+            subtitle: const Text('Fixes missing AI search results by re-embedding all notes'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => viewModel.reembedAllNotes(context),
+          ),
+        ),
+
         const SizedBox(height: kToolbarHeight * 2),
       ],
     ),
   );
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+
+  Widget _buildSectionLabel(BuildContext context, String label) => Padding(
+    padding: const EdgeInsets.only(left: 4, bottom: 2),
+    child: Text(
+      label,
+      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+        color: Theme.of(context).colorScheme.primary,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.5,
+      ),
+    ),
+  );
+
+  Widget _buildPlatformIcon(BuildContext context, {required IconData icon, required Color color}) => Container(
+    width: 36,
+    height: 36,
+    decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(8)),
+    child: Icon(icon, color: color, size: 20),
+  );
+
+  Widget _buildImportInfoBanner(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: isDark ? 0.35 : 0.55),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.25)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.info_outline, size: 16, color: Theme.of(context).colorScheme.primary),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Imports are non-destructive — existing notes are only updated when '
+              'the imported version is newer. Deleted notes are never re-imported.',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.75),
+                height: 1.5,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Dialogs / bottom sheets ────────────────────────────────────────────────
 
   void _showAppIconPicker(BuildContext context) {
     final details = AppIconService.getIconDetails();
@@ -220,9 +329,7 @@ class _SettingContent extends StatelessWidget {
                       onTap: () async {
                         if (identifier != null) {
                           await AppIconService.changeIcon(identifier);
-                          if (context.mounted) {
-                            Navigator.of(context).pop();
-                          }
+                          if (context.mounted) Navigator.of(context).pop();
                         }
                       },
                     );
@@ -243,12 +350,7 @@ class _SettingContent extends StatelessWidget {
         title: const Text('Sign Out'),
         content: const Text('Are you sure you want to sign out?'),
         actions: <Widget>[
-          TextButton(
-            child: const Text('Cancel'),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
+          TextButton(child: const Text('Cancel'), onPressed: () => Navigator.of(context).pop()),
           TextButton(
             style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
             child: const Text('Sign Out'),

@@ -76,11 +76,11 @@ decrypt_if_needed() {
 pushd "${CREDENTIALS_DIR}" >/dev/null
 
 case "${ENVIRONMENT}" in
-  dev)
-    echo "⚠️  --env dev is deprecated, use --env staging instead"
-    ENVIRONMENT="staging"
-    ;&  # fall through
-  staging)
+  dev|staging)
+    if [[ "${ENVIRONMENT}" == "dev" ]]; then
+      echo "⚠️  --env dev is deprecated, use --env staging instead"
+      ENVIRONMENT="staging"
+    fi
     FOLDER="staging"
     decrypt_if_needed "android/${PROJECT}/${FOLDER}" "upload.jks" || exit 1
     [[ -f "android/${PROJECT}/${FOLDER}/keystore.properties.enc" ]] && \
