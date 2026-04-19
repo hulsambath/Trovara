@@ -93,6 +93,12 @@ class NotionAdapter implements NoteImportAdapter {
       if (propMatch != null) {
         final rawKey = (propMatch.group(1) ?? '').trim();
         final key = rawKey.replaceAll(RegExp(r':\s*$'), '').trim().toLowerCase();
+        // Property lines always have a separator before a value. If a bold line
+        // has no colon separator after "**...**", treat it as normal body text.
+        final hasColonSeparator = RegExp(r'^\*\*[^*]+\*\*\s*:').hasMatch(line) || RegExp(r'^\*\*[^*]+:\*\*').hasMatch(line);
+        if (!hasColonSeparator) {
+          break;
+        }
         final value = (propMatch.groupCount >= 3 ? propMatch.group(3) : propMatch.group(2)) ?? '';
         propertyLines[key] = value.trim();
         bodyStart++;

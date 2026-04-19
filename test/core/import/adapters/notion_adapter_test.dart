@@ -158,6 +158,15 @@ void main() {
       expect(notes.first.rawMetadata.containsKey('tags'), isTrue);
       expect(notes.first.rawMetadata.containsKey('created'), isTrue);
     });
+
+    test('keeps non-property bold intro lines in body', () async {
+      final input = [
+        {'path': 'note.md', 'content': '# Note\n**Important intro** keep this line.\n\nBody paragraph.'},
+      ];
+      final notes = await adapter.parse(input);
+      expect(notes.first.markdownContent, contains('**Important intro** keep this line.'));
+      expect(notes.first.rawMetadata.containsKey('important intro'), isFalse);
+    });
   });
 
   // ── CSV files skipped ──────────────────────────────────────────────────────
