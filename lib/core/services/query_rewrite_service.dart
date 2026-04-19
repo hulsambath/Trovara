@@ -4,7 +4,9 @@ import 'dart:collection';
 
 /// Rewrites a user query into a clear, retrieval-optimized standalone question.
 ///
-/// This is intentionally single-turn: it does not use chat history.
+/// Without [conversationContext], behavior matches a single-turn rewrite. With
+/// a non-empty [conversationContext], pronouns and follow-ups can be resolved
+/// using recent dialogue (still no new facts in the output query).
 class QueryRewriteService {
   final LlmClient _llm;
   final Logger _logger = Logger();
@@ -26,28 +28,42 @@ Rewrite the user's question as a precise, self-contained search query.
 - Preserve intent; do NOT add facts or assumptions.
 - Output ONLY the rewritten query text (no quotes, no bullets, no explanations).''';
 
-  Future<String> rewrite(String userQuery) async {
+  static const String _contextualHint = '''
+
+When a "Recent conversation" section appears below, use it ONLY to resolve references
+in the current question (pronouns, "that topic", etc.). Do not add facts from the
+conversation that are not implied by the current question.''';
+
+  Future<String> rewrite(String userQuery, {String? conversationContext}) async {
     final q = userQuery.trim();
     if (q.isEmpty) return q;
     if (!isAvailable) return q;
 
-    final cacheKey = q.toLowerCase();
-    final cached = _cache.remove(cacheKey);
-    if (cached != null && cached.isNotEmpty) {
-      // Touch entry to keep it most-recently-used.
-      _cache[cacheKey] = cached;
-      return cached;
+    final ctx = conversationContext?.trim();
+    final hasContext = ctx != null && ctx.isNotEmpty;
+
+    if (!hasContext) {
+      final cacheKey = q.toLowerCase();
+      final cached = _cache.remove(cacheKey);
+      if (cached != null && cached.isNotEmpty) {
+        _cache[cacheKey] = cached;
+        return cached;
+      }
     }
 
-    final prompt = '$_system\n\nUser question:\n$q';
+    final prompt = hasContext
+        ? '$_system$_contextualHint\n\nRecent conversation:\n$ctx\n\nCurrent user question:\n$q'
+        : '$_system\n\nUser question:\n$q';
 
     try {
       final rewritten = (await _llm.generate(prompt)).trim();
       if (rewritten.isEmpty) return q;
-      _cache[cacheKey] = rewritten;
-      // Evict least-recently-used if needed.
-      while (_cache.length > _maxCacheEntries) {
-        _cache.remove(_cache.keys.first);
+      if (!hasContext) {
+        final cacheKey = q.toLowerCase();
+        _cache[cacheKey] = rewritten;
+        while (_cache.length > _maxCacheEntries) {
+          _cache.remove(_cache.keys.first);
+        }
       }
       return rewritten;
     } catch (e) {

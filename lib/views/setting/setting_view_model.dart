@@ -14,7 +14,7 @@ import 'package:trovara/core/di/service_locator.dart';
 import 'package:trovara/core/export/exporters/markdown_exporter.dart';
 import 'package:trovara/core/import/adapters/notion_adapter.dart';
 import 'package:trovara/core/import/adapters/obsidian_adapter.dart';
-import 'package:trovara/core/services/google_drive_service.dart';
+import 'package:trovara/core/services/auth/google_drive_service.dart';
 import 'package:trovara/core/services/google_drive_sync_service.dart';
 import 'package:trovara/core/services/note_service.dart';
 import 'package:trovara/core/storage/google_drive_auth_storage.dart';

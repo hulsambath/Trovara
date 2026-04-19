@@ -4,6 +4,7 @@ import 'package:logger/logger.dart';
 import 'package:trovara/core/base/base_view_model.dart';
 import 'package:trovara/core/di/service_locator.dart';
 import 'package:trovara/core/services/chat/chat_service.dart';
+import 'package:trovara/core/services/rag_chat_memory.dart';
 import 'package:trovara/core/services/rag_service.dart';
 import 'package:trovara/models/chat_message.dart';
 import 'package:trovara/models/chat_thread.dart';
@@ -124,18 +125,23 @@ class ChatViewModel extends BaseViewModel {
     _isProcessing = true;
     notifyListeners();
 
+    final priorEntities = _chatService.getMessagesForThread(thread.id);
+    final priorTurns = priorEntities.length <= 1
+        ? const <RagChatTurn>[]
+        : RagChatMemory.turnsFromEntities(priorEntities.sublist(0, priorEntities.length - 1));
+
     // Stream the AI response
     final buffer = StringBuffer();
     List<String> sources = [];
     bool isError = false;
 
     try {
-      await for (final chunk in _ragService.queryStream(trimmed)) {
+      await for (final chunk in _ragService.queryStream(trimmed, priorTurns: priorTurns)) {
         buffer.write(chunk);
         _updateMessage(aiMessageId, content: buffer.toString());
       }
 
-      sources = await _ragService.getSourceTitles(trimmed);
+      sources = await _ragService.getSourceTitles(trimmed, priorTurns: priorTurns);
       _updateMessage(aiMessageId, content: buffer.toString(), sourceNoteTitles: sources, isLoading: false);
 
       _logger.i('Chat response complete: ${buffer.length} chars, ${sources.length} sources');

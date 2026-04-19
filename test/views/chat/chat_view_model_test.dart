@@ -12,6 +12,7 @@ import 'package:trovara/core/services/multi_query_expansion_service.dart';
 import 'package:trovara/core/services/note_service.dart';
 import 'package:trovara/core/services/prompt_builder_service.dart';
 import 'package:trovara/core/services/query_rewrite_service.dart';
+import 'package:trovara/core/services/rag_chat_memory.dart';
 import 'package:trovara/core/services/rag_service.dart';
 import 'package:trovara/core/services/vector_search_service.dart';
 import 'package:trovara/models/chat_message.dart';
@@ -260,6 +261,7 @@ class _FakeRagService extends RagService {
   final Future<List<String>> Function(String)? _onGetSourceTitles;
 
   String? lastQuery;
+  List<RagChatTurn> lastPriorTurns = const [];
 
   _FakeRagService({
     bool available = true,
@@ -288,8 +290,15 @@ class _FakeRagService extends RagService {
   bool get isAvailable => _available;
 
   @override
-  Stream<String> queryStream(String userQuestion, {int searchTopK = 10, double minScore = 0.3, int maxNotes = 5}) {
+  Stream<String> queryStream(
+    String userQuestion, {
+    List<RagChatTurn> priorTurns = const [],
+    int searchTopK = 10,
+    double minScore = 0.3,
+    int maxNotes = 5,
+  }) {
     lastQuery = userQuestion;
+    lastPriorTurns = priorTurns;
     if (_onQueryStream != null) return _onQueryStream(userQuestion);
     return Stream.fromIterable(['Hello ', 'world']);
   }
@@ -297,10 +306,12 @@ class _FakeRagService extends RagService {
   @override
   Future<List<String>> getSourceTitles(
     String userQuestion, {
+    List<RagChatTurn> priorTurns = const [],
     int searchTopK = 10,
     double minScore = 0.3,
     int maxNotes = 5,
   }) {
+    lastPriorTurns = priorTurns;
     if (_onGetSourceTitles != null) return _onGetSourceTitles(userQuestion);
     return Future.value(['Note A', 'Note B']);
   }
@@ -439,6 +450,18 @@ void main() {
       expect(vm.messages[0].content, 'What did I write?');
       expect(vm.messages[1].isUser, false);
       expect(vm.messages[1].content, 'Hello world');
+    });
+
+    test('second sendMessage passes prior turns to RAG for memory', () async {
+      await vm.sendMessage('First question');
+      expect(fakeRag.lastPriorTurns, isEmpty);
+
+      await vm.sendMessage('Follow-up');
+      expect(fakeRag.lastPriorTurns, hasLength(2));
+      expect(fakeRag.lastPriorTurns[0].role, 'user');
+      expect(fakeRag.lastPriorTurns[0].content, 'First question');
+      expect(fakeRag.lastPriorTurns[1].role, 'assistant');
+      expect(fakeRag.lastPriorTurns[1].content, 'Hello world');
     });
 
     test('sendMessage populates source titles', () async {

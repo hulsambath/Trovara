@@ -5,6 +5,7 @@ import 'package:trovara/core/services/llm_client.dart';
 import 'package:trovara/core/services/multi_query_expansion_service.dart';
 import 'package:trovara/core/services/prompt_builder_service.dart';
 import 'package:trovara/core/services/query_rewrite_service.dart';
+import 'package:trovara/core/services/rag_chat_memory.dart';
 import 'package:trovara/core/services/rrf_key_score.dart';
 import 'package:trovara/core/services/vector_search_service.dart';
 
@@ -17,8 +18,12 @@ class RagResult {
   /// Useful for source attribution in the chat UI.
   final List<String> sourceNoteTitles;
 
-  /// The augmented prompt that was sent to the LLM.
-  /// Available for debugging and logging; not displayed to the user.
+  /// Debug transcript of the **full message list** sent to the LLM.
+  ///
+  /// Includes the system prompt, truncated prior turns (history), and the
+  /// final user payload built by [PromptBuilderService].
+  ///
+  /// Available for debugging/logging only; not displayed to the user.
   final String prompt;
 
   /// Number of embedding chunks that matched the query.
@@ -33,7 +38,7 @@ class RagResult {
       'answer: ${answer.length} chars)';
 }
 
-/// Orchestrates the full RAG pipeline (single-turn, chunk-centric):
+/// Orchestrates the full RAG pipeline (chunk-centric retrieval; optional chat memory):
 ///
 /// ```
 /// User Question
@@ -57,10 +62,10 @@ class RagResult {
 /// Step 6: DocumentResolverService.resolveTopChunksToContext() → chunk context maps
 ///     │
 ///     ▼
-/// Step 7: PromptBuilderService.buildSingleTurn()        → single-turn prompt
+/// Step 7: PromptBuilderService.buildSingleTurnUserPayload() → RAG user message
 ///     │
 ///     ▼
-/// Step 8: LlmClient.generate() / generateStream()       → answer
+/// Step 8: LlmClient.generateWithMessages() / generateStreamWithMessages() → answer
 ///     │
 ///     ▼
 /// RagResult (answer + source titles)
@@ -181,18 +186,20 @@ class RagService {
 
   /// Execute a full RAG query and return the complete result.
   ///
-  /// High-level steps (single-turn, chunk-centric):
-  /// 1. Rewrite the user question and expand it into multiple focused variants.
+  /// High-level steps (chunk-centric retrieval; optional multi-turn memory):
+  /// 1. Rewrite the user question (using [priorTurns] transcript when provided)
+  ///    and expand it into multiple focused variants.
   /// 2. Embed each variant and run vector search per variant to get ranked chunks.
   /// 3. Apply Reciprocal Rank Fusion (RRF) across all variants to select top chunks.
   /// 4. Resolve those chunks into metadata-aware context maps.
-  /// 5. Build a single-turn prompt from the chunk context and send it to the LLM.
+  /// 5. Build the RAG user payload and send it with [priorTurns] to the LLM.
   /// 6. Return the answer plus source attribution for the chunks used.
   ///
   /// Returns a user-friendly error message in [RagResult.answer] if any
   /// step fails gracefully (no embedding, no results, etc.).
   Future<RagResult> query(
     String userQuestion, {
+    List<RagChatTurn> priorTurns = const [],
     int searchTopK = defaultSearchTopK,
     double minScore = defaultMinScore,
     // ignore: unused_parameter
@@ -210,6 +217,8 @@ class RagService {
       );
     }
 
+    final memory = _prepareChatMemory(priorTurns);
+
     late final ({List<ScoredEmbedding> fusedChunks, List<Map<String, String>> chunkContexts}) retrieved;
     try {
       retrieved = await _retrieveTopChunksSingleTurn(
@@ -217,6 +226,7 @@ class RagService {
         fusionPoolSizePerQuery: searchTopK,
         minScore: minScore,
         expectedEmbeddingDim: stats.embeddingDimension,
+        conversationContext: memory.rewriteContext.isEmpty ? null : memory.rewriteContext,
       );
     } on RagQueryException catch (e) {
       return RagResult(answer: e.message, sourceNoteTitles: [], prompt: '', matchedChunks: 0);
@@ -234,12 +244,12 @@ class RagService {
       );
     }
 
-    final prompt = _promptBuilderService.buildSingleTurn(
+    final userPayload = _promptBuilderService.buildSingleTurnUserPayload(
       userQuery: userQuestion,
       topChunkContexts: retrieved.chunkContexts,
     );
 
-    if (prompt == null) {
+    if (userPayload == null) {
       return RagResult(
         answer: "I couldn't find any relevant notes for your question.",
         sourceNoteTitles: [],
@@ -248,13 +258,23 @@ class RagService {
       );
     }
 
+    final prompt = _formatDebugMessages(
+      systemPrompt: PromptBuilderService.singleTurnSystemPrompt,
+      history: memory.llmHistory,
+      userMessage: userPayload,
+    );
+
     final sourceTitles = _uniqueInOrder(
       retrieved.chunkContexts.map((c) => c['title'] ?? '').where((t) => t.isNotEmpty),
     );
 
     // Step 5: Generate response
     try {
-      final answer = await _llmClient.generate(prompt);
+      final answer = await _llmClient.generateWithMessages(
+        systemPrompt: PromptBuilderService.singleTurnSystemPrompt,
+        history: memory.llmHistory,
+        userMessage: userPayload,
+      );
 
       _logger.i(
         'RAG query complete: ${retrieved.fusedChunks.length} chunks, '
@@ -324,6 +344,7 @@ class RagService {
   /// Yields a single error message if any step fails.
   Stream<String> queryStream(
     String userQuestion, {
+    List<RagChatTurn> priorTurns = const [],
     int searchTopK = defaultSearchTopK,
     double minScore = defaultMinScore,
     // ignore: unused_parameter
@@ -337,26 +358,33 @@ class RagService {
         return;
       }
 
+      final memory = _prepareChatMemory(priorTurns);
+
       final retrieved = await _retrieveTopChunksSingleTurn(
         userQuestion,
         fusionPoolSizePerQuery: searchTopK,
         minScore: minScore,
         expectedEmbeddingDim: stats.embeddingDimension,
+        conversationContext: memory.rewriteContext.isEmpty ? null : memory.rewriteContext,
       );
 
-      final prompt = _promptBuilderService.buildSingleTurn(
+      final userPayload = _promptBuilderService.buildSingleTurnUserPayload(
         userQuery: userQuestion,
         topChunkContexts: retrieved.chunkContexts,
       );
 
-      if (prompt == null || retrieved.chunkContexts.isEmpty) {
+      if (userPayload == null || retrieved.chunkContexts.isEmpty) {
         yield "I couldn't find any relevant notes for your question. "
             'Try asking about the note content (not just the title), or rephrase your question.';
         return;
       }
 
       // Note: `await for` (not `yield*`) is required so stream errors are caught here.
-      await for (final chunk in _llmClient.generateStream(prompt)) {
+      await for (final chunk in _llmClient.generateStreamWithMessages(
+        systemPrompt: PromptBuilderService.singleTurnSystemPrompt,
+        history: memory.llmHistory,
+        userMessage: userPayload,
+      )) {
         yield chunk;
       }
     } catch (e) {
@@ -397,6 +425,7 @@ class RagService {
   /// or for previewing which notes would be referenced.
   Future<List<String>> getSourceTitles(
     String userQuestion, {
+    List<RagChatTurn> priorTurns = const [],
     int searchTopK = defaultSearchTopK,
     double minScore = defaultMinScore,
     // ignore: unused_parameter
@@ -405,12 +434,15 @@ class RagService {
     final stats = _vectorSearchService.getStats();
     if (stats.totalChunks == 0) return [];
 
+    final memory = _prepareChatMemory(priorTurns);
+
     try {
       final retrieved = await _retrieveTopChunksSingleTurn(
         userQuestion,
         fusionPoolSizePerQuery: searchTopK,
         minScore: minScore,
         expectedEmbeddingDim: stats.embeddingDimension,
+        conversationContext: memory.rewriteContext.isEmpty ? null : memory.rewriteContext,
       );
 
       return _uniqueInOrder(retrieved.chunkContexts.map((c) => c['title'] ?? '').where((t) => t.isNotEmpty));
@@ -488,6 +520,7 @@ class RagService {
     required int fusionPoolSizePerQuery,
     required double minScore,
     required int expectedEmbeddingDim,
+    String? conversationContext,
     int topKChunks = 3,
   }) async {
     final trimmed = userQuestion.trim();
@@ -496,7 +529,7 @@ class RagService {
     }
 
     // 1) Rewrite
-    final rewritten = await _queryRewriteService.rewrite(trimmed);
+    final rewritten = await _queryRewriteService.rewrite(trimmed, conversationContext: conversationContext);
 
     // 2) Expand (3 variations)
     final expanded = await _multiQueryExpansionService.expand(rewritten, count: 3);
@@ -566,6 +599,38 @@ class RagService {
       if (seen.add(key)) out.add(key);
     }
     return out;
+  }
+
+  ({String rewriteContext, List<LlmChatMessage> llmHistory}) _prepareChatMemory(List<RagChatTurn> priorTurns) {
+    final truncated = RagChatMemory.truncate(priorTurns);
+    final ctx = RagChatMemory.formatForQueryRewrite(truncated);
+    final history = truncated.map((t) => LlmChatMessage(role: t.role, content: t.content)).toList();
+    return (rewriteContext: ctx, llmHistory: history);
+  }
+
+  static String _formatDebugMessages({
+    required String systemPrompt,
+    required List<LlmChatMessage> history,
+    required String userMessage,
+  }) {
+    final b = StringBuffer();
+
+    final sys = systemPrompt.trim();
+    if (sys.isNotEmpty) {
+      b.writeln('System: $sys');
+    }
+
+    for (final m in history) {
+      final label = m.role == 'assistant' ? 'Assistant' : 'User';
+      b.writeln('$label: ${m.content}');
+    }
+
+    final msg = userMessage.trim();
+    if (msg.isNotEmpty) {
+      b.writeln('User: $msg');
+    }
+
+    return b.toString().trimRight();
   }
 }
 
