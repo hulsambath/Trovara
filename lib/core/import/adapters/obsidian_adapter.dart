@@ -79,13 +79,11 @@ class ObsidianAdapter implements NoteImportAdapter {
     Map<String, dynamic> frontmatter = {};
     String body = text;
 
-    if (text.startsWith('---\n')) {
-      final end = text.indexOf('\n---\n', 4);
-      if (end != -1) {
-        final yamlBlock = text.substring(4, end);
-        frontmatter = _parseFrontmatter(yamlBlock);
-        body = text.substring(end + 5);
-      }
+    final frontmatterMatch = RegExp(r'^---\n([\s\S]*?)\n---(?:\n|$)').firstMatch(text);
+    if (frontmatterMatch != null) {
+      final yamlBlock = frontmatterMatch.group(1) ?? '';
+      frontmatter = _parseFrontmatter(yamlBlock);
+      body = text.substring(frontmatterMatch.end);
     }
 
     // ── Title resolution ───────────────────────────────────────────────────

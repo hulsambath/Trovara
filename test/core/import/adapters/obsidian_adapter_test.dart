@@ -157,6 +157,14 @@ void main() {
       expect(notes.first.rawMetadata['author'], 'Sambath');
     });
 
+    test('parses frontmatter when closing fence is at EOF', () async {
+      const md = '---\ntitle: EOF Title\n---';
+      final notes = await adapter.parse(md);
+      expect(notes, hasLength(1));
+      expect(notes.first.title, 'EOF Title');
+      expect(notes.first.markdownContent, isEmpty);
+    });
+
     test('note without frontmatter parses correctly', () async {
       const md = '# Plain Note\nJust text.';
       final notes = await adapter.parse(md);
