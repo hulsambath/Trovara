@@ -9,6 +9,7 @@ import 'package:trovara/core/services/multi_query_expansion_service.dart';
 import 'package:trovara/core/services/note_service.dart';
 import 'package:trovara/core/services/prompt_builder_service.dart';
 import 'package:trovara/core/services/query_rewrite_service.dart';
+import 'package:trovara/core/services/rag_chat_memory.dart';
 import 'package:trovara/core/services/rag_service.dart';
 import 'package:trovara/core/services/vector_search_service.dart';
 import 'package:trovara/models/folder.dart';
@@ -218,6 +219,7 @@ class FakeLlmClient extends LlmClient {
   final bool _shouldThrow;
   bool generateCalled = false;
   String? lastPrompt;
+  List<LlmChatMessage>? lastHistory;
 
   FakeLlmClient({String response = 'Test answer', bool shouldThrow = false})
     : _fakeResponse = response,
@@ -228,18 +230,35 @@ class FakeLlmClient extends LlmClient {
   bool get isAvailable => true;
 
   @override
-  Future<String> generate(String prompt) async {
+  Future<String> generate(String prompt) =>
+      generateWithMessages(systemPrompt: '', history: const [], userMessage: prompt);
+
+  @override
+  Future<String> generateWithMessages({
+    required String systemPrompt,
+    required List<LlmChatMessage> history,
+    required String userMessage,
+  }) async {
     generateCalled = true;
-    lastPrompt = prompt;
+    lastHistory = List<LlmChatMessage>.from(history);
+    lastPrompt = userMessage;
     if (_shouldThrow) throw Exception('LLM API error');
     return _fakeResponse;
   }
 
   @override
-  Stream<String> generateStream(String prompt) async* {
-    lastPrompt = prompt;
+  Stream<String> generateStream(String prompt) =>
+      generateStreamWithMessages(systemPrompt: '', history: const [], userMessage: prompt);
+
+  @override
+  Stream<String> generateStreamWithMessages({
+    required String systemPrompt,
+    required List<LlmChatMessage> history,
+    required String userMessage,
+  }) async* {
+    lastHistory = List<LlmChatMessage>.from(history);
+    lastPrompt = userMessage;
     if (_shouldThrow) throw Exception('LLM streaming error');
-    // Yield the response in chunks to simulate streaming
     final words = _fakeResponse.split(' ');
     for (final word in words) {
       yield '$word ';
@@ -250,13 +269,16 @@ class FakeLlmClient extends LlmClient {
 class FakeQueryRewriteService extends QueryRewriteService {
   final String Function(String) _fn;
   int calls = 0;
+  String? lastConversationContext;
+
   FakeQueryRewriteService({required String Function(String) rewriteFn})
     : _fn = rewriteFn,
       super(llmClient: FakeLlmClient());
 
   @override
-  Future<String> rewrite(String userQuery) async {
+  Future<String> rewrite(String userQuery, {String? conversationContext}) async {
     calls++;
+    lastConversationContext = conversationContext;
     return _fn(userQuery);
   }
 }
@@ -591,6 +613,35 @@ void main() {
 
       expect(rewrite.calls, equals(1));
       expect(expand.calls, equals(1));
+    });
+
+    test('passes prior transcript to rewrite and LLM when priorTurns provided', () async {
+      final note = _makeNote(id: 1, title: 'Note');
+      noteRepo.seed([note]);
+      embeddingRepo.seed([
+        _makeEmbedding(noteId: 1, chunkText: 'Meditated for 20 minutes', vector: [0.5, 0.5, 0.5]),
+      ]);
+
+      final (:service, :llm, :rewrite, expand: _) = _buildRagService(
+        noteRepo: noteRepo,
+        folderRepo: folderRepo,
+        embeddingRepo: embeddingRepo,
+        queryVector: [0.5, 0.5, 0.5],
+      );
+
+      const prior = [
+        RagChatTurn(role: 'user', content: 'earlier question'),
+        RagChatTurn(role: 'assistant', content: 'earlier answer'),
+      ];
+
+      await service.query('follow-up', priorTurns: prior);
+
+      expect(rewrite.lastConversationContext, isNotNull);
+      expect(rewrite.lastConversationContext, contains('User:'));
+      expect(rewrite.lastConversationContext, contains('earlier question'));
+      expect(llm.lastHistory, hasLength(2));
+      expect(llm.lastHistory![0].role, 'user');
+      expect(llm.lastHistory![1].role, 'assistant');
     });
 
     test('rrfFuse selects expected top-3 from 3×5 pools', () {

@@ -424,6 +424,29 @@ void main() {
   //  buildSingleTurn
   // ─────────────────────────────────────────────────────────────────────────
 
+  group('buildSingleTurnUserPayload', () {
+    test('omits system prompt; includes Question and Information', () {
+      final payload = promptBuilder.buildSingleTurnUserPayload(
+        userQuery: 'What about meditation?',
+        topChunkContexts: [
+          {
+            'title': 'Morning Meditation',
+            'date': '2026-02-20',
+            'folder': 'Journal',
+            'tags': 'mood: calm',
+            'text': 'Meditated for 20 minutes.',
+          },
+        ],
+      )!;
+
+      expect(payload, isNot(contains(PromptBuilderService.singleTurnSystemPrompt)));
+      expect(payload, contains('Question:'));
+      expect(payload, contains('What about meditation?'));
+      expect(payload, contains('Information:'));
+      expect(payload, contains('Text: Meditated for 20 minutes.'));
+    });
+  });
+
   group('buildSingleTurn', () {
     test('returns null when no contexts', () {
       final prompt = promptBuilder.buildSingleTurn(userQuery: 'test', topChunkContexts: []);

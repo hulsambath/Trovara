@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:trovara/core/di/service_locator.dart';
-import 'package:trovara/core/services/google_drive_service.dart';
+import 'package:trovara/core/services/auth/google_drive_service.dart';
 import 'package:trovara/core/services/note_service.dart';
 import 'package:trovara/widgets/nm_loading_overlay.dart';
 import 'package:trovara/widgets/nm_toast.dart';

@@ -1,7 +1,7 @@
 import 'package:logger/logger.dart';
 import 'package:trovara/core/base/base_view_model.dart';
 import 'package:trovara/core/di/service_locator.dart';
-import 'package:trovara/core/services/google_drive_service.dart';
+import 'package:trovara/core/services/auth/google_drive_service.dart';
 import 'package:trovara/core/services/note_service.dart';
 import 'package:trovara/models/note.dart';
 

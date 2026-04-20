@@ -7,6 +7,16 @@ import 'package:logger/logger.dart';
 
 enum LlmProvider { openAiCompatible, gemini }
 
+/// One prior turn for [LlmClient.generateWithMessages] / [generateStreamWithMessages].
+///
+/// Roles must be `user` or `assistant` (OpenAI-compatible).
+class LlmChatMessage {
+  final String role;
+  final String content;
+
+  const LlmChatMessage({required this.role, required this.content});
+}
+
 /// Client for an OpenAI-compatible chat completions API.
 ///
 /// Default target is OpenRouter (`https://openrouter.ai/api/v1`).
@@ -60,7 +70,6 @@ class LlmClient {
   final Logger _logger = Logger();
 
   http.Client? _client;
-  GenerativeModel? _geminiModel;
   String? _resolvedGeminiModelName;
   bool? _resolvedGeminiSupportsStreaming;
   bool _isInitialized = false;
@@ -116,7 +125,6 @@ class LlmClient {
         _logger.i('LlmClient initialized (OpenAI-compatible) (baseUrl=$_baseUrl, model=$_modelName)');
         return;
       case LlmProvider.gemini:
-        _geminiModel = GenerativeModel(model: _modelName, apiKey: _apiKey);
         _isInitialized = true;
         _logger.i('LlmClient initialized (Gemini) (model=$modelName)');
         return;
@@ -290,7 +298,6 @@ class LlmClient {
       final normalized = _normalizeGeminiModelName(best);
       _resolvedGeminiModelName = normalized;
       _resolvedGeminiSupportsStreaming = bestSupportsStream;
-      _geminiModel = GenerativeModel(model: normalized, apiKey: _apiKey);
       _logger.w(
         'Gemini model "$_modelName" unavailable; using "$normalized" instead '
         '(streaming=${bestSupportsStream ? 'yes' : 'no'})',
@@ -308,55 +315,36 @@ class LlmClient {
 
   /// Generate a complete response (non-streaming).
   ///
-  /// Sends the [prompt] to the chat completions endpoint and waits for the full response.
-  /// Returns the generated text or a fallback message if the response is empty.
+  /// Equivalent to [generateWithMessages] with an empty system prompt, no
+  /// history, and [userMessage] set to [prompt].
+  Future<String> generate(String prompt) =>
+      generateWithMessages(systemPrompt: '', history: const [], userMessage: prompt);
+
+  /// Non-streaming chat completion with optional system prompt and history.
   ///
-  /// Throws if the API call fails — callers should handle errors.
-  Future<String> generate(String prompt) async {
+  /// [history] must use roles `user` and `assistant` only. The final user turn
+  /// is [userMessage] (e.g. RAG payload for the current question).
+  Future<String> generateWithMessages({
+    required String systemPrompt,
+    required List<LlmChatMessage> history,
+    required String userMessage,
+  }) async {
     if (!isAvailable) {
       throw StateError('LlmClient is not initialized or API key is missing');
     }
 
+    final msg = userMessage.trim();
+    if (msg.isEmpty) {
+      _logger.w('LLM: empty user message');
+      return 'No response generated.';
+    }
+
     try {
       if (_provider == LlmProvider.gemini) {
-        try {
-          final res = await _geminiModel!.generateContent(
-            [Content.text(prompt)],
-            generationConfig: GenerationConfig(
-              temperature: _temperature,
-              topP: _topP,
-              maxOutputTokens: _maxOutputTokens,
-            ),
-          );
-          final text = res.text ?? '';
-          if (text.isEmpty) {
-            _logger.w('LLM returned empty response');
-            return 'No response generated.';
-          }
-          _logger.d('LLM generated ${text.length} chars');
-          return text;
-        } catch (e) {
-          if (_isGeminiModelNotFound(e)) {
-            await _resolveGeminiModelForGeneration();
-            final res = await _geminiModel!.generateContent(
-              [Content.text(prompt)],
-              generationConfig: GenerationConfig(
-                temperature: _temperature,
-                topP: _topP,
-                maxOutputTokens: _maxOutputTokens,
-              ),
-            );
-            final text = res.text ?? '';
-            if (text.isEmpty) {
-              _logger.w('LLM returned empty response');
-              return 'No response generated.';
-            }
-            _logger.d('LLM generated ${text.length} chars');
-            return text;
-          }
-
-          throw _wrapGeminiException(e);
-        }
+        return await _generateGeminiWithContents(
+          systemPrompt: systemPrompt,
+          contents: _geminiConversationContents(history, msg),
+        );
       }
 
       final uri = Uri.parse('$_baseUrl/chat/completions');
@@ -365,9 +353,7 @@ class LlmClient {
         headers: _buildHeaders(),
         body: jsonEncode({
           'model': _modelName,
-          'messages': [
-            {'role': 'user', 'content': prompt},
-          ],
+          'messages': _openAiMessagesJson(systemPrompt: systemPrompt, history: history, userMessage: msg),
           'temperature': _temperature,
           'top_p': _topP,
           'max_tokens': _maxOutputTokens,
@@ -403,28 +389,40 @@ class LlmClient {
 
   /// Stream a response token-by-token.
   ///
-  /// Sends the [prompt] to the chat completions endpoint and yields text chunks as they arrive.
-  /// Useful for real-time UI updates in the chat interface.
-  ///
-  /// Throws if the API call fails — callers should handle errors.
-  Stream<String> generateStream(String prompt) async* {
+  /// Equivalent to [generateStreamWithMessages] with no system or history.
+  Stream<String> generateStream(String prompt) =>
+      generateStreamWithMessages(systemPrompt: '', history: const [], userMessage: prompt);
+
+  /// Streaming chat completion with optional system prompt and history.
+  Stream<String> generateStreamWithMessages({
+    required String systemPrompt,
+    required List<LlmChatMessage> history,
+    required String userMessage,
+  }) async* {
     if (!isAvailable) {
       throw StateError('LlmClient is not initialized or API key is missing');
     }
 
+    final msg = userMessage.trim();
+    if (msg.isEmpty) {
+      return;
+    }
+
+    final contents = _geminiConversationContents(history, msg);
+    final openAiMessages = _openAiMessagesJson(systemPrompt: systemPrompt, history: history, userMessage: msg);
+
     try {
       if (_provider == LlmProvider.gemini) {
-        // If we already know streaming isn't supported for this API key/model,
-        // fall back to non-streaming generation.
         if (_resolvedGeminiSupportsStreaming == false) {
-          yield await generate(prompt);
+          yield await generateWithMessages(systemPrompt: systemPrompt, history: history, userMessage: msg);
           return;
         }
 
         var yieldedAny = false;
         try {
-          await for (final res in _geminiModel!.generateContentStream(
-            [Content.text(prompt)],
+          final model = _newGeminiModel(systemPrompt);
+          await for (final res in model.generateContentStream(
+            contents,
             generationConfig: GenerationConfig(
               temperature: _temperature,
               topP: _topP,
@@ -439,19 +437,18 @@ class LlmClient {
           }
           return;
         } catch (e) {
-          // Only attempt a fallback if we haven't yielded any text yet.
           if (!yieldedAny && (_isGeminiStreamingNotSupported(e) || _isGeminiModelNotFound(e))) {
             await _resolveGeminiModelForGeneration();
 
-            // If the resolved model doesn't support streaming, fall back.
             if (_resolvedGeminiSupportsStreaming == false) {
-              yield await generate(prompt);
+              yield await generateWithMessages(systemPrompt: systemPrompt, history: history, userMessage: msg);
               return;
             }
 
             try {
-              await for (final res in _geminiModel!.generateContentStream(
-                [Content.text(prompt)],
+              final model = _newGeminiModel(systemPrompt);
+              await for (final res in model.generateContentStream(
+                contents,
                 generationConfig: GenerationConfig(
                   temperature: _temperature,
                   topP: _topP,
@@ -460,15 +457,15 @@ class LlmClient {
               )) {
                 final text = res.text ?? '';
                 if (text.isNotEmpty) {
+                  yieldedAny = true;
                   yield text;
                 }
               }
               return;
             } catch (e2) {
-              // If streaming still isn't supported (or becomes unsupported), fall back.
               if (_isGeminiStreamingNotSupported(e2)) {
                 _resolvedGeminiSupportsStreaming = false;
-                yield await generate(prompt);
+                yield await generateWithMessages(systemPrompt: systemPrompt, history: history, userMessage: msg);
                 return;
               }
               throw _wrapGeminiException(e2);
@@ -484,9 +481,7 @@ class LlmClient {
         ..headers.addAll(_buildHeaders())
         ..body = jsonEncode({
           'model': _modelName,
-          'messages': [
-            {'role': 'user', 'content': prompt},
-          ],
+          'messages': openAiMessages,
           'temperature': _temperature,
           'top_p': _topP,
           'max_tokens': _maxOutputTokens,
@@ -531,6 +526,80 @@ class LlmClient {
     } catch (e) {
       _logger.e('LLM streaming error: $e');
       rethrow;
+    }
+  }
+
+  List<Map<String, dynamic>> _openAiMessagesJson({
+    required String systemPrompt,
+    required List<LlmChatMessage> history,
+    required String userMessage,
+  }) {
+    final messages = <Map<String, dynamic>>[];
+    final sys = systemPrompt.trim();
+    if (sys.isNotEmpty) {
+      messages.add({'role': 'system', 'content': sys});
+    }
+    for (final h in history) {
+      messages.add({'role': h.role, 'content': h.content});
+    }
+    messages.add({'role': 'user', 'content': userMessage});
+    return messages;
+  }
+
+  GenerativeModel _newGeminiModel(String systemPrompt) {
+    final sys = systemPrompt.trim();
+    return GenerativeModel(
+      model: modelName,
+      apiKey: _apiKey,
+      systemInstruction: sys.isEmpty ? null : Content.system(sys),
+    );
+  }
+
+  List<Content> _geminiConversationContents(List<LlmChatMessage> history, String userMessage) {
+    final contents = <Content>[];
+    for (final h in history) {
+      final r = h.role.trim().toLowerCase();
+      if (r == 'assistant') {
+        contents.add(Content('model', [TextPart(h.content)]));
+      } else {
+        contents.add(Content.text(h.content));
+      }
+    }
+    contents.add(Content.text(userMessage));
+    return contents;
+  }
+
+  Future<String> _generateGeminiWithContents({required String systemPrompt, required List<Content> contents}) async {
+    try {
+      final model = _newGeminiModel(systemPrompt);
+      final res = await model.generateContent(
+        contents,
+        generationConfig: GenerationConfig(temperature: _temperature, topP: _topP, maxOutputTokens: _maxOutputTokens),
+      );
+      final text = res.text ?? '';
+      if (text.isEmpty) {
+        _logger.w('LLM returned empty response');
+        return 'No response generated.';
+      }
+      _logger.d('LLM generated ${text.length} chars');
+      return text;
+    } catch (e) {
+      if (_isGeminiModelNotFound(e)) {
+        await _resolveGeminiModelForGeneration();
+        final model = _newGeminiModel(systemPrompt);
+        final res = await model.generateContent(
+          contents,
+          generationConfig: GenerationConfig(temperature: _temperature, topP: _topP, maxOutputTokens: _maxOutputTokens),
+        );
+        final text = res.text ?? '';
+        if (text.isEmpty) {
+          _logger.w('LLM returned empty response');
+          return 'No response generated.';
+        }
+        _logger.d('LLM generated ${text.length} chars');
+        return text;
+      }
+      throw _wrapGeminiException(e);
     }
   }
 

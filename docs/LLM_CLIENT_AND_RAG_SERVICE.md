@@ -282,17 +282,17 @@ available. The Chat UI should check this to show/hide the chat feature.
 class RagResult {
   final String answer;              // LLM-generated answer text
   final List<String> sourceNoteTitles; // Titles of referenced notes
-  final String prompt;              // The augmented prompt (for debugging)
+  final String prompt;              // Debug transcript of full message list sent to LLM
   final int matchedChunks;          // Number of embedding chunks matched
 }
 ```
 
-| Field              | Description                                                          |
-| ------------------ | -------------------------------------------------------------------- |
-| `answer`           | The LLM answer, or a user-friendly error message if something failed |
-| `sourceNoteTitles` | Note titles for source attribution in the UI                         |
-| `prompt`           | The full augmented prompt (debugging only — not shown to users)      |
-| `matchedChunks`    | How many chunks the vector search returned                           |
+| Field              | Description                                                                   |
+| ------------------ | ----------------------------------------------------------------------------- |
+| `answer`           | The LLM answer, or a user-friendly error message if something failed          |
+| `sourceNoteTitles` | Note titles for source attribution in the UI                                  |
+| `prompt`           | Full request transcript (system + history + user payload), for debugging only |
+| `matchedChunks`    | How many chunks the vector search returned                                    |
 
 `toString()` prints a compact summary:
 

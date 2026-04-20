@@ -147,16 +147,19 @@ Guidelines:
     return prompt;
   }
 
-  /// Build a single-turn prompt from top chunk context maps.
+  /// Question plus note excerpts only (no system instructions).
+  ///
+  /// Used for multi-turn chat: the system prompt is sent separately, and this
+  /// string becomes the final user message containing RAG context.
   ///
   /// Expected map shape: `title`, `date`, `folder`, `tags`, `text`.
-  String? buildSingleTurn({required String userQuery, required List<Map<String, String>> topChunkContexts}) {
+  String? buildSingleTurnUserPayload({required String userQuery, required List<Map<String, String>> topChunkContexts}) {
     final q = userQuery.trim();
     if (q.isEmpty) return null;
     if (topChunkContexts.isEmpty) return null;
 
     final infoBuf = StringBuffer();
-    bool wroteAnyContext = false;
+    var wroteAnyContext = false;
     for (final c in topChunkContexts) {
       final title = (c['title'] ?? '').trim();
       final date = (c['date'] ?? '').trim();
@@ -177,13 +180,31 @@ Guidelines:
     if (!wroteAnyContext) return null;
 
     final buf = StringBuffer();
-    buf.writeln(singleTurnSystemPrompt);
-    buf.writeln();
     buf.writeln('Question:');
     buf.writeln(q);
     buf.writeln();
     buf.writeln('Information:');
     buf.write(infoBuf.toString());
+
+    final prompt = buf.toString().trimRight();
+    _logger.d('Built single-turn user payload: ${topChunkContexts.length} chunk(s), ${prompt.length} chars');
+    return prompt;
+  }
+
+  /// Build a single-turn prompt from top chunk context maps (system + payload).
+  ///
+  /// For chat APIs that accept a separate system message, prefer
+  /// [singleTurnSystemPrompt] plus [buildSingleTurnUserPayload] instead.
+  ///
+  /// Expected map shape: `title`, `date`, `folder`, `tags`, `text`.
+  String? buildSingleTurn({required String userQuery, required List<Map<String, String>> topChunkContexts}) {
+    final payload = buildSingleTurnUserPayload(userQuery: userQuery, topChunkContexts: topChunkContexts);
+    if (payload == null) return null;
+
+    final buf = StringBuffer();
+    buf.writeln(singleTurnSystemPrompt);
+    buf.writeln();
+    buf.write(payload);
 
     final prompt = buf.toString().trimRight();
     _logger.d('Built single-turn prompt: ${topChunkContexts.length} chunk(s), ${prompt.length} chars');
