@@ -3,13 +3,17 @@ set -euo pipefail
 
 # Flutter iOS IPA builder (Xcode / signing on this Mac)
 #
-# Does not use Android keystores. Use the same dart-define + flavor + entrypoint
-# as build_apk.sh / build_appbundle.sh.
+# Does not use Android keystores. Uses dart-define + flavor + entrypoint
+# same as build_apk.sh / build_appbundle.sh.
 #
 # Usage:
-#   ./scripts/build_ipa.sh                  # staging
-#   ./scripts/build_ipa.sh --prod           # prod
+#   ./scripts/build_ipa.sh                      # Build staging IPA (default)
+#   ./scripts/build_ipa.sh --prod               # Build production IPA
 #   ./scripts/build_ipa.sh -- --export-options-plist=ios/ExportOptions.plist
+#
+# Quicker via CLI hub:
+#   dev build ipa                               # Build staging IPA
+#   dev build ipa prod                          # Build production IPA
 #
 # Extra arguments after -- are passed to flutter build ipa.
 
@@ -38,21 +42,25 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --help)
-      echo "Usage: $0 [-nm|--trovara] [--prod|--dev] [-- <extra flutter build ipa args>]"
+      echo "Usage: $0 [--trovara] [--prod|--dev] [-- <extra flutter build ipa args>]"
       echo ""
-      echo "Build a release IPA with Trovara staging or prod flavor."
+      echo "Build iOS IPA for Trovara"
       echo "Configure signing & export in Xcode or via --export-options-plist (after --)."
       echo ""
       echo "Options:"
-      echo "  -nm, --trovara   Trovara project (default)"
-      echo "  --prod           Production flavor"
-      echo "  --dev            Staging flavor (alias)"
-      echo "  --help           Show this help"
+      echo "  --trovara    Trovara project (default)"
+      echo "  --prod       Production environment"
+      echo "  --dev        Staging environment (alias)"
+      echo "  --help       Show this help"
       echo ""
       echo "Examples:"
-      echo "  $0"
-      echo "  $0 --prod"
+      echo "  $0                                          # Build staging IPA"
+      echo "  $0 --prod                                   # Build production IPA"
       echo "  $0 --prod -- --export-options-plist=ios/ExportOptions.plist"
+      echo ""
+      echo "Quicker via CLI hub:"
+      echo "  dev build ipa                               # Build staging IPA"
+      echo "  dev build ipa prod                          # Build production IPA"
       echo ""
       echo "Output:"
       echo "  build/ios/ipa/*.ipa"

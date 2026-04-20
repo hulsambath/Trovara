@@ -5,11 +5,14 @@ set -euo pipefail
 # Supports automatic credential decryption for builds
 #
 # Usage:
-#   ./scripts/build_apk.sh -yp                  # Build with staging credentials (default)
-#   ./scripts/build_apk.sh -yp --prod           # Build with prod credentials
-#   ./scripts/build_apk.sh -yp --dev            # Build with staging credentials (alias)
-#   ./scripts/build_apk.sh --trovara        # Build with staging credentials (default)
-#   ./scripts/build_apk.sh --trovara --prod # Build with prod credentials
+#   ./scripts/build_apk.sh                      # Build staging APK (default)
+#   ./scripts/build_apk.sh --prod               # Build prod APK
+#   ./scripts/build_apk.sh --trovara            # Build staging APK (default)
+#   ./scripts/build_apk.sh --trovara --prod     # Build prod APK
+#
+# Quicker via CLI hub:
+#   dev build apk                               # Build staging APK
+#   dev build apk prod                          # Build prod APK
 #
 # The script will:
 # 1. Detect the environment (staging/prod) from arguments or default to staging
@@ -41,19 +44,25 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --help)
-      echo "Usage: $0 [-nm|--trovara] [--prod|--dev] [--no-decrypt]"
+      echo "Usage: $0 [--trovara] [--prod|--dev] [--no-decrypt]"
+      echo ""
+      echo "Build Android APK for Trovara"
       echo ""
       echo "Options:"
-      echo "  -nm, --trovara  Build Trovara APK"
-      echo "  --prod         Use production credentials"
-      echo "  --dev          Use staging credentials (alias for backwards compatibility)"
-      echo "  --no-decrypt   Skip automatic credential decryption"
+      echo "  --trovara      Trovara project (default)"
+      echo "  --prod         Production environment"
+      echo "  --dev          Staging environment (alias)"
+      echo "  --no-decrypt   Skip credential decryption"
       echo "  --help         Show this help message"
       echo ""
       echo "Examples:"
-      echo "  $0 -yp                              # Build with staging credentials"
-      echo "  $0 -yp --prod                       # Build with prod credentials"
-      echo "  $0 -yp --no-decrypt                 # Build without decrypting credentials"
+      echo "  $0                  # Build staging APK (default)"
+      echo "  $0 --prod           # Build production APK"
+      echo "  $0 --no-decrypt     # Build without decrypting credentials"
+      echo ""
+      echo "Quicker via CLI hub:"
+      echo "  dev build apk       # Build staging APK"
+      echo "  dev build apk prod  # Build production APK"
       exit 0
       ;;
     *)

@@ -15,18 +15,32 @@ on:
   push:
     branches: [develop, main]
 
+concurrency:
+  group: android-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-android:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    if: |
+      github.event_name == 'push' ||
+      github.event.inputs.environment == 'all' ||
+      github.event.inputs.environment == matrix.android-env
     strategy:
       fail-fast: false
       matrix:
         include:
           - android-env: staging
+            flavor: staging
+            target: lib/main_staging.dart
+            dart-define-file: configs/trovara_staging.json
             artifact-name: trovara-apk-staging
           - android-env: prod
+            flavor: prod
+            target: lib/main_prod.dart
+            dart-define-file: configs/trovara_prod.json
             artifact-name: trovara-apk-prod
     env:
       ANDROID_ENV: ${{ matrix.android-env }}
@@ -34,27 +48,28 @@ jobs:
       CREDENTIALS_DIR: credentials
     steps:
       - name: Checkout repository
-        if: |
-          github.event_name == 'push' ||
-          github.event.inputs.environment == 'all' ||
-          github.event.inputs.environment == matrix.android-env
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
       - name: Set up Flutter
-        if: |
-          github.event_name == 'push' ||
-          github.event.inputs.environment == 'all' ||
-          github.event.inputs.environment == matrix.android-env
         uses: subosito/flutter-action@v2
         with:
+          flutter-version: "3.41.2"
           channel: "stable"
           cache: true
 
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
       - name: Install sops
-        if: |
-          github.event_name == 'push' ||
-          github.event.inputs.environment == 'all' ||
-          github.event.inputs.environment == matrix.android-env
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends gnupg
@@ -62,10 +77,6 @@ jobs:
           sudo install -m 0755 sops /usr/local/bin/sops
 
       - name: Verify credentials project exists
-        if: |
-          github.event_name == 'push' ||
-          github.event.inputs.environment == 'all' ||
-          github.event.inputs.environment == matrix.android-env
         run: |
           if [[ ! -d "../credentials" ]]; then
             echo "❌ Credentials project not found at ../credentials"
@@ -77,100 +88,34 @@ jobs:
           fi
 
       - name: Decrypt Android secrets (SOPS)
-        if: |
-          github.event_name == 'push' ||
-          github.event.inputs.environment == 'all' ||
-          github.event.inputs.environment == matrix.android-env
         working-directory: ../credentials
         env:
           SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
         run: |
           set -euo pipefail
-          case "$ANDROID_ENV" in
-            staging)
-              if [[ ! -f "android/trovara/${ANDROID_ENV}/upload.jks.enc" ]]; then
-                echo "❌ Encrypted keystore not found: android/trovara/${ANDROID_ENV}/upload.jks.enc"
-                exit 1
-              fi
-              echo "🔓 Decrypting ${ANDROID_ENV} credentials to credentials directory..."
-              sops -d android/trovara/${ANDROID_ENV}/upload.jks.enc > android/trovara/${ANDROID_ENV}/upload.jks
-              sops -d android/trovara/${ANDROID_ENV}/keystore.properties.enc > android/trovara/${ANDROID_ENV}/keystore.properties
-              sops -d android/trovara/${ANDROID_ENV}/google-services.json.enc > android/trovara/${ANDROID_ENV}/google-services.json
-              ;;
-            prod)
-              if [[ ! -f "android/trovara/prod/upload.jks.enc" ]]; then
-                echo "❌ Encrypted keystore not found: android/trovara/prod/upload.jks.enc"
-                exit 1
-              fi
-              echo "🔓 Decrypting prod credentials to credentials directory..."
-              sops -d android/trovara/prod/upload.jks.enc > android/trovara/prod/upload.jks
-              sops -d android/trovara/prod/keystore.properties.enc > android/trovara/prod/keystore.properties
-              sops -d android/trovara/prod/google-services.json.enc > android/trovara/prod/google-services.json
-              ;;
-            *) echo "❌ Unknown ANDROID_ENV=$ANDROID_ENV" && exit 1 ;;
-          esac
+          CREDENTIALS_ENV_DIR="android/trovara/${ANDROID_ENV}"
+          if [[ ! -f "${CREDENTIALS_ENV_DIR}/upload.jks.enc" ]]; then
+            echo "❌ Encrypted keystore not found: ${CREDENTIALS_ENV_DIR}/upload.jks.enc"
+            exit 1
+          fi
+          echo "🔓 Decrypting ${ANDROID_ENV} credentials..."
+          sops -d "${CREDENTIALS_ENV_DIR}/upload.jks.enc" > "${CREDENTIALS_ENV_DIR}/upload.jks"
+          sops -d "${CREDENTIALS_ENV_DIR}/keystore.properties.enc" > "${CREDENTIALS_ENV_DIR}/keystore.properties"
+          sops -d "${CREDENTIALS_ENV_DIR}/google-services.json.enc" > "${CREDENTIALS_ENV_DIR}/google-services.json"
 
       - name: Create Firebase options stub
-        if: |
-          github.event_name == 'push' ||
-          github.event.inputs.environment == 'all' ||
-          github.event.inputs.environment == matrix.android-env
-        run: |
-          mkdir -p lib/firebase_options
-          cat > lib/firebase_options/staging.dart << 'DART'
-          // CI stub – real keys are injected at build time
-          import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
-          import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform;
-          class DefaultFirebaseOptions {
-            static FirebaseOptions get currentPlatform {
-              switch (defaultTargetPlatform) {
-                case TargetPlatform.android:
-                  return android;
-                case TargetPlatform.iOS:
-                  return ios;
-                case TargetPlatform.macOS:
-                  return macos;
-                default:
-                  throw UnsupportedError('Platform not supported');
-              }
-            }
-            static const FirebaseOptions android = FirebaseOptions(apiKey: 'x', appId: 'x', messagingSenderId: 'x', projectId: 'x');
-            static const FirebaseOptions ios = FirebaseOptions(apiKey: 'x', appId: 'x', messagingSenderId: 'x', projectId: 'x', iosBundleId: 'x');
-            static const FirebaseOptions macos = FirebaseOptions(apiKey: 'x', appId: 'x', messagingSenderId: 'x', projectId: 'x', iosBundleId: 'x');
-          }
-          DART
-          cp lib/firebase_options/staging.dart lib/firebase_options/prod.dart
+        run: bash ./scripts/create_firebase_stub.sh
 
       - name: Flutter pub get
-        if: |
-          github.event_name == 'push' ||
-          github.event.inputs.environment == 'all' ||
-          github.event.inputs.environment == matrix.android-env
         run: flutter pub get
 
-      - name: Build APK - Staging
-        if: |
-          (github.event_name == 'push' || github.event.inputs.environment == 'all' || github.event.inputs.environment == 'staging') &&
-          matrix.android-env == 'staging'
+      - name: Build APK
         run: |
-          echo "🔨 Building trovara APK for staging environment..."
-          flutter build apk --release --flavor staging --target=lib/main_staging.dart --dart-define-from-file=configs/trovara_staging.json
-
-      - name: Build APK - Prod
-        if: |
-          (github.event_name == 'push' || github.event.inputs.environment == 'all' || github.event.inputs.environment == 'prod') &&
-          matrix.android-env == 'prod'
-        run: |
-          echo "🔨 Building trovara APK for prod environment..."
-          flutter build apk --release --flavor prod --target=lib/main_prod.dart --dart-define-from-file=configs/trovara_prod.json
+          echo "🔨 Building trovara APK for ${ANDROID_ENV} environment..."
+          flutter build apk --release --flavor "${{ matrix.flavor }}" --target="${{ matrix.target }}" --dart-define-from-file="${{ matrix.dart-define-file }}"
 
       - name: Upload APK artifact
-        if: |
-          github.event_name == 'push' ||
-          github.event.inputs.environment == 'all' ||
-          github.event.inputs.environment == matrix.android-env
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact-name }}
-          path: |
-            build/app/outputs/flutter-apk/*.apk
+          path: build/app/outputs/flutter-apk/app-${{ matrix.flavor }}-release.apk

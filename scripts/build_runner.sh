@@ -1,24 +1,46 @@
-# Use this [bin/run_build] to run Flutter project in specific flavor.
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Flutter build_runner - Generate ObjectBox and other code
 #
-# Commands:
-# bin/run_build -d || --delete-conflicting-outputs
+# Usage:
+#   ./scripts/build_runner.sh                   # Run build_runner (default)
+#   ./scripts/build_runner.sh -d                # Delete conflicting outputs first
+#   ./scripts/build_runner.sh --help            # Show help
+#
+# Quicker via CLI hub:
+#   dev setup build-runner                      # Run build_runner
 
-FLAVOR=$1
+echo "🔨 Running Flutter build_runner..."
+echo ""
 
-case "$FLAVOR" in
--d | --delete-conflicting-outputs)
-  CMD="flutter pub run build_runner build -d"
-  ;;
-*)
-
-  echo "Invalid option: $FLAVOR"
-  echo "Usage: bin/run_build [-d | --delete-conflicting-outputs]"
-  exit 1
-  ;;
+case "${1:-}" in
+  -d|--delete-conflicting-outputs)
+    echo "📋 Deleting conflicting outputs..."
+    flutter pub run build_runner build -d
+    ;;
+  --help|-h)
+    echo "Usage: $0 [-d|--delete-conflicting-outputs]"
+    echo ""
+    echo "Generate code for ObjectBox and other packages"
+    echo ""
+    echo "Options:"
+    echo "  -d, --delete-conflicting-outputs  Delete conflicting outputs before building"
+    echo "  --help                            Show this help"
+    echo ""
+    echo "Examples:"
+    echo "  $0                    # Run build_runner"
+    echo "  $0 -d                 # Delete conflicts first"
+    echo ""
+    echo "Quicker via CLI hub:"
+    echo "  dev setup build-runner"
+    exit 0
+    ;;
+  *)
+    echo "Running build_runner..."
+    flutter pub run build_runner build
+    ;;
 esac
 
-# Remove 1st args
-shift
-
-echo "Executing: $CMD $1"
-eval $CMD $1
+echo ""
+echo "✅ Build runner completed!"

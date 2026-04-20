@@ -4,9 +4,13 @@ set -euo pipefail
 # Flutter App Bundle (.aab) builder with optional credential decryption
 #
 # Usage:
-#   ./scripts/build_appbundle.sh                  # staging + decrypt
-#   ./scripts/build_appbundle.sh --prod           # prod + decrypt
-#   ./scripts/build_appbundle.sh --no-decrypt     # skip SOPS / keystore.sh
+#   ./scripts/build_appbundle.sh                # Build staging AAB (default)
+#   ./scripts/build_appbundle.sh --prod         # Build production AAB
+#   ./scripts/build_appbundle.sh --no-decrypt   # Skip SOPS / keystore.sh
+#
+# Quicker via CLI hub:
+#   dev build aab                               # Build staging AAB
+#   dev build aab prod                          # Build production AAB
 #
 # Requires ../credentials (Android signing) when using decrypt.
 
@@ -36,16 +40,24 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --help)
-      echo "Usage: $0 [-nm|--trovara] [--prod|--dev] [--no-decrypt]"
+      echo "Usage: $0 [--trovara] [--prod|--dev] [--no-decrypt]"
       echo ""
-      echo "Build a release Android App Bundle (.aab) with the same flavors as build_apk.sh."
+      echo "Build Android App Bundle (.aab) for Trovara"
       echo ""
       echo "Options:"
-      echo "  -nm, --trovara   Trovara project (default)"
-      echo "  --prod           Production flavor + credentials"
-      echo "  --dev            Staging flavor (alias)"
-      echo "  --no-decrypt     Do not run scripts/keystore.sh"
-      echo "  --help           Show this help"
+      echo "  --trovara    Trovara project (default)"
+      echo "  --prod       Production environment"
+      echo "  --dev        Staging environment (alias)"
+      echo "  --no-decrypt Do not run scripts/keystore.sh"
+      echo "  --help       Show this help"
+      echo ""
+      echo "Examples:"
+      echo "  $0               # Build staging AAB (default)"
+      echo "  $0 --prod        # Build production AAB"
+      echo ""
+      echo "Quicker via CLI hub:"
+      echo "  dev build aab    # Build staging AAB"
+      echo "  dev build aab prod  # Build production AAB"
       echo ""
       echo "Output:"
       echo "  build/app/outputs/bundle/<flavor>Release/app-<flavor>-release.aab"

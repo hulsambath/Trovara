@@ -16,11 +16,29 @@
                     <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
                         <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                        <subviews>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" image="LaunchBackground" translatesAutoresizingMaskIntoConstraints="NO" id="Qk8-0R-SXl"/>
+                            <imageView opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" image="LaunchImage" translatesAutoresizingMaskIntoConstraints="NO" id="p3G-zK-7uM"/>
+                        </subviews>
+                        <color key="backgroundColor" red="0.2549019607843137" green="0.3568627450980392" blue="0.792156862745098" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <constraints>
+                            <constraint firstItem="Qk8-0R-SXl" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" id="1pP-L4-yWw"/>
+                            <constraint firstAttribute="trailing" secondItem="Qk8-0R-SXl" secondAttribute="trailing" id="M4y-2s-z2K"/>
+                            <constraint firstItem="Qk8-0R-SXl" firstAttribute="top" secondItem="8bC-Xf-vdC" secondAttribute="top" id="YyU-qa-7l4"/>
+                            <constraint firstItem="Qk8-0R-SXl" firstAttribute="bottom" secondItem="8bC-Xf-vdC" secondAttribute="bottom" id="eA8-od-TRw"/>
+                            <constraint firstItem="p3G-zK-7uM" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" id="bKx-pS-0vK"/>
+                            <constraint firstAttribute="trailing" secondItem="p3G-zK-7uM" secondAttribute="trailing" id="j5m-8p-huY"/>
+                            <constraint firstItem="p3G-zK-7uM" firstAttribute="top" secondItem="8bC-Xf-vdC" secondAttribute="top" id="q0b-Zg-6cX"/>
+                            <constraint firstItem="p3G-zK-7uM" firstAttribute="bottom" secondItem="8bC-Xf-vdC" secondAttribute="bottom" id="z6W-ZI-X0P"/>
+                        </constraints>
                     </view>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
         </scene>
     </scenes>
+    <resources>
+        <image name="LaunchImage" width="512" height="512"/>
+        <image name="LaunchBackground" width="1" height="1"/>
+    </resources>
 </document>

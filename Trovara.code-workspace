@@ -158,7 +158,7 @@
       ".gitignore": ".gitattributes, .gitmodules, .gitlens, .editorconfig",
       "main.dart": "app.dart, initializer.dart, app_scope.dart, provider_scope.dart, app_localization_loader.dart",
     },
-    "workbench.colorTheme": "Default Dark Modern",
+    "workbench.colorTheme": "Dark Modern",
     "workbench.iconTheme": "material-icon-theme",
     "workbench.editor.enablePreview": false,
     "workbench.editor.revealIfOpen": true,

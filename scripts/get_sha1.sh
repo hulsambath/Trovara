@@ -1,11 +1,50 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Script to get SHA-1 fingerprints for Google Sign-In configuration
-# Usage: ./scripts/get_sha1.sh [--env dev|prod]
+# Get SHA-1 fingerprints for Google Sign-In configuration
+#
+# Usage:
+#   ./scripts/get_sha1.sh                       # Get both debug and release SHA-1
+#   ./scripts/get_sha1.sh --env staging         # Get SHA-1 for staging environment
+#   ./scripts/get_sha1.sh --env prod            # Get SHA-1 for production environment
+#   ./scripts/get_sha1.sh --help                # Show help
 
 ENVIRONMENT="${1:-prod}"
-CREDENTIALS_DIR="../credentials/android/trovara/${ENVIRONMENT}"
+
+# Parse arguments
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --env)
+      ENVIRONMENT="$2"; shift 2 ;;
+    --help|-h)
+      echo "Usage: $0 [--env staging|prod|--help]"
+      echo ""
+      echo "Get SHA-1 fingerprints for Google Sign-In configuration"
+      echo ""
+      echo "Options:"
+      echo "  --env staging   Get fingerprints for staging environment (default: prod)"
+      echo "  --env prod      Get fingerprints for production environment"
+      echo "  --help          Show this help"
+      echo ""
+      echo "Examples:"
+      echo "  $0              # Get production fingerprints"
+      echo "  $0 --env staging    # Get staging fingerprints"
+      echo ""
+      echo "Next steps after getting SHA-1:"
+      echo "1. Copy the SHA-1 fingerprints above"
+      echo "2. Go to Firebase Console → Project Settings → Your apps → Android app"
+      echo "3. Add both SHA-1 fingerprints"
+      echo "4. Download google-services.json and place it in android/app/"
+      echo "5. Ensure OAuth client ID is configured for package: com.trovara.app"
+      exit 0
+      ;;
+    *)
+      echo "❌ Unknown option: $1"
+      echo "Use --help for usage information"
+      exit 1
+      ;;
+  esac
+done
 
 echo "🔍 Getting SHA-1 fingerprints for ${ENVIRONMENT} environment..."
 echo ""

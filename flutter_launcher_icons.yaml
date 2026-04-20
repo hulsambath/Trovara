@@ -1,26 +1,34 @@
-# flutter pub run flutter_launcher_icons
+# dart run flutter_launcher_icons
 
 flutter_launcher_icons:
-  image_path: "assets/app_icon/1024x1024.png"
-
-  android: "ic_launcher"
-  adaptive_icon_background: "assets/app_icon/1024x1024.png"
-  adaptive_icon_foreground: "assets/app_icon/1024x1024.png"
+  # Use white launcher background with Trovara blue mark.
+  color: "#ffffff"
+  android: false
+  # iOS app icon is managed in Xcode Assets.xcassets to support
+  # Light/Dark appearances. Keep this false so `flutter_launcher_icons`
+  # doesn't overwrite the manually-configured appearance variants.
+  ios: false
   min_sdk_android: 21
-
-  ios: true
-  image_path_ios: "assets/app_icon/1024x1024.png"
-  remove_alpha_ios: true
+  image_path_android: "assets/app_icon/512x512.png"
+  image_path_ios: "assets/app_icon/512x512_ios.png"
+  adaptive_icon_background: "#ffffff"
+  adaptive_icon_foreground: "assets/app_icon/512x512_ios.png"
+  # The source icon already has transparent padding, so avoid extra shrink.
+  adaptive_icon_foreground_inset: 0
+  # Android 13+ themed icon support using the same existing icon asset.
+  adaptive_icon_monochrome: "assets/app_icon/512x512.png"
+  theme_color: "#415bca"
+  remove_alpha_android: false
 
   web:
     generate: true
-    image_path: "assets/app_icon/1024x1024.png"
-    background_color: "#FFFFFF"
-    theme_color: "#7C4DFF"
+    image_path: "assets/app_icon/512x512.png"
+    background_color: "#415bca"
+    theme_color: "#415bca"
 
   windows:
     generate: false
 
   macos:
     generate: true
-    image_path: "assets/app_icon/1024x1024.png"
+    image_path: "assets/app_icon/512x512.png"

@@ -8,31 +8,28 @@ on:
     branches-ignore:
       - gh-pages
 
+concurrency:
+  group: tests-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  setup:
-    name: Setup and Prepare
+  test:
+    name: Build Runner and Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-    outputs:
-      cache-key: ${{ steps.cache-key.outputs.key }}
-      cache-hit: ${{ steps.cache.outputs.cache-hit }}
+    timeout-minutes: 20
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Generate cache key
-        id: cache-key
-        run: |
-          echo "key=${{ runner.os }}-pub-${{ hashFiles('**/pubspec.yaml', '**/pubspec.lock') }}" >> $GITHUB_OUTPUT
+        with:
+          fetch-depth: 1
 
       - name: Cache Pub dependencies
-        id: cache
         uses: actions/cache@v4
         with:
           path: |
             ~/.pub-cache
-          key: ${{ steps.cache-key.outputs.key }}
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
           restore-keys: |
             ${{ runner.os }}-pub-
 
@@ -46,79 +43,14 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-  build-runner:
-    name: Build Runner
-    runs-on: ubuntu-latest
-    needs: setup
-    timeout-minutes: 10
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Flutter SDK
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: "3.41.2"
-          channel: "stable"
-          cache: true
-
-      - name: Cache Pub dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.pub-cache
-          key: ${{ needs.setup.outputs.cache-key }}
-          restore-keys: |
-            ${{ runner.os }}-pub-
-
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Cache build runner output
-        id: cache-build-runner
-        uses: actions/cache@v4
-        with:
-          path: |
-            .dart_tool/build
-          key: ${{ runner.os }}-build-runner-${{ hashFiles('**/*.dart', '**/pubspec.yaml', '**/pubspec.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-build-runner-
+      - name: Create Firebase options stub
+        run: bash ./scripts/create_firebase_stub.sh
 
       - name: Execute build runner
         run: |
           echo "🔨 Running build runner..."
           dart run build_runner build --delete-conflicting-outputs
           echo "✅ Build runner completed"
-
-  tests:
-    name: Tests
-    runs-on: ubuntu-latest
-    needs: [setup, build-runner]
-    timeout-minutes: 15
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Flutter SDK
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: "3.41.2"
-          channel: "stable"
-          cache: true
-
-      - name: Cache Pub dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.pub-cache
-          key: ${{ needs.setup.outputs.cache-key }}
-          restore-keys: |
-            ${{ runner.os }}-pub-
-
-      - name: Install dependencies
-        run: flutter pub get
 
       - name: Run tests
         run: |
