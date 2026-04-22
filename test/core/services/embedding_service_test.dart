@@ -17,19 +17,15 @@ class StubEmbeddingRepository implements IEmbeddingRepository {
   @override
   Future<void> initialize() async {}
   @override
-  Future<void> saveEmbedding(NoteEmbedding embedding) async =>
-      _embeddings.add(embedding);
+  Future<void> saveEmbedding(NoteEmbedding embedding) async => _embeddings.add(embedding);
   @override
-  Future<void> saveEmbeddings(List<NoteEmbedding> embeddings) async =>
-      _embeddings.addAll(embeddings);
+  Future<void> saveEmbeddings(List<NoteEmbedding> embeddings) async => _embeddings.addAll(embeddings);
   @override
-  List<NoteEmbedding> getEmbeddingsByNoteId(int noteId) =>
-      _embeddings.where((e) => e.noteId == noteId).toList();
+  List<NoteEmbedding> getEmbeddingsByNoteId(int noteId) => _embeddings.where((e) => e.noteId == noteId).toList();
   @override
   List<NoteEmbedding> getAllEmbeddings() => List.unmodifiable(_embeddings);
   @override
-  Future<void> deleteByNoteId(int noteId) async =>
-      _embeddings.removeWhere((e) => e.noteId == noteId);
+  Future<void> deleteByNoteId(int noteId) async => _embeddings.removeWhere((e) => e.noteId == noteId);
   @override
   Future<void> deleteAll() async => _embeddings.clear();
   @override
@@ -44,34 +40,21 @@ class StubEmbeddingRepository implements IEmbeddingRepository {
 
 const _testModel = 'text-embedding-test';
 
-Note _makeNote({
-  required int id,
-  required String title,
-  String contentJson = '[]',
-  DateTime? updatedAt,
-}) {
-  final note = Note(
-    title: title,
-    contentJson: contentJson,
-    updatedAt: updatedAt ?? DateTime(2026, 3, 1),
-  );
+Note _makeNote({required int id, required String title, String contentJson = '[]', DateTime? updatedAt}) {
+  final note = Note(title: title, contentJson: contentJson, updatedAt: updatedAt ?? DateTime(2026, 3, 1));
   note.id = id;
   return note;
 }
 
 /// Build a Quill Delta JSON list from plain text.
-String _quillJson(String text) =>
-    '[{"insert":"$text\\n"}]';
+String _quillJson(String text) => '[{"insert":"$text\\n"}]';
 
 /// Create an [EmbeddingService] wired to the given stub repository.
-EmbeddingService _makeService(StubEmbeddingRepository repo,
-    {String model = _testModel}) {
-  return EmbeddingService(
-    embeddingRepository: repo,
-    apiKey: 'test-key', // won't call API — we only test isNoteStale
-    modelName: model,
-  );
-}
+EmbeddingService _makeService(StubEmbeddingRepository repo, {String model = _testModel}) => EmbeddingService(
+  embeddingRepository: repo,
+  apiKey: 'test-key', // won't call API — we only test isNoteStale
+  modelName: model,
+);
 
 // ═══════════════════════════════════════════════════════════════════════════
 //  Tests
@@ -105,11 +88,7 @@ void main() {
     });
 
     test('prepends title when content is non-empty', () {
-      final note = _makeNote(
-        id: 1,
-        title: 'My Title',
-        contentJson: _quillJson('Body text here'),
-      );
+      final note = _makeNote(id: 1, title: 'My Title', contentJson: _quillJson('Body text here'));
       final inputs = service.buildEmbeddingInputs(note);
 
       expect(inputs.length, 1);
@@ -118,11 +97,7 @@ void main() {
     });
 
     test('is deterministic — same note → same inputs', () {
-      final note = _makeNote(
-        id: 1,
-        title: 'Stable',
-        contentJson: _quillJson('Content'),
-      );
+      final note = _makeNote(id: 1, title: 'Stable', contentJson: _quillJson('Content'));
       final a = service.buildEmbeddingInputs(note);
       final b = service.buildEmbeddingInputs(note);
 
@@ -213,11 +188,7 @@ void main() {
     });
 
     test('returns true when model version differs', () async {
-      final note = _makeNote(
-        id: 1,
-        title: 'Note',
-        contentJson: _quillJson('Body'),
-      );
+      final note = _makeNote(id: 1, title: 'Note', contentJson: _quillJson('Body'));
 
       // Store embedding with a different model version
       final inputs = service.buildEmbeddingInputs(note);
@@ -243,11 +214,7 @@ void main() {
     });
 
     test('returns false when signature matches (same content)', () async {
-      final note = _makeNote(
-        id: 1,
-        title: 'Stable',
-        contentJson: _quillJson('Same content'),
-      );
+      final note = _makeNote(id: 1, title: 'Stable', contentJson: _quillJson('Same content'));
 
       final inputs = service.buildEmbeddingInputs(note);
       final sig = EmbeddingService.computeContentSignature(
@@ -303,11 +270,7 @@ void main() {
     });
 
     test('returns true when content changes (signature mismatch)', () async {
-      final note = _makeNote(
-        id: 1,
-        title: 'Note',
-        contentJson: _quillJson('New content'),
-      );
+      final note = _makeNote(id: 1, title: 'Note', contentJson: _quillJson('New content'));
 
       // Store embedding with a signature from OLD content
       final oldInputs = ['Title: Note\n\nOld content'];
@@ -333,11 +296,7 @@ void main() {
     });
 
     test('returns true when title changes (signature mismatch)', () async {
-      final note = _makeNote(
-        id: 1,
-        title: 'New Title',
-        contentJson: _quillJson('Body'),
-      );
+      final note = _makeNote(id: 1, title: 'New Title', contentJson: _quillJson('Body'));
 
       // Store embedding with signature from OLD title
       final oldInputs = ['Title: Old Title\n\nBody'];
@@ -365,11 +324,7 @@ void main() {
     // ─── Lazy fallback (empty contentSignature) ──────────────────────────
 
     test('lazy fallback: returns true when signature empty and updatedAt is newer', () async {
-      final note = _makeNote(
-        id: 1,
-        title: 'Note',
-        updatedAt: DateTime(2026, 3, 20),
-      );
+      final note = _makeNote(id: 1, title: 'Note', updatedAt: DateTime(2026, 3, 20));
 
       repo.seed([
         NoteEmbedding(
@@ -388,11 +343,7 @@ void main() {
 
     test('lazy fallback: returns false when signature empty and updatedAt matches', () async {
       final timestamp = DateTime(2026, 3, 1);
-      final note = _makeNote(
-        id: 1,
-        title: 'Note',
-        updatedAt: timestamp,
-      );
+      final note = _makeNote(id: 1, title: 'Note', updatedAt: timestamp);
 
       repo.seed([
         NoteEmbedding(
