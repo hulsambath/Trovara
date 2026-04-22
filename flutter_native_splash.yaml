@@ -1,0 +1,21 @@
+# flutter pub run flutter_native_splash:create --path=flutter_native_splash.yaml
+
+flutter_native_splash:
+  color: "#ffffff"
+  icon_background_color: "#415bca"
+  image: assets/splash_screen/512x512.png
+  color_dark: "#ffffff"
+  icon_background_color_dark: "#415bca"
+  image_dark: assets/splash_screen/512x512.png
+  ios: true
+
+  android_12:
+    color: "#415bca"
+    image: assets/splash_screen/512x512.png
+    icon_background_color: "#415bca"
+    image_dark: assets/splash_screen/512x512.png
+    color_dark: "#415bca"
+    icon_background_color_dark: "#415bca"
+
+  image_android: assets/splash_screen/512x512.png
+  image_dark_android: assets/splash_screen/512x512.png

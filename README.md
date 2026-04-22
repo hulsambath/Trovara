@@ -18,12 +18,16 @@ Trovara is a comprehensive note-taking application built with Flutter that provi
 1. **Prerequisites**: Flutter SDK ≥3.8.1
 2. **Install dependencies**: `flutter pub get`
 3. **Generate code**: `./scripts/build_runner.sh`
-4. **Run the app**: `./scripts/run_app.sh --trovara`
+4. **Run the app**: `./scripts/run_app.sh` (reuses last run config, or defaults to staging + debug)
 
 ## Development
 
 ### Scripts
-- `./scripts/run_app.sh --trovara` - Run the application
+- `./scripts/run_app.sh` - Fast no-prompt run (saved config, fallback staging + debug + auto device)
+- `./scripts/run_app.sh --interactive` - Run with interactive target/env selection
+- `./scripts/run_app.sh --quick` - Run quickly (staging + debug, no prompts)
+- `./scripts/run_app.sh --prod-release --android` - Run with production release preset on Android
+- `./scripts/run_app.sh --staging-debug --web` - Run with staging debug preset on Web
 - `./scripts/build_apk.sh --trovara` - Build Android APK
 - `./scripts/build_runner.sh` - Generate code
 
@@ -33,6 +37,7 @@ The app uses a sophisticated credentials management system:
 - **Security**: SOPS encryption with strong random passwords
 - **Multi-environment**: Separate dev/prod configurations
 - **CI/CD Integration**: Automated credential handling
+- **Run behavior**: credential checks are opt-in for run flow (`./scripts/run_app.sh --with-creds` or `--decrypt`)
 
 ## Architecture
 

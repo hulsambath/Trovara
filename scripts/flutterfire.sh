@@ -1,11 +1,15 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
+set -euo pipefail
 
-# Use this [scripts/flutterfire] to reconfigure firebase in this project.
+# Configure Firebase for Trovara
 #
-# Commands:
-# scripts/flutterfire --staging
-# scripts/flutterfire --prod
-# scripts/flutterfire --dev      # (deprecated alias for --staging)
+# Usage:
+#   ./scripts/flutterfire.sh --staging          # Configure Firebase for staging
+#   ./scripts/flutterfire.sh --prod             # Configure Firebase for production
+#   ./scripts/flutterfire.sh --help             # Show help
+#
+# Quicker via CLI hub:
+#   dev setup firebase                          # Interactive Firebase setup
 
 function exit_if_file_not_exist() {
   if ! [[ -f $1 ]]; then
@@ -72,7 +76,7 @@ function configure() {
 function main() {
   exit_if_file_not_exist "pubspec.yaml" "Make sure to execute scripts from project directory."
 
-  case $1 in
+  case "${1:-}" in
 
   -dev | --dev)
     echo "⚠️  --dev is deprecated, use --staging instead"
@@ -90,18 +94,33 @@ function main() {
     exit 0
     ;;
 
-  *)
-    echo "Usage: scripts/flutterfire.sh [--staging|--prod]"
+  --help|-h)
+    echo "Usage: scripts/flutterfire.sh [--staging|--prod|--help]"
+    echo ""
+    echo "Configure Firebase for Trovara"
     echo ""
     echo "Options:"
     echo "  --staging    Configure Firebase for staging environment"
     echo "  --prod       Configure Firebase for production environment"
     echo "  --dev        (deprecated) Alias for --staging"
+    echo "  --help       Show this help"
+    echo ""
+    echo "Examples:"
+    echo "  $0 --staging            # Configure staging"
+    echo "  $0 --prod               # Configure production"
+    echo ""
+    echo "Quicker via CLI hub:"
+    echo "  dev setup firebase      # Interactive Firebase setup"
+    exit 0
+    ;;
+
+  *)
+    echo "❌ Unknown option: ${1:-missing}"
+    echo "Usage: scripts/flutterfire.sh [--staging|--prod|--help]"
     exit 1
     ;;
 
   esac
-  shift
 }
 
-main $@
+main "$@"

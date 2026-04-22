@@ -9,9 +9,10 @@ class _MainContent extends StatefulWidget {
   State<_MainContent> createState() => _MainContentState();
 }
 
-class _MainContentState extends State<_MainContent> {
+class _MainContentState extends State<_MainContent> with SingleTickerProviderStateMixin {
   int _currentIndex = 0;
   late PageController _pageController;
+  late final AnimationController _iosTabFadeController;
 
   final List<Widget> _pages = [
     const NotesView(),
@@ -24,19 +25,60 @@ class _MainContentState extends State<_MainContent> {
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: _currentIndex);
+    _iosTabFadeController = AnimationController(vsync: this, value: 1, duration: const Duration(milliseconds: 160));
   }
 
   @override
   void dispose() {
+    _iosTabFadeController.dispose();
     _pageController.dispose();
     super.dispose();
   }
 
-  void _onTabTapped(int index) {
-    if (index == _currentIndex && index == 0) {
+  void _onTabTapped(int index) async {
+    final fromIndex = _currentIndex;
+
+    if (index == fromIndex && index == 0) {
       widget.viewModel.onTabTap(context, index);
-    } else if (index != _currentIndex) {
-      _pageController.animateToPage(index, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+      return;
+    }
+
+    if (index == fromIndex) return;
+
+    // Update tab highlight immediately; PageView will catch up via animation/jump.
+    setState(() {
+      _currentIndex = index;
+    });
+
+    final distance = (index - fromIndex).abs();
+
+    // On iOS, large index jumps (e.g. 0→3) look jarring when the PageView scrolls
+    // through intermediate tabs. For those, do a quick fade + jump instead.
+    if (Platform.isIOS && distance > 1) {
+      try {
+        await _iosTabFadeController.animateTo(0, duration: const Duration(milliseconds: 70), curve: Curves.easeOut);
+        if (!mounted) return;
+        _pageController.jumpToPage(index);
+        await _iosTabFadeController.animateTo(
+          1,
+          duration: const Duration(milliseconds: 160),
+          curve: Curves.easeOutCubic,
+        );
+      } on TickerCanceled {
+        // Ignore: happens if the widget is disposed mid-animation.
+      }
+      return;
+    }
+
+    final durationMs = (240 + (distance - 1) * 70).clamp(240, 420);
+    try {
+      await _pageController.animateToPage(
+        index,
+        duration: Duration(milliseconds: durationMs),
+        curve: Curves.easeOutCubic,
+      );
+    } on TickerCanceled {
+      // Ignore: can happen if another tab tap interrupts the animation.
     }
   }
 
@@ -82,12 +124,22 @@ class _MainContentState extends State<_MainContent> {
       resizeToAvoidBottomInset: false,
       child: Stack(
         children: [
-          Positioned.fill(
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 220),
+            curve: Curves.easeOutCubic,
+            top: 0,
+            left: 0,
+            right: 0,
             bottom: isKeyboardVisible ? 0 : kToolbarHeight,
-            child: PageView(controller: _pageController, onPageChanged: _onPageChanged, children: _pages),
+            child: FadeTransition(
+              opacity: _iosTabFadeController,
+              child: PageView(controller: _pageController, onPageChanged: _onPageChanged, children: _pages),
+            ),
           ),
           const Positioned(bottom: 0, left: 0, right: 0, child: ConnectivityStatus()),
-          Positioned(
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 220),
+            curve: Curves.easeOutCubic,
             bottom: isKeyboardVisible ? -kToolbarHeight : 0,
             left: 0,
             right: 0,
