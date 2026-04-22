@@ -88,7 +88,7 @@ class _ChatBubble extends StatelessWidget {
     height: 28,
     margin: const EdgeInsets.only(top: 2),
     decoration: BoxDecoration(color: colors.primary, shape: BoxShape.circle),
-    child: Icon(Icons.auto_awesome, size: 15, color: colors.onPrimary),
+    child: Icon(LucideIcons.sparkles, size: 15, color: colors.onPrimary),
   );
 }
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:trovara/constants/device_constants.dart';
 import 'package:trovara/core/di/service_locator.dart';
 import 'package:trovara/core/services/custom_tag_service.dart';
@@ -52,7 +53,7 @@ class UnifiedTagsIconButton extends StatelessWidget {
     final totalCount = _getTotalTagCount();
 
     if (totalCount == 0) {
-      return Icon(Icons.label_outline, color: Theme.of(context).colorScheme.onSurfaceVariant);
+      return Icon(LucideIcons.tag, color: Theme.of(context).colorScheme.onSurfaceVariant);
     }
 
     // Show a combined icon with total count
@@ -60,7 +61,7 @@ class UnifiedTagsIconButton extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.all(8.0),
-          child: Icon(Icons.label, color: Theme.of(context).colorScheme.primary),
+          child: Icon(LucideIcons.tags, color: Theme.of(context).colorScheme.primary),
         ),
         if (totalCount > 0)
           Positioned(
@@ -222,7 +223,7 @@ class _UnifiedTagsDialogState extends State<_UnifiedTagsDialog> {
     title: const Row(
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [Icon(Icons.label), SizedBox(width: 8), Text('Tags')],
+      children: [Icon(LucideIcons.tags), SizedBox(width: 8), Text('Tags')],
     ),
     content: SizedBox(
       width: double.maxFinite,
@@ -248,35 +249,35 @@ class _UnifiedTagsDialogState extends State<_UnifiedTagsDialog> {
     children: [
       _buildCategoryTile(
         context,
-        icon: Icons.category,
+        icon: LucideIcons.shapes,
         label: 'Activity',
         count: _selectedActivityIds.length,
         category: _TagCategory.activity,
       ),
       _buildCategoryTile(
         context,
-        icon: Icons.mood,
+        icon: LucideIcons.smile,
         label: 'Mood',
         count: _selectedMoodIds.length,
         category: _TagCategory.mood,
       ),
       _buildCategoryTile(
         context,
-        icon: Icons.access_time,
+        icon: LucideIcons.clock,
         label: 'Time',
         count: _selectedTimeIds.length,
         category: _TagCategory.time,
       ),
       _buildCategoryTile(
         context,
-        icon: Icons.trending_up,
+        icon: LucideIcons.trendingUp,
         label: 'Growth',
         count: _selectedPersonalGrowthIds.length,
         category: _TagCategory.growth,
       ),
       _buildCategoryTile(
         context,
-        icon: Icons.label_outline,
+        icon: LucideIcons.tag,
         label: 'Custom',
         count: _selectedCustomTags.length,
         category: _TagCategory.custom,
@@ -414,7 +415,7 @@ class _UnifiedTagsDialogState extends State<_UnifiedTagsDialog> {
       Row(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          Icon(Icons.auto_awesome, size: 16, color: Theme.of(context).colorScheme.primary),
+          Icon(LucideIcons.sparkles, size: 16, color: Theme.of(context).colorScheme.primary),
           const SizedBox(width: 4),
           Text(
             'Suggested',
@@ -473,7 +474,7 @@ class _UnifiedTagsDialogState extends State<_UnifiedTagsDialog> {
         ),
         if (isSuggested && !isSelected) ...[
           const SizedBox(width: 4),
-          Icon(Icons.auto_awesome, size: 12, color: Theme.of(context).colorScheme.primary),
+          Icon(LucideIcons.sparkles, size: 12, color: Theme.of(context).colorScheme.primary),
         ],
       ],
     ),

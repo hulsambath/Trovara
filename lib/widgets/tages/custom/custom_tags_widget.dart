@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:trovara/models/custom_tag.dart';
 
 /// Widget for managing custom tags with text input and removable chips
@@ -210,7 +211,7 @@ class _CustomTagsWidgetState extends State<CustomTagsWidget> {
             hintText: widget.hintText ?? 'Add custom tag...',
             contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
             suffixIcon: IconButton(
-              icon: const Icon(Icons.add),
+              icon: const Icon(LucideIcons.plus),
               onPressed: () => _addTag(_textController.text),
 
               tooltip: 'Add tag',
@@ -335,7 +336,7 @@ class _CustomTagsWidgetState extends State<CustomTagsWidget> {
     children: [
       Row(
         children: [
-          Icon(Icons.check_circle_outline, size: 16, color: Theme.of(context).colorScheme.primary),
+          Icon(LucideIcons.circleCheck, size: 16, color: Theme.of(context).colorScheme.primary),
           const SizedBox(width: 8),
           Flexible(
             child: Text(
@@ -390,7 +391,7 @@ class _CustomTagsWidgetState extends State<CustomTagsWidget> {
             ),
           ],
           const SizedBox(width: 4),
-          Icon(Icons.add, size: 14, color: tag.displayColor),
+          Icon(LucideIcons.plus, size: 14, color: tag.displayColor),
         ],
       ),
     ),
@@ -398,7 +399,7 @@ class _CustomTagsWidgetState extends State<CustomTagsWidget> {
 
   Widget _buildStringTagChip(String tag) => Chip(
     label: Text(tag, style: Theme.of(context).textTheme.bodySmall),
-    deleteIcon: widget.enabled ? const Icon(Icons.close, size: 18) : null,
+    deleteIcon: widget.enabled ? const Icon(LucideIcons.x, size: 18) : null,
     onDeleted: widget.enabled ? () => _removeTag(tag) : null,
     backgroundColor: Theme.of(context).colorScheme.primaryContainer,
     labelStyle: TextStyle(color: Theme.of(context).colorScheme.onPrimaryContainer),
@@ -407,7 +408,7 @@ class _CustomTagsWidgetState extends State<CustomTagsWidget> {
 
   Widget _buildCustomTagChip(CustomTag tag) => Chip(
     label: Text(tag.name, style: Theme.of(context).textTheme.bodySmall),
-    deleteIcon: widget.enabled ? const Icon(Icons.close, size: 18) : null,
+    deleteIcon: widget.enabled ? const Icon(LucideIcons.x, size: 18) : null,
     onDeleted: widget.enabled ? () => _removeTag(tag) : null,
     backgroundColor: tag.displayColor.withValues(alpha: 0.2),
     labelStyle: TextStyle(color: tag.displayColor, fontWeight: FontWeight.w500),

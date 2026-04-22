@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// Represents an activity tag with icon and label
 class ActivityTag {
@@ -25,37 +26,37 @@ class ActivityTags {
   static const List<ActivityTag> all = [
     ActivityTag(
       id: 'work',
-      icon: Icons.work_outline,
+      icon: LucideIcons.briefcase,
       label: 'Work',
       color: Color(0xFF2196F3), // Blue
     ),
     ActivityTag(
       id: 'home',
-      icon: Icons.home_outlined,
+      icon: LucideIcons.house,
       label: 'Home',
       color: Color(0xFF4CAF50), // Green
     ),
     ActivityTag(
       id: 'travel',
-      icon: Icons.flight_outlined,
+      icon: LucideIcons.plane,
       label: 'Travel',
       color: Color(0xFF9C27B0), // Purple
     ),
     ActivityTag(
       id: 'hobbies',
-      icon: Icons.palette_outlined,
+      icon: LucideIcons.palette,
       label: 'Hobbies',
       color: Color(0xFFFF9800), // Orange
     ),
     ActivityTag(
       id: 'health',
-      icon: Icons.favorite_outline,
+      icon: LucideIcons.heart,
       label: 'Health',
       color: Color(0xFFF44336), // Red
     ),
     ActivityTag(
       id: 'food',
-      icon: Icons.restaurant_outlined,
+      icon: LucideIcons.utensils,
       label: 'Food',
       color: Color(0xFF795548), // Brown
     ),

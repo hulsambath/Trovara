@@ -52,13 +52,13 @@ class _TrashContent extends StatelessWidget {
             alignment: Alignment.centerLeft,
             padding: const EdgeInsets.symmetric(horizontal: 16),
             color: Colors.green,
-            child: const Icon(Icons.restore, color: Colors.white),
+            child: const Icon(LucideIcons.undo2, color: Colors.white),
           ),
           secondaryBackground: Container(
             alignment: Alignment.centerRight,
             padding: const EdgeInsets.symmetric(horizontal: 16),
             color: Theme.of(context).colorScheme.error,
-            child: const Icon(Icons.delete_forever, color: Colors.white),
+            child: const Icon(LucideIcons.trash, color: Colors.white),
           ),
           confirmDismiss: (direction) async {
             if (direction == DismissDirection.startToEnd) {

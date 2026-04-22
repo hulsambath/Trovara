@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:trovara/constants/config_constants.dart';
+import 'package:trovara/core/theme/typo_graphy.dart';
 
 class ThemeConfig {
   static Color brandColor = Color(int.parse(ConfigConstants.brandColor.replaceFirst('#', 'FF'), radix: 16));
@@ -42,6 +43,8 @@ class ThemeConfig {
       inputDecorationTheme: _inputDecorationTheme(colorScheme),
       platform: platform,
       splashFactory: splashFactory(platform),
+      textTheme: AppTypography.applyTo(themeData.textTheme),
+      primaryTextTheme: AppTypography.applyTo(themeData.primaryTextTheme),
       textButtonTheme: TextButtonThemeData(
         style: (themeData.textButtonTheme.style ?? const ButtonStyle()).copyWith(
           splashFactory: splashFactory(themeData.platform),
@@ -71,7 +74,12 @@ class ThemeConfig {
     backgroundColor: colorScheme.surface,
     shadowColor: Colors.transparent,
     centerTitle: false,
-    titleTextStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: colorScheme.onSurface),
+    titleTextStyle: TextStyle(
+      fontFamily: AppTypography.fontFamily,
+      fontSize: 16,
+      fontWeight: FontWeight.w600,
+      color: colorScheme.onSurface,
+    ),
   );
 
   static InteractiveInkFeatureFactory splashFactory(TargetPlatform platform) =>

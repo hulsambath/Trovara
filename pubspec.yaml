@@ -44,6 +44,7 @@ dependencies:
   google_generative_ai: ^0.4.7
   uuid: ^4.5.1
   crypto: ^3.0.7
+  lucide_icons_flutter: ^3.1.13
 
 dev_dependencies:
   flutter_test:
@@ -64,3 +65,8 @@ flutter:
     - assets/app_icon/
     - assets/icons/
     - assets/splash_screen/
+
+  fonts:
+    - family: Garet
+      fonts:
+        - asset: assets/fonts/Garet-Book.ttf

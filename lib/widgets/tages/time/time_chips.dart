@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:trovara/models/time_tag.dart';
 
 /// A widget that displays time-based tags with automatic suggestions
@@ -76,7 +77,7 @@ class _TimeChipsState extends State<TimeChips> {
     children: [
       Row(
         children: [
-          Icon(Icons.auto_awesome, size: 16, color: Theme.of(context).colorScheme.primary),
+          Icon(LucideIcons.sparkles, size: 16, color: Theme.of(context).colorScheme.primary),
           const SizedBox(width: 4),
           Text(
             'Suggested',
@@ -111,7 +112,7 @@ class _TimeChipsState extends State<TimeChips> {
     children: [
       Row(
         children: [
-          Icon(Icons.more_horiz, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
+          Icon(LucideIcons.ellipsis, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
           const SizedBox(width: 4),
           Text(
             'Other Options',
@@ -154,7 +155,7 @@ class _TimeChipsState extends State<TimeChips> {
         Text(timeTag.label),
         if (isSuggested && !isSelected) ...[
           const SizedBox(width: 4),
-          Icon(Icons.auto_awesome, size: 12, color: Theme.of(context).colorScheme.primary),
+          Icon(LucideIcons.sparkles, size: 12, color: Theme.of(context).colorScheme.primary),
         ],
       ],
     ),

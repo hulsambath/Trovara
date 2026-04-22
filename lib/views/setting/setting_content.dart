@@ -25,7 +25,7 @@ class _SettingContent extends StatelessWidget {
                       : CircleAvatar(
                           backgroundColor: Theme.of(context).colorScheme.primary,
                           radius: 32,
-                          child: Icon(Icons.person, color: Theme.of(context).colorScheme.onPrimary, size: 32),
+                          child: Icon(LucideIcons.user, color: Theme.of(context).colorScheme.onPrimary, size: 32),
                         ),
                   const SizedBox(width: 16),
                   Expanded(
@@ -48,7 +48,7 @@ class _SettingContent extends StatelessWidget {
                   ),
                   IconButton(
                     style: IconButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
-                    icon: const Icon(Icons.logout),
+                    icon: const Icon(LucideIcons.logOut),
                     onPressed: () => _showLogoutConfirmationDialog(context),
                     tooltip: 'Sign out',
                   ),
@@ -64,7 +64,7 @@ class _SettingContent extends StatelessWidget {
           const SizedBox(height: 8),
           Card(
             child: ListTile(
-              leading: const Icon(Icons.login),
+              leading: const Icon(LucideIcons.logIn),
               title: const Text('Sign in to Google'),
               onTap: () => viewModel.signInGoogle(context),
             ),
@@ -79,7 +79,7 @@ class _SettingContent extends StatelessWidget {
           builder: (context, themeProvider, _) => Card(
             child: ListTile(
               leading: Icon(
-                themeProvider.isDarkMode() ? Icons.dark_mode : Icons.light_mode,
+                themeProvider.isDarkMode() ? LucideIcons.moon : LucideIcons.sun,
                 color: Theme.of(context).colorScheme.primary,
               ),
               title: const Text('Theme Mode'),
@@ -102,10 +102,10 @@ class _SettingContent extends StatelessWidget {
                 const SizedBox(height: 8),
                 Card(
                   child: ListTile(
-                    leading: Icon(Icons.palette_outlined, color: Theme.of(context).colorScheme.primary),
+                    leading: Icon(LucideIcons.palette, color: Theme.of(context).colorScheme.primary),
                     title: const Text('App Icon'),
                     subtitle: const Text('Change the app icon on your home screen'),
-                    trailing: const Icon(Icons.chevron_right),
+                    trailing: const Icon(LucideIcons.chevronRight),
                     onTap: () => _showAppIconPicker(context),
                   ),
                 ),
@@ -124,7 +124,7 @@ class _SettingContent extends StatelessWidget {
               leading: SvgPicture.asset('assets/icons/google drive.svg', width: 24, height: 24),
               title: const Text('Sync with Google Drive'),
               subtitle: const Text('Backup and restore all notes'),
-              trailing: const Icon(Icons.sync),
+              trailing: const Icon(LucideIcons.refreshCw),
               onTap: () => viewModel.syncWithGoogleDrive(context),
             ),
           ),
@@ -136,7 +136,7 @@ class _SettingContent extends StatelessWidget {
         const SizedBox(height: 8),
         Card(
           child: ListTile(
-            leading: const Icon(Icons.delete_outline),
+            leading: const Icon(LucideIcons.trash2),
             title: const Text('Recently Deleted'),
             subtitle: const Text('Notes here are kept for 30 days before being removed forever'),
             onTap: () => viewModel.openRecentlyDeleted(context),
@@ -151,18 +151,18 @@ class _SettingContent extends StatelessWidget {
           child: Column(
             children: [
               ListTile(
-                leading: Icon(Icons.data_object, color: Theme.of(context).colorScheme.primary),
+                leading: Icon(LucideIcons.database, color: Theme.of(context).colorScheme.primary),
                 title: const Text('Export as JSON'),
                 subtitle: const Text('Full backup — import back into Trovara on any device'),
-                trailing: const Icon(Icons.chevron_right),
+                trailing: const Icon(LucideIcons.chevronRight),
                 onTap: () => viewModel.exportToFile(context),
               ),
               const Divider(height: 1, indent: 56),
               ListTile(
-                leading: Icon(Icons.text_snippet_outlined, color: Theme.of(context).colorScheme.primary),
+                leading: Icon(LucideIcons.fileText, color: Theme.of(context).colorScheme.primary),
                 title: const Text('Export as Markdown'),
                 subtitle: const Text('Obsidian-compatible .md file with YAML frontmatter'),
-                trailing: const Icon(Icons.chevron_right),
+                trailing: const Icon(LucideIcons.chevronRight),
                 onTap: () => viewModel.exportAsMarkdown(context),
               ),
             ],
@@ -182,21 +182,21 @@ class _SettingContent extends StatelessWidget {
               ListTile(
                 leading: _buildPlatformIcon(
                   context,
-                  icon: Icons.data_object,
+                  icon: LucideIcons.database,
                   color: Theme.of(context).colorScheme.primary,
                 ),
                 title: const Text('Trovara backup (.json)'),
                 subtitle: const Text('Restore from a previous Trovara export'),
-                trailing: const Icon(Icons.chevron_right),
+                trailing: const Icon(LucideIcons.chevronRight),
                 onTap: () => viewModel.importFromFile(context),
               ),
               const Divider(height: 1, indent: 56),
               // Obsidian
               ListTile(
-                leading: _buildPlatformIcon(context, icon: Icons.diamond_outlined, color: const Color(0xFF7E56C2)),
+                leading: _buildPlatformIcon(context, icon: LucideIcons.diamond, color: const Color(0xFF7E56C2)),
                 title: const Text('Obsidian vault (.md files)'),
                 subtitle: const Text('Select .md files from your vault — preserves [[wikilinks]] & tags'),
-                trailing: const Icon(Icons.chevron_right),
+                trailing: const Icon(LucideIcons.chevronRight),
                 onTap: () => viewModel.importFromObsidian(context),
               ),
               const Divider(height: 1, indent: 56),
@@ -204,12 +204,12 @@ class _SettingContent extends StatelessWidget {
               ListTile(
                 leading: _buildPlatformIcon(
                   context,
-                  icon: Icons.article_outlined,
+                  icon: LucideIcons.fileText,
                   color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.black87,
                 ),
                 title: const Text('Notion export (.md / .csv)'),
                 subtitle: const Text('Select exported Markdown files from Notion'),
-                trailing: const Icon(Icons.chevron_right),
+                trailing: const Icon(LucideIcons.chevronRight),
                 onTap: () => viewModel.importFromNotion(context),
               ),
             ],
@@ -222,10 +222,10 @@ class _SettingContent extends StatelessWidget {
         const SizedBox(height: 8),
         Card(
           child: ListTile(
-            leading: Icon(Icons.manage_search, color: Theme.of(context).colorScheme.primary),
+            leading: Icon(LucideIcons.search, color: Theme.of(context).colorScheme.primary),
             title: const Text('Re-index all notes'),
             subtitle: const Text('Fixes missing AI search results by re-embedding all notes'),
-            trailing: const Icon(Icons.chevron_right),
+            trailing: const Icon(LucideIcons.chevronRight),
             onTap: () => viewModel.reembedAllNotes(context),
           ),
         ),
@@ -268,7 +268,7 @@ class _SettingContent extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.info_outline, size: 16, color: Theme.of(context).colorScheme.primary),
+          Icon(LucideIcons.info, size: 16, color: Theme.of(context).colorScheme.primary),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
@@ -321,10 +321,10 @@ class _SettingContent extends StatelessWidget {
                               borderRadius: BorderRadius.circular(8),
                               child: Image.asset(path, width: 48, height: 48, fit: BoxFit.cover),
                             )
-                          : const Icon(Icons.image),
+                          : const Icon(LucideIcons.image),
                       title: Text(label ?? identifier ?? ''),
                       trailing: isSelected
-                          ? Icon(Icons.check_circle, color: Theme.of(context).colorScheme.primary)
+                          ? Icon(LucideIcons.circleCheck, color: Theme.of(context).colorScheme.primary)
                           : null,
                       onTap: () async {
                         if (identifier != null) {

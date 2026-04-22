@@ -77,7 +77,7 @@ class _ChatContentState extends State<_ChatContent> {
     scrolledUnderElevation: 0,
     backgroundColor: colors.surface,
     leading: IconButton(
-      icon: Icon(Icons.menu, color: colors.onSurface),
+      icon: Icon(LucideIcons.menu, color: colors.onSurface),
       onPressed: () => _scaffoldKey.currentState?.openDrawer(),
       tooltip: 'Chat history',
     ),
@@ -85,14 +85,14 @@ class _ChatContentState extends State<_ChatContent> {
     title: Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(Icons.auto_awesome, size: 18, color: colors.primary),
+        Icon(LucideIcons.sparkles, size: 18, color: colors.primary),
         const SizedBox(width: 6),
         Text('Trovara', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
       ],
     ),
     actions: [
       IconButton(
-        icon: Icon(Icons.edit_square, size: 22, color: colors.onSurfaceVariant),
+        icon: Icon(LucideIcons.squarePen, size: 22, color: colors.onSurfaceVariant),
         onPressed: () => viewModel.startNewChat(),
         tooltip: 'New chat',
       ),
@@ -133,7 +133,7 @@ class _ChatContentState extends State<_ChatContent> {
             width: 64,
             height: 64,
             decoration: BoxDecoration(color: colors.primaryContainer.withValues(alpha: 0.3), shape: BoxShape.circle),
-            child: Icon(Icons.auto_awesome, size: 32, color: colors.primary),
+            child: Icon(LucideIcons.sparkles, size: 32, color: colors.primary),
           ),
           const SizedBox(height: 20),
           Text(

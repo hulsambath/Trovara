@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:logger/logger.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:trovara/core/base/base_view_model.dart';
 import 'package:trovara/core/di/service_locator.dart';
 import 'package:trovara/core/services/auth/google_drive_service.dart';
@@ -110,7 +111,7 @@ class NotesViewModel extends BaseViewModel {
       children: [
         ListTile(
           leading: Icon(
-            note.isFavorite ? Icons.favorite : Icons.favorite_border,
+            note.isFavorite ? Icons.favorite_rounded : LucideIcons.heart,
             color: note.isFavorite ? Colors.red : null,
           ),
           title: Text(note.isFavorite ? 'Remove from favorites' : 'Add to favorites'),
@@ -120,7 +121,7 @@ class NotesViewModel extends BaseViewModel {
           },
         ),
         ListTile(
-          leading: const Icon(Icons.edit),
+          leading: const Icon(LucideIcons.squarePen),
           title: const Text('Edit'),
           onTap: () {
             Navigator.pop(context);
@@ -128,7 +129,7 @@ class NotesViewModel extends BaseViewModel {
           },
         ),
         ListTile(
-          leading: const Icon(Icons.delete, color: Colors.red),
+          leading: const Icon(LucideIcons.trash, color: Colors.red),
           title: const Text('Delete', style: TextStyle(color: Colors.red)),
           onTap: () {
             Navigator.pop(context);

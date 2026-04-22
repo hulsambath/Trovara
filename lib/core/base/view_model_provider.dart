@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:trovara/core/base/base_view_model.dart';
 import 'package:trovara/core/provider/in_app_update_provider.dart';
 import 'package:trovara/core/type/app_update_state.dart';
@@ -105,7 +106,7 @@ class _UpdateBanner extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
-          Icon(Icons.system_update, color: Theme.of(context).colorScheme.primary),
+          Icon(LucideIcons.download, color: Theme.of(context).colorScheme.primary),
           const SizedBox(width: 12),
           Expanded(child: _buildBannerText(context, updateProvider)),
           _buildActionButton(context, updateProvider),
@@ -169,7 +170,7 @@ class _UpdateBanner extends StatelessWidget {
   }
 
   Widget _buildCloseButton(BuildContext context, InAppUpdateProvider updateProvider) => IconButton(
-    icon: const Icon(Icons.close),
+    icon: const Icon(LucideIcons.x),
     iconSize: 20,
     padding: EdgeInsets.zero,
     constraints: const BoxConstraints(),

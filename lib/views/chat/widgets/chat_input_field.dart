@@ -93,7 +93,7 @@ class _ChatInputFieldState extends State<_ChatInputField> {
                     customBorder: const CircleBorder(),
                     child: Center(
                       child: Icon(
-                        Icons.arrow_upward_rounded,
+                        LucideIcons.arrowUp,
                         size: 20,
                         color: canSend ? colors.onPrimary : colors.onSurfaceVariant.withValues(alpha: 0.4),
                       ),
