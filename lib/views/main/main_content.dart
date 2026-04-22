@@ -25,11 +25,7 @@ class _MainContentState extends State<_MainContent> with SingleTickerProviderSta
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: _currentIndex);
-    _iosTabFadeController = AnimationController(
-      vsync: this,
-      value: 1,
-      duration: const Duration(milliseconds: 160),
-    );
+    _iosTabFadeController = AnimationController(vsync: this, value: 1, duration: const Duration(milliseconds: 160));
   }
 
   @override
@@ -60,11 +56,7 @@ class _MainContentState extends State<_MainContent> with SingleTickerProviderSta
     // through intermediate tabs. For those, do a quick fade + jump instead.
     if (Platform.isIOS && distance > 1) {
       try {
-        await _iosTabFadeController.animateTo(
-          0,
-          duration: const Duration(milliseconds: 70),
-          curve: Curves.easeOut,
-        );
+        await _iosTabFadeController.animateTo(0, duration: const Duration(milliseconds: 70), curve: Curves.easeOut);
         if (!mounted) return;
         _pageController.jumpToPage(index);
         await _iosTabFadeController.animateTo(
