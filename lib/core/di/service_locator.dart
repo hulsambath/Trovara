@@ -12,20 +12,20 @@ import 'package:trovara/core/repository/interfaces/custom_tag_repository.dart';
 import 'package:trovara/core/repository/interfaces/embedding_repository.dart';
 import 'package:trovara/core/repository/interfaces/folder_repository.dart';
 import 'package:trovara/core/repository/interfaces/note_repository.dart';
+import 'package:trovara/core/services/ai/document_resolver_service.dart';
+import 'package:trovara/core/services/ai/embedding_service.dart';
+import 'package:trovara/core/services/ai/llm_client.dart';
+import 'package:trovara/core/services/ai/multi_query_expansion_service.dart';
+import 'package:trovara/core/services/ai/prompt_builder_service.dart';
+import 'package:trovara/core/services/ai/query_rewrite_service.dart';
+import 'package:trovara/core/services/ai/rag_service.dart';
+import 'package:trovara/core/services/ai/vector_search_service.dart';
 import 'package:trovara/core/services/auth/google_drive_service.dart';
 import 'package:trovara/core/services/chat/chat_drive_sync_service.dart';
 import 'package:trovara/core/services/chat/chat_service.dart';
-import 'package:trovara/core/services/custom_tag_service.dart';
-import 'package:trovara/core/services/document_resolver_service.dart';
-import 'package:trovara/core/services/embedding_service.dart';
-import 'package:trovara/core/services/google_drive_sync_service.dart';
-import 'package:trovara/core/services/llm_client.dart';
-import 'package:trovara/core/services/multi_query_expansion_service.dart';
-import 'package:trovara/core/services/note_service.dart';
-import 'package:trovara/core/services/prompt_builder_service.dart';
-import 'package:trovara/core/services/query_rewrite_service.dart';
-import 'package:trovara/core/services/rag_service.dart';
-import 'package:trovara/core/services/vector_search_service.dart';
+import 'package:trovara/core/services/notes/custom_tag_service.dart';
+import 'package:trovara/core/services/notes/note_service.dart';
+import 'package:trovara/core/services/sync/google_drive_sync_service.dart';
 
 /// Service Locator for dependency injection
 /// Follows Dependency Inversion Principle - provides abstractions, not concrete implementations

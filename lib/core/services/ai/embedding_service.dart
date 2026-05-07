@@ -5,7 +5,7 @@ import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
 import 'package:trovara/core/repository/interfaces/embedding_repository.dart';
-import 'package:trovara/core/services/text_parser_service.dart';
+import 'package:trovara/core/services/notes/text_parser_service.dart';
 import 'package:trovara/models/note.dart';
 import 'package:trovara/models/note_embedding.dart';
 

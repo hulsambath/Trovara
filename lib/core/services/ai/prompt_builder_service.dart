@@ -1,6 +1,6 @@
 import 'package:logger/logger.dart';
-import 'package:trovara/core/services/document_resolver_service.dart';
-import 'package:trovara/core/services/vector_search_service.dart';
+import 'package:trovara/core/services/ai/document_resolver_service.dart';
+import 'package:trovara/core/services/ai/vector_search_service.dart';
 import 'package:trovara/models/retrieved_document.dart';
 
 /// Builds context-rich augmented prompts that combine the user's question

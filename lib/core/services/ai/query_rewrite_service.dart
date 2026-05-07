@@ -1,5 +1,5 @@
 import 'package:logger/logger.dart';
-import 'package:trovara/core/services/llm_client.dart';
+import 'package:trovara/core/services/ai/llm_client.dart';
 import 'dart:collection';
 
 /// Rewrites a user query into a clear, retrieval-optimized standalone question.

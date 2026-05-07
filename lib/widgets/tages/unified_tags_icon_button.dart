@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:trovara/constants/device_constants.dart';
 import 'package:trovara/core/di/service_locator.dart';
-import 'package:trovara/core/services/custom_tag_service.dart';
+import 'package:trovara/core/services/notes/custom_tag_service.dart';
 import 'package:trovara/models/activity_tag.dart';
 import 'package:trovara/models/custom_tag.dart';
 import 'package:trovara/models/mood_tag.dart';

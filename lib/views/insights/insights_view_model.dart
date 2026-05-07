@@ -1,33 +1,39 @@
+import 'package:logger/logger.dart';
 import 'package:trovara/core/base/base_view_model.dart';
 import 'package:trovara/core/di/service_locator.dart';
 import 'package:trovara/core/repository/analytics_repository.dart';
 
 class InsightsViewModel extends BaseViewModel {
+  final Logger _logger = Logger();
   late final AnalyticsRepository _analyticsRepository;
 
   List<List<int>> _weeksGrid = [];
   bool _isLoading = true;
+  String? _errorMessage;
   late DateTime _startDate;
   int _numWeeks = 20;
   late int _selectedYear;
 
+  AnalyticsSnapshot? _snapshot;
+  List<(DateTime, double)> _weeklySentiment = const [];
+  int _selectedTagCategoryIndex = 0;
+
   List<List<int>> get weeksGrid => _weeksGrid;
   bool get isLoading => _isLoading;
+  String? get errorMessage => _errorMessage;
   DateTime get startDate => _startDate;
   int get numWeeks => _numWeeks;
   DateTime get endDate => _startDate.add(Duration(days: (_numWeeks * 7) - 1));
   int get selectedYear => _selectedYear;
 
-  /// Distinct years available based on all notes' createdAt
-  List<int> get availableYears {
-    final notes = ServiceLocator().noteRepository.getAllNotes();
-    final years = <int>{};
-    for (final n in notes) {
-      years.add(n.createdAt.year);
-    }
-    final sorted = years.toList()..sort();
-    return sorted;
-  }
+  Map<String, Map<String, int>> get tagFrequencyByCategory => _snapshot?.tagFrequencyByCategory ?? const {};
+  List<(DateTime, double)> get weeklySentiment => _weeklySentiment;
+  int get selectedTagCategoryIndex => _selectedTagCategoryIndex;
+  bool get hasTagData => _snapshot?.hasTagData ?? false;
+  bool get hasSentimentData => _snapshot?.hasSentimentData ?? false;
+  List<int> get availableYears => _snapshot?.availableYears ?? [];
+
+  List<String> get tagCategories => const ['mood', 'activity', 'time', 'growth', 'custom'];
 
   InsightsViewModel() {
     _analyticsRepository = AnalyticsRepository(noteRepository: ServiceLocator().noteRepository);
@@ -35,72 +41,82 @@ class InsightsViewModel extends BaseViewModel {
   }
 
   Future<void> _initialize() async {
+    _setLoading(true);
+
     try {
-      _isLoading = true;
-      notifyListeners();
+      _snapshot = _analyticsRepository.computeSnapshot();
+      _weeklySentiment = _analyticsRepository.computeWeeklySentimentTrend(_snapshot!.averageSentimentPerDay);
 
-      final Map<DateTime, int> perDay = _analyticsRepository.getEntriesPerDay();
-
-      // Range: from Jan 1st of current year (aligned to week start) until current week
       final DateTime today = DateTime.now();
-      final int weekday = today.weekday; // 1=Mon..7=Sun
-      final DateTime startOfThisWeek = DateTime(
-        today.year,
-        today.month,
-        today.day,
-      ).subtract(Duration(days: weekday - 1));
-
-      final DateTime jan1 = DateTime(today.year, 1, 1);
-      final DateTime startOfJan1Week = jan1.subtract(Duration(days: jan1.weekday - 1));
-
-      final int daysSpan = startOfThisWeek.difference(startOfJan1Week).inDays;
-      _numWeeks = (daysSpan ~/ 7) + 1; // include current week
-      _startDate = startOfJan1Week;
       _selectedYear = today.year;
+      _updateYearGrid(_snapshot!.entriesPerDay, _selectedYear);
 
-      _weeksGrid = _buildWeeksGrid(perDay, startDate: _startDate, numWeeks: _numWeeks);
-
-      _isLoading = false;
-      notifyListeners();
-    } catch (_) {
-      _isLoading = false;
-      notifyListeners();
+      _initializeSelectedTagCategory();
+      _errorMessage = null;
+    } catch (e, stackTrace) {
+      _logger.e('Failed to initialize insights', error: e, stackTrace: stackTrace);
+      _errorMessage = 'Failed to load insights data';
+    } finally {
+      _setLoading(false);
     }
   }
 
+  Future<void> refresh() async {
+    await _initialize();
+  }
+
   Future<void> setYear(int year) async {
+    if (_snapshot == null || _selectedYear == year) return;
+
+    _setLoading(true);
+
     try {
-      _isLoading = true;
-      notifyListeners();
-
-      final Map<DateTime, int> perDay = _analyticsRepository.getEntriesPerDay();
-
-      final DateTime jan1 = DateTime(year, 1, 1);
-      final DateTime startOfJan1Week = jan1.subtract(Duration(days: jan1.weekday - 1));
-
-      final DateTime now = DateTime.now();
-      late final DateTime endWeekStart;
-      if (year == now.year) {
-        final int weekday = now.weekday;
-        endWeekStart = DateTime(now.year, now.month, now.day).subtract(Duration(days: weekday - 1));
-      } else {
-        final DateTime dec31 = DateTime(year, 12, 31);
-        endWeekStart = dec31.subtract(Duration(days: dec31.weekday - 1));
-      }
-
-      final int daysSpan = endWeekStart.difference(startOfJan1Week).inDays;
-      _numWeeks = (daysSpan ~/ 7) + 1;
-      _startDate = startOfJan1Week;
       _selectedYear = year;
-
-      _weeksGrid = _buildWeeksGrid(perDay, startDate: _startDate, numWeeks: _numWeeks);
-
-      _isLoading = false;
-      notifyListeners();
-    } catch (_) {
-      _isLoading = false;
-      notifyListeners();
+      _updateYearGrid(_snapshot!.entriesPerDay, year);
+      _errorMessage = null;
+    } catch (e, stackTrace) {
+      _logger.e('Failed to set year to $year', error: e, stackTrace: stackTrace);
+      _errorMessage = 'Failed to update year view';
+    } finally {
+      _setLoading(false);
     }
+  }
+
+  void _updateYearGrid(Map<DateTime, int> entriesPerDay, int year) {
+    final DateTime jan1 = DateTime(year, 1, 1);
+    final DateTime startOfJan1Week = jan1.subtract(Duration(days: jan1.weekday - 1));
+
+    final DateTime now = DateTime.now();
+    final DateTime endWeekStart = (year == now.year)
+        ? DateTime(now.year, now.month, now.day).subtract(Duration(days: now.weekday - 1))
+        : DateTime(year, 12, 31).subtract(Duration(days: DateTime(year, 12, 31).weekday - 1));
+
+    final int daysSpan = endWeekStart.difference(startOfJan1Week).inDays;
+    _numWeeks = (daysSpan ~/ 7) + 1;
+    _startDate = startOfJan1Week;
+
+    _weeksGrid = _buildWeeksGrid(entriesPerDay, startDate: _startDate, numWeeks: _numWeeks);
+  }
+
+  void _initializeSelectedTagCategory() {
+    if (hasTagData) {
+      final int firstWithData = tagCategories.indexWhere((c) => (tagFrequencyByCategory[c] ?? const {}).isNotEmpty);
+      _selectedTagCategoryIndex = firstWithData != -1 ? firstWithData : 0;
+    } else {
+      _selectedTagCategoryIndex = 0;
+    }
+  }
+
+  void selectTagCategory(int index) {
+    if (index < 0 || index >= tagCategories.length) return;
+    if (_selectedTagCategoryIndex == index) return;
+    _selectedTagCategoryIndex = index;
+    notifyListeners();
+  }
+
+  void _setLoading(bool value) {
+    _isLoading = value;
+    notifyListeners();
   }
 
   List<List<int>> _buildWeeksGrid(Map<DateTime, int> perDay, {required DateTime startDate, required int numWeeks}) {

@@ -7,8 +7,8 @@ import 'package:flutter_quill/flutter_quill.dart';
 import 'package:trovara/core/base/base_view_model.dart';
 import 'package:trovara/core/di/service_locator.dart';
 import 'package:trovara/core/services/auth/google_drive_service.dart';
-import 'package:trovara/core/services/custom_tag_service.dart';
-import 'package:trovara/core/services/note_service.dart';
+import 'package:trovara/core/services/notes/custom_tag_service.dart';
+import 'package:trovara/core/services/notes/note_service.dart';
 import 'package:trovara/models/note.dart';
 import 'package:trovara/widgets/nm_toast.dart';
 

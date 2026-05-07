@@ -1,13 +1,13 @@
 import 'package:logger/logger.dart';
-import 'package:trovara/core/services/document_resolver_service.dart';
-import 'package:trovara/core/services/embedding_service.dart';
-import 'package:trovara/core/services/llm_client.dart';
-import 'package:trovara/core/services/multi_query_expansion_service.dart';
-import 'package:trovara/core/services/prompt_builder_service.dart';
-import 'package:trovara/core/services/query_rewrite_service.dart';
-import 'package:trovara/core/services/rag_chat_memory.dart';
-import 'package:trovara/core/services/rrf_key_score.dart';
-import 'package:trovara/core/services/vector_search_service.dart';
+import 'package:trovara/core/services/ai/document_resolver_service.dart';
+import 'package:trovara/core/services/ai/embedding_service.dart';
+import 'package:trovara/core/services/ai/llm_client.dart';
+import 'package:trovara/core/services/ai/multi_query_expansion_service.dart';
+import 'package:trovara/core/services/ai/prompt_builder_service.dart';
+import 'package:trovara/core/services/ai/query_rewrite_service.dart';
+import 'package:trovara/core/services/ai/rag_chat_memory.dart';
+import 'package:trovara/core/services/ai/rrf_key_score.dart';
+import 'package:trovara/core/services/ai/vector_search_service.dart';
 
 /// Result of a RAG query, containing the answer and source metadata.
 class RagResult {

@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:logger/logger.dart';
-import 'package:trovara/core/services/llm_client.dart';
+import 'package:trovara/core/services/ai/llm_client.dart';
 
 /// Generates multiple semantic variants of a rewritten query to improve recall.
 ///

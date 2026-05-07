@@ -4,35 +4,57 @@ This guide helps AI assistants understand the trovara project architecture and c
 
 ## Project Overview
 
-trovara is a Flutter-based note-taking app with robust tagging, sync, and analytics features. The app uses:
+trovara is a Flutter-based note-taking app with advanced AI-powered search (RAG), tagging, sync, and analytics. The app uses:
 
 - Flutter SDK ≥3.8.1
 - ObjectBox for local storage
 - Google Drive for sync
 - Provider for state management
 - go_router for navigation
+- Firebase for analytics
+- LLM integration for RAG search and chat
+
+## Build, Test & Lint Commands
+
+### Initial Setup
+```bash
+flutter pub get                    # Install dependencies
+./scripts/build_runner.sh          # Generate code (ObjectBox, build_runner)
+./scripts/create_firebase_stub.sh  # Create Firebase options stub
+```
+
+### Building & Running
+```bash
+./scripts/run_app.sh               # Fast run (uses saved config)
+./scripts/run_app.sh --interactive # Interactive target/env selection
+./scripts/run_app.sh --quick       # Quick run (staging + debug)
+./scripts/build_apk.sh --trovara   # Build Android APK
+```
+
+### Testing
+```bash
+flutter test                       # Run all tests
+flutter test test/path/to/file_test.dart  # Run specific test file
+flutter test --coverage            # Run tests with coverage
+```
+
+### Code Quality
+```bash
+dart format lib --line-length 120              # Format code
+dart analyze lib --fatal-infos --fatal-warnings  # Lint code
+```
 
 ## Key Architecture Components
 
 ### 1. Tag System
 
-The app uses a sophisticated tagging system with four types:
+Sophisticated tagging system with five types:
 
-- Activity tags (work, home, etc.)
-- Mood tags (happy, sad, etc.)
-- Time tags (morning, afternoon, etc.)
-- Personal growth tags
-- Custom tags (user-defined)
-
-File structure:
-
-```
-lib/models/
-  ├── activity_tag.dart
-  ├── mood_tag.dart
-  ├── time_tag.dart
-  └── personal_growth_tag.dart
-```
+- **Activity tags** (work, home, etc.) - `lib/models/activity_tag.dart`
+- **Mood tags** (happy, sad, etc.) - `lib/models/mood_tag.dart`
+- **Time tags** (morning, afternoon, etc.) - `lib/models/time_tag.dart`
+- **Personal growth tags** - `lib/models/personal_growth_tag.dart`
+- **Custom tags** (user-defined) - Created via `CustomTagService`
 
 ### 2. Repository Pattern
 
@@ -40,87 +62,118 @@ All data access follows repository pattern with clear interfaces:
 
 ```dart
 // Example structure in lib/core/repository/
-interface INoteRepository { ... }
-class ObjectBoxNoteRepository implements INoteRepository { ... }
+abstract class INoteRepository {
+  Future<Note?> getNoteById(String id);
+  // ...
+}
+
+class ObjectBoxNoteRepository implements INoteRepository {
+  // Implementation
+}
 ```
 
 ### 3. Service Layer
 
-Services handle business logic and coordinate between repositories:
+Core services handle business logic and coordinate between repositories:
 
-```
-lib/core/services/
-  ├── note_service.dart      // Note operations
-  └── sync_service.dart      // Google Drive sync
-```
+- **NoteService** - Note CRUD, embedding, import/export
+- **SyncService** - Google Drive sync with conflict resolution
+- **CustomTagService** - Custom tag management
+- **RAGService** - Multi-turn RAG with LLM for search
+- **ChatService** - Chat interface with context awareness
+- **VectorSearchService** - Semantic search over embeddings
+- **PromptBuilderService** - LLM prompt construction
+- **DocumentResolverService** - Cross-reference resolution
+- **EmbeddingService** - Vector embedding generation
+- **GoogleDriveService** - Drive API interactions
 
-## Development Workflows
+### 4. RAG & Chat Architecture
 
-### Building & Running
+Multi-turn conversational search with memory:
 
-1. Configure environment:
+- **RagService** - Accepts prior turns, context windows, and queries
+- **QueryRewriteService** - Rewrites queries for better search
+- **RagChatMemory** - Maintains truncated conversation history for context
+- **LlmClient** - LLM API integration for chat and query rewriting
+- **VectorSearchService** - Semantic search for relevant documents
 
-   ```bash
-   flutter pub get
-   ./scripts/build_runner.sh  # Generate ObjectBox code
-   ```
+See `docs/RAG_IMPLEMENTATION.md` and `docs/LLM_CLIENT_AND_RAG_SERVICE.md` for details.
 
-2. Run app:
+### 5. Import/Export
 
-   ```bash
-   ./scripts/run_app.sh --trovara
-   ```
+Note import and export pipeline:
 
-3. Build release:
-   ```bash
-   ./scripts/build_apk.sh --trovara  # Android
-   ```
-
-### Common Patterns
-
-1. **State Management**: Use Provider with ChangeNotifier
-
-   ```dart
-   class NoteViewModel extends ChangeNotifier {
-     final INoteRepository _repository;
-     // ...
-   }
-   ```
-
-2. **Navigation**: Use go_router with named routes
-
-   ```dart
-   GoRoute(path: '/notes', name: 'notes', ...)
-   ```
-
-3. **Error Handling**: Use NmToast for user feedback
-   ```dart
-   NmToast.show(context, 'Error message');
-   ```
-
-### Integration Points
-
-1. **Google Drive Sync**:
-   - Configure in `lib/core/services/sync_service.dart`
-   - Handle auth in `lib/core/services/auth_service.dart`
-   - Check `SYNC_STRATEGY.md` for merge logic
-
-2. **Custom Tags**:
-   - Add new tags through `CustomTagService`
-   - Follow color guidelines in `CUSTOM_TAGS_DOCUMENTATION.md`
+- **ImportedNote model** - Markdown representation from external sources
+- **NoteImportAdapter** - Converts various formats to markdown
+- **NoteService.importFromAdapter()** - Converts markdown to Quill, handles embedding and sync
+- See `note_import_export_architecture.md` for full details
 
 ## Project Conventions
 
-1. **File Naming**:
-   - Widgets: `widget_name.dart`
-   - Services: `service_name_service.dart`
-   - Models: `model_name.dart`
+### File Naming
+- Widgets: `widget_name.dart`
+- Services: `service_name_service.dart`
+- Models: `model_name.dart`
+- Repositories: `i_resource_repository.dart` (abstract) and `objectbox_resource_repository.dart` (impl)
 
-2. **Code Style**:
-   - Use single quotes
-   - Prefer const constructors
-   - Follow analysis_options.yaml rules
+### Code Style
+- **Quotes**: Single quotes for strings
+- **Constructors**: Prefer `const` constructors
+- **Format**: Line length 120 (enforced by `dart format`)
+- **Linting**: Follow `analysis_options.yaml` rules
+- **Print statements**: Use only in debug mode (`avoid_print` rule enabled)
+- **Builder output**: Never modify `*.g.dart` or `*.gr.dart` files
 
-3. **Documentation**:
-   - Add doc comments for public APIs
-   - Keep documentation in `/docs` up to date
+### State Management
+```dart
+class NoteViewModel extends ChangeNotifier {
+  final INoteRepository _repository;
+  
+  void updateNote(Note note) {
+    // Notify listeners after changes
+    notifyListeners();
+  }
+}
+```
+
+### Navigation
+Use go_router with named routes:
+```dart
+GoRoute(path: '/notes', name: 'notes', builder: (context, state) => NotesView())
+```
+
+### Error Handling
+Use `NmToast` for user-facing feedback:
+```dart
+NmToast.show(context, 'Error message');
+```
+
+## Important Implementation Details
+
+### Firebase Setup
+- Firebase options stub is auto-generated by `./scripts/create_firebase_stub.sh`
+- This stub is required for the app to build (see `lib/firebase_options/`)
+
+### Google Drive Sync
+- Merge logic follows conflict-free sync strategy (see `docs/SYNC_STRATEGY.md`)
+- Uses `GoogleDriveService` for API interactions
+- Handles permanent deletes via tombstones
+
+### Code Generation
+- Run `./scripts/build_runner.sh` before building
+- Generates ObjectBox code, go_router routes, and other builders
+- Analyzer excludes generated files: `lib/**.g.dart` and `lib/**.gr.dart`
+
+### Multi-Turn Conversation Context
+- RagService truncates history based on token limits
+- Maintains conversation context for better search results
+- See `docs/RAG_IMPLEMENTATION.md` for memory management
+
+## Key Documentation Files
+
+- `docs/SYNC_STRATEGY.md` - Conflict resolution for Google Drive sync
+- `docs/CUSTOM_TAGS_DOCUMENTATION.md` - Custom tag colors and guidelines
+- `docs/NOTE_SERVICE.md` - Note operations and embedding
+- `docs/RAG_IMPLEMENTATION.md` - RAG architecture and implementation
+- `docs/LLM_CLIENT_AND_RAG_SERVICE.md` - LLM integration details
+- `note_import_export_architecture.md` - Import/export pipeline

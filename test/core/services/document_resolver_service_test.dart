@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:trovara/core/repository/interfaces/folder_repository.dart';
 import 'package:trovara/core/repository/interfaces/note_repository.dart';
-import 'package:trovara/core/services/document_resolver_service.dart';
-import 'package:trovara/core/services/note_service.dart';
-import 'package:trovara/core/services/vector_search_service.dart';
+import 'package:trovara/core/services/ai/document_resolver_service.dart';
+import 'package:trovara/core/services/ai/vector_search_service.dart';
+import 'package:trovara/core/services/notes/note_service.dart';
 import 'package:trovara/models/folder.dart';
 import 'package:trovara/models/note.dart';
 import 'package:trovara/models/note_embedding.dart';

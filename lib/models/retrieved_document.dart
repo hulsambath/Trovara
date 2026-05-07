@@ -1,4 +1,4 @@
-import 'package:trovara/core/services/vector_search_service.dart';
+import 'package:trovara/core/services/ai/vector_search_service.dart';
 import 'package:trovara/models/note.dart';
 
 /// A fully-resolved note paired with the relevant embedding chunks that

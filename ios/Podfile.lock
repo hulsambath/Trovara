@@ -146,6 +146,7 @@ DEPENDENCIES:
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - quill_native_bridge_ios (from `.symlinks/plugins/quill_native_bridge_ios/ios`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
+  - SwiftTryCatch (from `SwiftTryCatch`)
   - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
   - webview_flutter_wkwebview (from `.symlinks/plugins/webview_flutter_wkwebview/darwin`)
 
@@ -167,7 +168,6 @@ SPEC REPOS:
     - PromisesObjC
     - SDWebImage
     - SVGKit
-    - SwiftTryCatch
     - SwiftyGif
 
 EXTERNAL SOURCES:
@@ -201,6 +201,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/quill_native_bridge_ios/ios"
   shared_preferences_foundation:
     :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
+  SwiftTryCatch:
+    :path: SwiftTryCatch
   url_launcher_ios:
     :path: ".symlinks/plugins/url_launcher_ios/ios"
   webview_flutter_wkwebview:
@@ -238,11 +240,11 @@ SPEC CHECKSUMS:
   SDWebImage: e9c98383c7572d713c1a0d7dd2783b10599b9838
   shared_preferences_foundation: 9e1978ff2562383bd5676f64ec4e9aa8fa06a6f7
   SVGKit: 1ad7513f8c74d9652f94ed64ddecda1a23864dea
-  SwiftTryCatch: fb6d2b34abe48efd69578dac919293a44f95b481
+  SwiftTryCatch: 612d35237417f3a6b71b5abb3965d9b2592c4e5a
   SwiftyGif: 706c60cf65fa2bc5ee0313beece843c8eb8194d4
   url_launcher_ios: 694010445543906933d732453a59da0a173ae33d
   webview_flutter_wkwebview: 8ebf4fded22593026f7dbff1fbff31ea98573c8d
 
-PODFILE CHECKSUM: 900ab5dd9e984c23ddfbeb1be4d5150ac7ae72fe
+PODFILE CHECKSUM: d318fa548d384de8bf15438899b3709c0e660850
 
 COCOAPODS: 1.16.2
