@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// Represents a time-based tag with icon and label
 class TimeTag {
@@ -32,42 +33,42 @@ class TimeTags {
   static const List<TimeTag> all = [
     TimeTag(
       id: 'morning',
-      icon: Icons.wb_sunny_outlined,
+      icon: LucideIcons.sunrise,
       label: 'Morning',
       color: Color(0xFFFF9800), // Orange
       description: '6:00 AM - 12:00 PM',
     ),
     TimeTag(
       id: 'afternoon',
-      icon: Icons.wb_sunny,
+      icon: LucideIcons.sun,
       label: 'Afternoon',
       color: Color(0xFFFFC107), // Amber
       description: '12:00 PM - 6:00 PM',
     ),
     TimeTag(
       id: 'evening',
-      icon: Icons.wb_twilight,
+      icon: LucideIcons.sunset,
       label: 'Evening',
       color: Color(0xFF9C27B0), // Purple
       description: '6:00 PM - 9:00 PM',
     ),
     TimeTag(
       id: 'night',
-      icon: Icons.nights_stay_outlined,
+      icon: LucideIcons.moonStar,
       label: 'Night',
       color: Color(0xFF3F51B5), // Indigo
       description: '9:00 PM - 6:00 AM',
     ),
     TimeTag(
       id: 'weekday',
-      icon: Icons.work_outline,
+      icon: LucideIcons.briefcase,
       label: 'Weekday',
       color: Color(0xFF2196F3), // Blue
       description: 'Monday - Friday',
     ),
     TimeTag(
       id: 'weekend',
-      icon: Icons.weekend_outlined,
+      icon: LucideIcons.sofa,
       label: 'Weekend',
       color: Color(0xFF4CAF50), // Green
       description: 'Saturday - Sunday',

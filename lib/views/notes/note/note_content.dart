@@ -26,7 +26,7 @@ class _NoteContent extends StatelessWidget {
           showTimeSuggestions: viewModel.isNewNote,
         ),
         if (viewModel.hasUnsavedChanges)
-          IconButton(icon: const Icon(Icons.save), onPressed: () => viewModel.saveNote(), tooltip: 'Save'),
+          IconButton(icon: const Icon(LucideIcons.save), onPressed: () => viewModel.saveNote(), tooltip: 'Save'),
       ],
     ),
     body: Padding(

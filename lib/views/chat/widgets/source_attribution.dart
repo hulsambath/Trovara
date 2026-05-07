@@ -20,7 +20,7 @@ class _SourceAttribution extends StatelessWidget {
       children: [
         Row(
           children: [
-            Icon(Icons.menu_book_rounded, size: 13, color: colors.onSurfaceVariant),
+            Icon(LucideIcons.bookOpen, size: 13, color: colors.onSurfaceVariant),
             const SizedBox(width: 5),
             Text(
               'Sources',
@@ -44,7 +44,7 @@ class _SourceAttribution extends StatelessWidget {
     child: Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(Icons.description_outlined, size: 12, color: colors.onSurfaceVariant),
+        Icon(LucideIcons.fileText, size: 12, color: colors.onSurfaceVariant),
         const SizedBox(width: 4),
         ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 160),

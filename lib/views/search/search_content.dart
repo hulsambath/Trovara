@@ -69,7 +69,7 @@ class _SearchContentState extends State<_SearchContent> {
       backgroundColor: colors.surface,
       surfaceTintColor: Colors.transparent,
       titleSpacing: 0,
-      leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.pop(), tooltip: 'Back'),
+      leading: IconButton(icon: const Icon(LucideIcons.arrowLeft), onPressed: () => context.pop(), tooltip: 'Back'),
       title: _SearchBar(
         controller: _textController,
         focusNode: _focusNode,
@@ -114,12 +114,12 @@ class _SearchBar extends StatelessWidget {
         decoration: InputDecoration(
           hintText: 'Search notes…',
           hintStyle: TextStyle(color: colors.onSurfaceVariant.withValues(alpha: 0.6)),
-          prefixIcon: Icon(Icons.search, size: 20, color: colors.onSurfaceVariant),
+          prefixIcon: Icon(LucideIcons.search, size: 20, color: colors.onSurfaceVariant),
           suffixIcon: ValueListenableBuilder(
             valueListenable: controller,
             builder: (_, value, __) => value.text.isNotEmpty
                 ? IconButton(
-                    icon: Icon(Icons.close, size: 18, color: colors.onSurfaceVariant),
+                    icon: Icon(LucideIcons.x, size: 18, color: colors.onSurfaceVariant),
                     onPressed: onClear,
                     splashRadius: 16,
                     tooltip: 'Clear',
@@ -148,7 +148,7 @@ class _SortButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return IconButton(
-      icon: Icon(Icons.sort, color: colors.onSurfaceVariant),
+      icon: Icon(LucideIcons.arrowUpDown, color: colors.onSurfaceVariant),
       tooltip: 'Sort',
       onPressed: () => _showSortSheet(context),
     );
@@ -175,7 +175,7 @@ class _SortButton extends StatelessWidget {
                 return ListTile(
                   leading: Icon(_sortIcon(order), color: isActive ? colors.primary : colors.onSurfaceVariant),
                   title: Text(_sortLabel(order)),
-                  trailing: isActive ? Icon(Icons.check, color: colors.primary) : null,
+                  trailing: isActive ? Icon(LucideIcons.check, color: colors.primary) : null,
                   selected: isActive,
                   onTap: () {
                     vm.setSortOrder(order);
@@ -192,10 +192,10 @@ class _SortButton extends StatelessWidget {
   }
 
   IconData _sortIcon(SearchSortOrder o) => switch (o) {
-    SearchSortOrder.newestFirst => Icons.arrow_downward,
-    SearchSortOrder.oldestFirst => Icons.arrow_upward,
-    SearchSortOrder.alphabetical => Icons.sort_by_alpha,
-    SearchSortOrder.recentlyUpdated => Icons.update,
+    SearchSortOrder.newestFirst => LucideIcons.arrowDown,
+    SearchSortOrder.oldestFirst => LucideIcons.arrowUp,
+    SearchSortOrder.alphabetical => LucideIcons.arrowDownAZ,
+    SearchSortOrder.recentlyUpdated => LucideIcons.rotateCw,
   };
 
   String _sortLabel(SearchSortOrder o) => switch (o) {
@@ -234,7 +234,7 @@ class _FilterPanel extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               child: Row(
                 children: [
-                  Icon(Icons.filter_list, size: 18, color: colors.onSurfaceVariant),
+                  Icon(LucideIcons.funnel, size: 18, color: colors.onSurfaceVariant),
                   const SizedBox(width: 8),
                   Text(
                     'Filters',
@@ -260,7 +260,7 @@ class _FilterPanel extends StatelessWidget {
                   AnimatedRotation(
                     turns: vm.filtersExpanded ? 0.5 : 0,
                     duration: const Duration(milliseconds: 200),
-                    child: Icon(Icons.expand_more, size: 20, color: colors.onSurfaceVariant),
+                    child: Icon(LucideIcons.chevronDown, size: 20, color: colors.onSurfaceVariant),
                   ),
                 ],
               ),
@@ -277,7 +277,7 @@ class _FilterPanel extends StatelessWidget {
                 children: [
                   _QuickFilterChip(
                     label: 'Favorites',
-                    icon: Icons.favorite_rounded,
+                    icon: LucideIcons.heart,
                     selected: vm.showFavoritesOnly,
                     onTap: vm.toggleFavoritesOnly,
                     activeColor: Colors.red,
@@ -287,28 +287,28 @@ class _FilterPanel extends StatelessWidget {
             ),
             _TagCategory(
               label: 'Mood',
-              icon: Icons.mood,
+              icon: LucideIcons.smile,
               children: MoodTags.all.map((t) => _MoodFilterChip(tag: t, vm: vm)).toList(),
             ),
             _TagCategory(
               label: 'Activity',
-              icon: Icons.category,
+              icon: LucideIcons.shapes,
               children: ActivityTags.all.map((t) => _ActivityFilterChip(tag: t, vm: vm)).toList(),
             ),
             _TagCategory(
               label: 'Time',
-              icon: Icons.access_time,
+              icon: LucideIcons.clock,
               children: TimeTags.all.map((t) => _TimeFilterChip(tag: t, vm: vm)).toList(),
             ),
             _TagCategory(
               label: 'Growth',
-              icon: Icons.trending_up,
+              icon: LucideIcons.trendingUp,
               children: PersonalGrowthTags.all.map((t) => _GrowthFilterChip(tag: t, vm: vm)).toList(),
             ),
             if (vm.availableCustomTags.isNotEmpty)
               _TagCategory(
                 label: 'Custom',
-                icon: Icons.label_outline,
+                icon: LucideIcons.tag,
                 children: vm.availableCustomTags.map((t) => _CustomFilterChip(tag: t, vm: vm)).toList(),
               ),
             const SizedBox(height: 4),
@@ -671,7 +671,7 @@ class _SearchResultCard extends StatelessWidget {
                   ),
                   if (note.isFavorite) ...[
                     const SizedBox(width: 6),
-                    Icon(Icons.favorite, size: 16, color: Colors.red.withValues(alpha: 0.8)),
+                    Icon(Icons.favorite_rounded, size: 16, color: Colors.red.withValues(alpha: 0.8)),
                   ],
                 ],
               ),
@@ -833,7 +833,7 @@ class _EmptyState extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              hasFilters ? Icons.filter_alt_off_outlined : Icons.manage_search_rounded,
+              hasFilters ? LucideIcons.funnelX : LucideIcons.search,
               size: 56,
               color: colors.onSurfaceVariant.withValues(alpha: 0.3),
             ),
@@ -847,7 +847,7 @@ class _EmptyState extends StatelessWidget {
               const SizedBox(height: 12),
               TextButton.icon(
                 onPressed: vm.clearAllFilters,
-                icon: const Icon(Icons.clear_all, size: 16),
+                icon: const Icon(LucideIcons.x, size: 16),
                 label: const Text('Clear all filters'),
               ),
             ],

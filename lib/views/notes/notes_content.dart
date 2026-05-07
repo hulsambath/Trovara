@@ -36,22 +36,22 @@ class _NotesContent extends StatelessWidget {
     actions: [
       // ── Search ─────────────────────────────────────────────────────────
       IconButton(
-        icon: const Icon(Icons.search),
+        icon: const Icon(LucideIcons.search),
         onPressed: () => context.push('/search'),
         tooltip: 'Search & filter notes',
       ),
       IconButton(
-        icon: const Icon(Icons.add),
+        icon: const Icon(LucideIcons.plus),
         onPressed: () => viewModel.createNewNote(context),
         tooltip: 'Create new note',
       ),
       IconButton(
-        icon: const Icon(Icons.delete_outline),
+        icon: const Icon(LucideIcons.trash2),
         onPressed: () => _openRecentlyDeleted(context),
         tooltip: 'Recently Deleted',
       ),
       IconButton(
-        icon: const Icon(Icons.sync),
+        icon: const Icon(LucideIcons.refreshCw),
         onPressed: () => viewModel.syncWithGoogleDrive(context),
         tooltip: 'Sync with Google Drive',
       ),
@@ -92,7 +92,7 @@ class _NotesContent extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Icon(
-          Icons.note_add_outlined,
+          LucideIcons.filePlus,
           size: 56,
           color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
         ),

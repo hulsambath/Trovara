@@ -48,7 +48,7 @@ class _ChatDrawer extends StatelessWidget {
           width: 32,
           height: 32,
           decoration: BoxDecoration(color: colors.primary, shape: BoxShape.circle),
-          child: Icon(Icons.auto_awesome, size: 16, color: colors.onPrimary),
+          child: Icon(LucideIcons.sparkles, size: 16, color: colors.onPrimary),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -58,7 +58,7 @@ class _ChatDrawer extends StatelessWidget {
           ),
         ),
         IconButton(
-          icon: Icon(Icons.edit_square, size: 22, color: colors.onSurfaceVariant),
+          icon: Icon(LucideIcons.squarePen, size: 22, color: colors.onSurfaceVariant),
           onPressed: onNewChat,
           tooltip: 'New chat',
         ),
@@ -72,7 +72,7 @@ class _ChatDrawer extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.chat_bubble_outline, size: 48, color: colors.onSurfaceVariant.withValues(alpha: 0.3)),
+          Icon(LucideIcons.messageCircle, size: 48, color: colors.onSurfaceVariant.withValues(alpha: 0.3)),
           const SizedBox(height: 16),
           Text(
             'No conversations yet',
@@ -175,7 +175,7 @@ class _ChatDrawer extends StatelessWidget {
         child: Row(
           children: [
             Icon(
-              isActive ? Icons.chat_bubble : Icons.chat_bubble_outline,
+              isActive ? LucideIcons.messageCircle : LucideIcons.messageSquare,
               size: 16,
               color: isActive ? colors.primary : colors.onSurfaceVariant,
             ),

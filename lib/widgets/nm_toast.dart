@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:cupertino_native_better/cupertino_native_better.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// Lightweight toast notification that uses Liquid Glass on iOS 26+
 /// and explicitly prevents inherited text decoration (underline).
@@ -35,28 +35,28 @@ class NmToast {
   static void success(BuildContext context, String message) => show(
     context,
     message,
-    icon: const Icon(Icons.check_circle_rounded, color: CupertinoColors.systemGreen, size: 22),
+    icon: const Icon(LucideIcons.circleCheck, color: CupertinoColors.systemGreen, size: 22),
     style: NmToastStyle.success,
   );
 
   static void error(BuildContext context, String message) => show(
     context,
     message,
-    icon: const Icon(Icons.error_rounded, color: CupertinoColors.systemRed, size: 22),
+    icon: const Icon(LucideIcons.circleX, color: CupertinoColors.systemRed, size: 22),
     style: NmToastStyle.error,
   );
 
   static void info(BuildContext context, String message) => show(
     context,
     message,
-    icon: const Icon(Icons.info_rounded, color: CupertinoColors.systemBlue, size: 22),
+    icon: const Icon(LucideIcons.info, color: CupertinoColors.systemBlue, size: 22),
     style: NmToastStyle.info,
   );
 
   static void warning(BuildContext context, String message) => show(
     context,
     message,
-    icon: const Icon(Icons.warning_rounded, color: CupertinoColors.systemOrange, size: 22),
+    icon: const Icon(LucideIcons.triangleAlert, color: CupertinoColors.systemOrange, size: 22),
     style: NmToastStyle.warning,
   );
 

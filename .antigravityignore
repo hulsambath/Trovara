@@ -1,0 +1,161 @@
+# ============================================================
+# .antigravityignore — Trovara (Flutter Note-Taking App)
+# Keeps build artifacts, generated code, secrets, platform
+# boilerplate, large binaries, and dependencies out of
+# Antigravity's context window.
+# ============================================================
+
+# ── Git internals ─────────────────────────────────────────
+**/.git/
+
+# ── Build outputs ─────────────────────────────────────────
+**/build/
+**/.dart_tool/
+**/.gradle/
+
+# ── Flutter / Dart build metadata ─────────────────────────
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.metadata
+
+# ── Generated Dart code ──────────────────────────────────
+**/*.g.dart
+**/*.freezed.dart
+**/*.config.dart
+**/*.gr.dart
+**/*.gen.dart
+**/*.mocks.dart
+**/*.reflectable.dart
+lib/gen/assets.gen.dart
+lib/gen/fonts.gen.dart
+lib/objectbox.g.dart
+lib/firebase_options/
+lib/generated_plugin_registrant.dart
+
+# ── Platform directories (rarely hand-authored) ──────────
+android/
+ios/
+macos/
+linux/
+windows/
+web/
+
+# ── Dependencies ─────────────────────────────────────────
+**/Pods/
+**/.pub-cache/
+**/.pub/
+**/DerivedData/
+
+# ── Lock files ───────────────────────────────────────────
+pubspec.lock
+**/Podfile.lock
+**/Gemfile.lock
+
+# ── Secrets & credentials ───────────────────────────────
+**/*.jks
+**/*.keystore
+**/*.pem
+**/*.p8
+**/*.p12
+**/key.properties
+**/local.properties
+**/.env
+**/.env.*
+**/google-services.json
+**/GoogleService-Info*.plist
+configs/trovara.json
+configs/trovara_staging.json
+configs/trovara_prod.json
+configs/trovara_dev.json
+upload_certificate.pem
+
+# ── IDE / tooling internals ──────────────────────────────
+**/.antigravity/
+**/.cursor/
+**/.claude/
+**/.idea/
+**/.vscode/
+**/.fvm/
+**/.code-review-graph/
+**/.copilot/
+**/.ruby-lsp/
+.tool-versions
+
+# ── Virtual environments ─────────────────────────────────
+.venv/
+.venv_icon/
+
+# ── Test & coverage ──────────────────────────────────────
+coverage/
+
+# ── Logs & caches ────────────────────────────────────────
+**/*.log
+**/.cache/
+
+# ── OS files ─────────────────────────────────────────────
+**/.DS_Store
+**/Thumbs.db
+**/.Spotlight-V100
+**/.Trashes
+
+# ── Large / binary files ────────────────────────────────
+**/*.zip
+**/*.tar
+**/*.gz
+**/*.rar
+**/*.apk
+**/*.aab
+**/*.ipa
+**/*.dill
+**/*.cache.dill
+**/*.so
+**/*.dylib
+**/*.dll
+**/*.iml
+**/*.tgz
+**/*.rdb
+**/*.db
+
+# ── Image / media assets ────────────────────────────────
+**/*.png
+**/*.jpg
+**/*.jpeg
+**/*.gif
+**/*.webp
+**/*.ico
+**/*.svg
+assets/app_icon/
+assets/icons/
+assets/splash_screen/
+assets/fonts/
+
+# ── Temp / scratch dirs ─────────────────────────────────
+asdf-dart.*/
+
+# ── AI-generated summaries (not source code) ─────────────
+DYNAMIC_ICONS_README.md
+GOOGLE_SIGNIN_FIX.md
+IMPLEMENTATION_COMPLETE.md
+IMPROVEMENTS_SUMMARY.md
+PERMANENT_DELETE_FIX_SUMMARY.md
+REFACTORING_SUMMARY.md
+SYNC_FIX_SUMMARY.md
+TRASH_FEATURE_CHECKLIST.md
+TRASH_IMPLEMENTATION_SUMMARY.md
+TRASH_SYNC_COMPLETE.md
+note_import_export_architecture.md
+implementation_plan.md.resolved
+
+# ── CI / deployment config ───────────────────────────────
+**/.circleci/
+**/codemagic.yaml
+firebase.json
+shorebird.yaml
+
+# ── Workspace / build config (minimal value for AI) ──────
+Trovara.code-workspace
+flutter_launcher_icons.yaml
+flutter_native_splash.yaml
+icon_config.yaml
+build.yaml

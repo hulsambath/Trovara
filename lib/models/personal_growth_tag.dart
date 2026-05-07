@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// Represents a personal growth tag with icon and label
 class PersonalGrowthTag {
@@ -32,42 +33,42 @@ class PersonalGrowthTags {
   static const List<PersonalGrowthTag> all = [
     PersonalGrowthTag(
       id: 'learning',
-      icon: Icons.school_outlined,
+      icon: LucideIcons.graduationCap,
       label: 'Learning',
       color: Color(0xFF2196F3), // Blue
       description: 'Educational activities and skill development',
     ),
     PersonalGrowthTag(
       id: 'goals',
-      icon: Icons.flag_outlined,
+      icon: LucideIcons.flag,
       label: 'Goals',
       color: Color(0xFF4CAF50), // Green
       description: 'Personal and professional objectives',
     ),
     PersonalGrowthTag(
       id: 'self-care',
-      icon: Icons.spa_outlined,
+      icon: LucideIcons.sparkle,
       label: 'Self-Care',
       color: Color(0xFF9C27B0), // Purple
       description: 'Mental and physical wellness activities',
     ),
     PersonalGrowthTag(
       id: 'creativity',
-      icon: Icons.palette_outlined,
+      icon: LucideIcons.palette,
       label: 'Creativity',
       color: Color(0xFFFF9800), // Orange
       description: 'Artistic and creative pursuits',
     ),
     PersonalGrowthTag(
       id: 'reflection',
-      icon: Icons.psychology_outlined,
+      icon: LucideIcons.brain,
       label: 'Reflection',
       color: Color(0xFF795548), // Brown
       description: 'Self-reflection and mindfulness',
     ),
     PersonalGrowthTag(
       id: 'achievement',
-      icon: Icons.emoji_events_outlined,
+      icon: LucideIcons.trophy,
       label: 'Achievement',
       color: Color(0xFFFFC107), // Amber
       description: 'Accomplishments and milestones',

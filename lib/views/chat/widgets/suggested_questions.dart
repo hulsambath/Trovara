@@ -21,7 +21,7 @@ class _SuggestedQuestions extends StatelessWidget {
               width: 56,
               height: 56,
               decoration: BoxDecoration(color: colors.primary, shape: BoxShape.circle),
-              child: Icon(Icons.auto_awesome, size: 28, color: colors.onPrimary),
+              child: Icon(LucideIcons.sparkles, size: 28, color: colors.onPrimary),
             ),
             const SizedBox(height: 20),
             Text(

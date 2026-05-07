@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:trovara/core/services/text_parser_service.dart';
 import 'package:trovara/models/note.dart';
 import 'package:trovara/widgets/tages/activity/activity_chips.dart';
@@ -57,7 +58,10 @@ class _NoteCardState extends State<NoteCard> {
                   ),
                   if (widget.note.contentJson.isNotEmpty) ...[
                     IconButton(
-                      icon: Icon(_isExpanded ? Icons.expand_less : Icons.expand_more, color: colors.onSurfaceVariant),
+                      icon: Icon(
+                        _isExpanded ? LucideIcons.chevronUp : LucideIcons.chevronDown,
+                        color: colors.onSurfaceVariant,
+                      ),
                       onPressed: () {
                         setState(() {
                           _isExpanded = !_isExpanded;
@@ -70,7 +74,7 @@ class _NoteCardState extends State<NoteCard> {
                   ],
                   IconButton(
                     icon: Icon(
-                      widget.note.isFavorite ? Icons.favorite : Icons.favorite_border,
+                      widget.note.isFavorite ? Icons.favorite_rounded : LucideIcons.heart,
                       size: 20,
                       color: widget.note.isFavorite ? Colors.red : colors.onSurfaceVariant,
                     ),
@@ -142,7 +146,7 @@ class _NoteCardState extends State<NoteCard> {
               ],
               Row(
                 children: [
-                  Icon(Icons.access_time, size: 14, color: colors.onSurfaceVariant),
+                  Icon(LucideIcons.clock, size: 14, color: colors.onSurfaceVariant),
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
