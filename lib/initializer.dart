@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:trovara/core/di/service_locator.dart';
 import 'package:trovara/core/storage/theme_mode_storage.dart';
+import 'package:shorebird_code_push/shorebird_code_push.dart';
 
 class Initializer {
   static Future<void> load({FirebaseOptions? firebaseOptions}) async {
@@ -16,6 +17,23 @@ class Initializer {
     await ServiceLocator().initialize();
     // Initialize Google Drive session (silent restore if previously signed in)
     await ServiceLocator().googleDriveService.initialize();
+
+    // Initialize Shorebird Code Push updater (non-blocking).
+    // auto_update is disabled in shorebird.yaml, so trigger a background check.
+    try {
+      // Import is optional; if the package isn't available this will fail gracefully.
+      // The Shorebird updater is lightweight and won't block startup.
+      final updater = ShorebirdUpdater();
+      updater.readCurrentPatch().catchError((_) {});
+      updater.checkForUpdate().then((status) {
+        if (status == UpdateStatus.outdated) {
+          // Download and apply update in background.
+          updater.update().catchError((_) {});
+        }
+      }).catchError((_) {});
+    } catch (_) {
+      // Ignore if shorebird package is not present or initialization fails.
+    }
   }
 
   static String get deviceType {

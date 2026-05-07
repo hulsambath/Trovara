@@ -1,7 +1,7 @@
 name: trovara
 description: "Trovara"
 publish_to: "none"
-version: 1.0.0+3
+version: 1.0.0+4
 
 environment:
   sdk: ^3.8.1
@@ -45,9 +45,12 @@ dependencies:
   uuid: ^4.5.1
   crypto: ^3.0.7
   lucide_icons_flutter: ^3.1.13
+  shorebird_code_push: ^2.0.6
 
 dev_dependencies:
   flutter_test:
+    sdk: flutter
+  integration_test:
     sdk: flutter
   flutter_lints: ^5.0.0
   build_runner: ^2.5.4
@@ -55,6 +58,7 @@ dev_dependencies:
   flutter_launcher_icons: ^0.14.4
   flutter_native_splash: ^2.4.7
   flutter_gen_runner: ^5.12.0
+  patrol: ^4.5.0
 
 flutter:
   uses-material-design: true
