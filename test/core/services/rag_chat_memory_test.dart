@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:trovara/core/services/rag_chat_memory.dart';
+import 'package:trovara/core/services/ai/rag_chat_memory.dart';
 import 'package:trovara/models/chat_message.dart';
 
 ChatMessageEntity _e({required String role, required String content}) =>

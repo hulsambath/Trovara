@@ -1,8 +1,8 @@
 import 'dart:math';
 
 import 'package:logger/logger.dart';
-import 'package:trovara/core/services/note_service.dart';
-import 'package:trovara/core/services/vector_search_service.dart';
+import 'package:trovara/core/services/ai/vector_search_service.dart';
+import 'package:trovara/core/services/notes/note_service.dart';
 import 'package:trovara/models/retrieved_document.dart';
 
 /// Resolves raw [ScoredEmbedding] chunks from vector search into

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'package:trovara/core/services/text_parser_service.dart';
+import 'package:trovara/core/services/notes/text_parser_service.dart';
 import 'package:trovara/models/note.dart';
 import 'package:trovara/widgets/tages/activity/activity_chips.dart';
 import 'package:trovara/widgets/tages/custom/custom_tags_widget.dart';

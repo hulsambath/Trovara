@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:trovara/core/repository/interfaces/embedding_repository.dart';
-import 'package:trovara/core/services/vector_search_service.dart';
+import 'package:trovara/core/services/ai/vector_search_service.dart';
 import 'package:trovara/models/note_embedding.dart';
 
 /// A mock implementation of [IEmbeddingRepository] for testing.

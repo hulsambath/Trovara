@@ -70,3 +70,4 @@ flutter:
     - family: Garet
       fonts:
         - asset: assets/fonts/Garet-Book.ttf
+          weight: 400

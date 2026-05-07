@@ -1,5 +1,5 @@
 import 'package:objectbox/objectbox.dart';
-import 'package:trovara/core/services/text_parser_service.dart';
+import 'package:trovara/core/services/notes/text_parser_service.dart';
 import 'package:trovara/models/activity_tag.dart';
 import 'package:trovara/models/custom_tag.dart';
 import 'package:trovara/models/mood_tag.dart';
