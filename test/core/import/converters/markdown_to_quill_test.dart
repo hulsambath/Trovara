@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter_test/flutter_test.dart';
+import 'package:patrol/patrol.dart';
 import 'package:trovara/core/import/converters/markdown_to_quill.dart';
 
 void main() {
@@ -8,7 +8,7 @@ void main() {
       jsonDecode(MarkdownToQuillConverter.convert(markdown)) as Map<String, dynamic>;
 
   group('MarkdownToQuillConverter', () {
-    test('preserves markdown links as Quill link attributes', () {
+    patrolTest('preserves markdown links as Quill link attributes', () {
       final delta = deltaFromMarkdown('See [Google](https://google.com) now.');
       final ops = (delta['ops'] as List).cast<Map>();
 
@@ -18,7 +18,7 @@ void main() {
       );
     });
 
-    test('converts heading to newline op with header attribute', () {
+    patrolTest('converts heading to newline op with header attribute', () {
       final delta = deltaFromMarkdown('# Title');
       final ops = (delta['ops'] as List).cast<Map>();
 
@@ -26,21 +26,21 @@ void main() {
       expect(ops.any((op) => op['insert'] == '\n' && (op['attributes'] as Map?)?['header'] == 1), isTrue);
     });
 
-    test('converts bullet list line to newline op with list=bullet', () {
+    patrolTest('converts bullet list line to newline op with list=bullet', () {
       final delta = deltaFromMarkdown('- item');
       final ops = (delta['ops'] as List).cast<Map>();
 
       expect(ops.any((op) => op['insert'] == '\n' && (op['attributes'] as Map?)?['list'] == 'bullet'), isTrue);
     });
 
-    test('converts ordered list line to newline op with list=ordered', () {
+    patrolTest('converts ordered list line to newline op with list=ordered', () {
       final delta = deltaFromMarkdown('1. first');
       final ops = (delta['ops'] as List).cast<Map>();
 
       expect(ops.any((op) => op['insert'] == '\n' && (op['attributes'] as Map?)?['list'] == 'ordered'), isTrue);
     });
 
-    test('converts horizontal rule to divider embed', () {
+    patrolTest('converts horizontal rule to divider embed', () {
       final delta = deltaFromMarkdown('---');
       final ops = (delta['ops'] as List).cast<Map>();
 

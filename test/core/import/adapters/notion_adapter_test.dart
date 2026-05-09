@@ -1,4 +1,4 @@
-import 'package:flutter_test/flutter_test.dart';
+import 'package:patrol/patrol.dart';
 import 'package:trovara/core/import/adapters/notion_adapter.dart';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -20,14 +20,14 @@ void main() {
 
   // ── sourceName ─────────────────────────────────────────────────────────────
 
-  test('sourceName is notion', () {
+  patrolTest('sourceName is notion', () {
     expect(adapter.sourceName, 'notion');
   });
 
   // ── canHandle ──────────────────────────────────────────────────────────────
 
   group('canHandle', () {
-    test('accepts a List<Map> with non-empty content', () {
+    patrolTest('accepts a List<Map> with non-empty content', () {
       expect(
         adapter.canHandle([
           {'path': 'Page $kNotionUuid.md', 'content': '# Page'},
@@ -36,7 +36,7 @@ void main() {
       );
     });
 
-    test('accepts a List<Map> with UUID in path even with empty content', () {
+    patrolTest('accepts a List<Map> with UUID in path even with empty content', () {
       // _hasNotionUuidPath returns true when the 32-char hex UUID is present
       expect(
         adapter.canHandle([
@@ -46,15 +46,15 @@ void main() {
       );
     });
 
-    test('rejects a String (not a Notion export format)', () {
+    patrolTest('rejects a String (not a Notion export format)', () {
       expect(adapter.canHandle('# Hello'), isFalse);
     });
 
-    test('rejects an empty List', () {
+    patrolTest('rejects an empty List', () {
       expect(adapter.canHandle([]), isFalse);
     });
 
-    test('rejects a Map (not wrapped in List)', () {
+    patrolTest('rejects a Map (not wrapped in List)', () {
       expect(adapter.canHandle({'path': 'x.md', 'content': '# X'}), isFalse);
     });
   });
@@ -62,7 +62,7 @@ void main() {
   // ── UUID stripping from filenames ──────────────────────────────────────────
 
   group('title from Notion filename', () {
-    test('strips 32-char hex UUID suffix', () async {
+    patrolTest('strips 32-char hex UUID suffix', () async {
       final input = [
         {'path': 'Meeting Notes $kNotionUuid.md', 'content': 'Some meeting content.'},
       ];
@@ -70,7 +70,7 @@ void main() {
       expect(notes.first.title, 'Meeting Notes');
     });
 
-    test('preserves title when file has no UUID suffix', () async {
+    patrolTest('preserves title when file has no UUID suffix', () async {
       final input = [
         {'path': 'Clean Title.md', 'content': 'Content.'},
       ];
@@ -78,7 +78,7 @@ void main() {
       expect(notes.first.title, 'Clean Title');
     });
 
-    test('uses h1 heading as title (h1 always wins over filename)', () async {
+    patrolTest('uses h1 heading as title (h1 always wins over filename)', () async {
       final input = [
         {'path': 'Unknown $kNotionUuid.md', 'content': '# Real Title\nContent here.'},
       ];
@@ -86,7 +86,7 @@ void main() {
       expect(notes.first.title, 'Real Title');
     });
 
-    test('falls back to UUID-stripped filename when no h1', () async {
+    patrolTest('falls back to UUID-stripped filename when no h1', () async {
       final input = [
         {'path': 'My Page $kNotionUuid.md', 'content': 'Just body text without a heading.'},
       ];
@@ -98,7 +98,7 @@ void main() {
   // ── Notion property block ──────────────────────────────────────────────────
 
   group('Notion property block', () {
-    test('extracts tags from **Tags:** property line', () async {
+    patrolTest('extracts tags from **Tags:** property line', () async {
       final input = [
         {'path': 'note.md', 'content': '# Note\n**Tags:** productivity, ai, flutter\n\nBody content.'},
       ];
@@ -106,7 +106,7 @@ void main() {
       expect(notes.first.tags, containsAll(['productivity', 'ai', 'flutter']));
     });
 
-    test('extracts tags from lowercase **tags:** line', () async {
+    patrolTest('extracts tags from lowercase **tags:** line', () async {
       final input = [
         {'path': 'note.md', 'content': '# Note\n**tags:** design\n\nBody.'},
       ];
@@ -114,7 +114,7 @@ void main() {
       expect(notes.first.tags, contains('design'));
     });
 
-    test('created date from **Created:** property (ISO format)', () async {
+    patrolTest('created date from **Created:** property (ISO format)', () async {
       final input = [
         {'path': 'note.md', 'content': '# Note\n**Created:** 2024-03-19\n\nBody.'},
       ];
@@ -122,7 +122,7 @@ void main() {
       expect(notes.first.createdAt, isNotNull);
     });
 
-    test('created date from **Created:** property (human-readable Notion format)', () async {
+    patrolTest('created date from **Created:** property (human-readable Notion format)', () async {
       final input = [
         {'path': 'note.md', 'content': '# Note\n**Created:** March 19, 2026 3:02 PM\n\nBody.'},
       ];
@@ -133,7 +133,7 @@ void main() {
       expect(notes.first.createdAt!.day, 19);
     });
 
-    test('body excludes property lines', () async {
+    patrolTest('body excludes property lines', () async {
       final input = [
         {'path': 'note.md', 'content': '# Note\n**Tags:** test\n\nActual body here.'},
       ];
@@ -142,7 +142,7 @@ void main() {
       expect(notes.first.markdownContent, isNot(contains('**Tags:**')));
     });
 
-    test('stores properties in rawMetadata (lowercased key)', () async {
+    patrolTest('stores properties in rawMetadata (lowercased key)', () async {
       final input = [
         {'path': 'note.md', 'content': '# Note\n**Status:** Done\n\nBody.'},
       ];
@@ -150,7 +150,7 @@ void main() {
       expect(notes.first.rawMetadata['status'], 'Done');
     });
 
-    test('multiple properties are all stored in rawMetadata', () async {
+    patrolTest('multiple properties are all stored in rawMetadata', () async {
       final input = [
         {'path': 'note.md', 'content': '# Note\n**Tags:** a, b\n**Created:** 2024-01-01\n\nBody.'},
       ];
@@ -159,7 +159,7 @@ void main() {
       expect(notes.first.rawMetadata.containsKey('created'), isTrue);
     });
 
-    test('does not treat bold intro line **Introduction:** as a property', () async {
+    patrolTest('does not treat bold intro line **Introduction:** as a property', () async {
       final input = [
         {
           'path': 'note.md',
@@ -172,7 +172,7 @@ void main() {
       expect(notes.first.markdownContent, contains('More body.'));
     });
 
-    test('accepts **Key**: value with colon after closing bold (any key)', () async {
+    patrolTest('accepts **Key**: value with colon after closing bold (any key)', () async {
       final input = [
         {'path': 'note.md', 'content': '# Note\n**Department**: Engineering\n\nBody text.'},
       ];
@@ -185,7 +185,7 @@ void main() {
   // ── CSV files skipped ──────────────────────────────────────────────────────
 
   group('CSV handling', () {
-    test('skips .csv files in the input', () async {
+    patrolTest('skips .csv files in the input', () async {
       final input = [
         {'path': 'database.csv', 'content': 'id,name\n1,Alice'},
         {'path': 'note.md', 'content': '# Note\nBody.'},
@@ -200,7 +200,7 @@ void main() {
   // ── Internal links ─────────────────────────────────────────────────────────
 
   group('internal links', () {
-    test('extracts [[wikilinks]]', () async {
+    patrolTest('extracts [[wikilinks]]', () async {
       final input = [
         {'path': 'note.md', 'content': '# Note\nSee [[Related Page]] for details.'},
       ];
@@ -208,7 +208,7 @@ void main() {
       expect(notes.first.internalLinks, contains('Related Page'));
     });
 
-    test('extracts @[mention] style links', () async {
+    patrolTest('extracts @[mention] style links', () async {
       final input = [
         {'path': 'note.md', 'content': '# Note\nMention @[Alice] here.'},
       ];
@@ -216,7 +216,7 @@ void main() {
       expect(notes.first.internalLinks, contains('Alice'));
     });
 
-    test('deduplicates links', () async {
+    patrolTest('deduplicates links', () async {
       final input = [
         {'path': 'note.md', 'content': '# Note\n[[Page A]] and [[Page A]] again.'},
       ];
@@ -224,7 +224,7 @@ void main() {
       expect(notes.first.internalLinks.where((l) => l == 'Page A'), hasLength(1));
     });
 
-    test('returns empty internalLinks when none present', () async {
+    patrolTest('returns empty internalLinks when none present', () async {
       final input = [
         {'path': 'note.md', 'content': '# Note\nPlain body.'},
       ];
@@ -236,7 +236,7 @@ void main() {
   // ── HTML cleanup ───────────────────────────────────────────────────────────
 
   group('HTML cleanup', () {
-    test('strips HTML tags from body', () async {
+    patrolTest('strips HTML tags from body', () async {
       final input = [
         {'path': 'note.md', 'content': '# Note\n<aside>Callout</aside>Body text.'},
       ];
@@ -245,7 +245,7 @@ void main() {
       expect(notes.first.markdownContent, contains('Body text.'));
     });
 
-    test('collapses excessive blank lines', () async {
+    patrolTest('collapses excessive blank lines', () async {
       final input = [
         {'path': 'note.md', 'content': '# Note\nLine 1.\n\n\n\n\nLine 2.'},
       ];
@@ -258,7 +258,7 @@ void main() {
   // ── Folder mapping ─────────────────────────────────────────────────────────
 
   group('folder mapping', () {
-    test('root-level note has null folderId', () async {
+    patrolTest('root-level note has null folderId', () async {
       final input = [
         {'path': 'note.md', 'content': '# Note'},
       ];
@@ -266,7 +266,7 @@ void main() {
       expect(notes.first.folderId, isNull);
     });
 
-    test('nested note maps to notion_ prefixed folder slug', () async {
+    patrolTest('nested note maps to notion_ prefixed folder slug', () async {
       final input = [
         {'path': 'Work/Projects/task.md', 'content': '# Task'},
       ];
@@ -274,7 +274,7 @@ void main() {
       expect(notes.first.folderId, 'notion_work_projects');
     });
 
-    test('UUID in folder names is stripped', () async {
+    patrolTest('UUID in folder names is stripped', () async {
       final input = [
         {'path': 'Projects $kNotionUuid/note.md', 'content': '# Note'},
       ];
@@ -283,7 +283,7 @@ void main() {
       expect(notes.first.folderId, 'notion_projects');
     });
 
-    test('spaces in folder names become underscores', () async {
+    patrolTest('spaces in folder names become underscores', () async {
       final input = [
         {'path': 'My Workspace/Daily Notes/entry.md', 'content': '# Entry'},
       ];
@@ -295,7 +295,7 @@ void main() {
   // ── Edge cases ─────────────────────────────────────────────────────────────
 
   group('edge cases', () {
-    test('skips files with empty content', () async {
+    patrolTest('skips files with empty content', () async {
       final input = [
         {'path': 'empty.md', 'content': '   '},
         {'path': 'real.md', 'content': '# Real\nBody.'},
@@ -304,12 +304,12 @@ void main() {
       expect(notes, hasLength(1));
     });
 
-    test('returns empty for non-List input', () async {
+    patrolTest('returns empty for non-List input', () async {
       final notes = await adapter.parse('# Not a list');
       expect(notes, isEmpty);
     });
 
-    test('title is never empty — falls back to "Imported note"', () async {
+    patrolTest('title is never empty — falls back to "Imported note"', () async {
       final input = [
         // Path with no meaningful name and no heading
         {'path': '$kNotionUuid.md', 'content': 'No heading.'},
@@ -318,7 +318,7 @@ void main() {
       expect(notes.first.title, isNotEmpty);
     });
 
-    test('CRLF line endings are normalised before h1 detection', () async {
+    patrolTest('CRLF line endings are normalised before h1 detection', () async {
       final input = [
         // rawText has CRLF; after normalisation the h1 should be "CRLF Title"
         {'path': 'note.md', 'content': '# CRLF Title\r\nBody text.'},
@@ -327,7 +327,7 @@ void main() {
       expect(notes.first.title, 'CRLF Title');
     });
 
-    test('parse returns empty list for empty list input', () async {
+    patrolTest('parse returns empty list for empty list input', () async {
       final notes = await adapter.parse([]);
       expect(notes, isEmpty);
     });

@@ -108,10 +108,22 @@ class _MainContentState extends State<_MainContent> with SingleTickerProviderSta
       onTap: _onTabTapped,
       type: BottomNavigationBarType.fixed,
       items: const [
-        BottomNavigationBarItem(icon: Icon(LucideIcons.notebookPen), label: 'Notes'),
-        BottomNavigationBarItem(icon: Icon(LucideIcons.messageCircle), label: 'Chat'),
-        BottomNavigationBarItem(icon: Icon(LucideIcons.chartColumn), label: 'Insights'),
-        BottomNavigationBarItem(icon: Icon(LucideIcons.settings), label: 'Settings'),
+        BottomNavigationBarItem(
+          icon: KeyedSubtree(key: const ValueKey('tabNotes'), child: const Icon(LucideIcons.notebookPen)),
+          label: 'Notes',
+        ),
+        BottomNavigationBarItem(
+          icon: KeyedSubtree(key: const ValueKey('tabChat'), child: const Icon(LucideIcons.messageCircle)),
+          label: 'Chat',
+        ),
+        BottomNavigationBarItem(
+          icon: KeyedSubtree(key: const ValueKey('tabInsights'), child: const Icon(LucideIcons.chartColumn)),
+          label: 'Insights',
+        ),
+        BottomNavigationBarItem(
+          icon: KeyedSubtree(key: const ValueKey('tabSettings'), child: const Icon(LucideIcons.settings)),
+          label: 'Settings',
+        ),
       ],
     ),
   );

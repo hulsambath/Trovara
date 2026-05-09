@@ -1,4 +1,4 @@
-import 'package:flutter_test/flutter_test.dart';
+import 'package:patrol/patrol.dart';
 import 'package:trovara/core/import/adapters/obsidian_adapter.dart';
 import 'package:trovara/core/import/import_adapter.dart';
 
@@ -12,11 +12,11 @@ void main() {
   // ── canHandle ──────────────────────────────────────────────────────────────
 
   group('canHandle', () {
-    test('accepts a raw String', () {
+    patrolTest('accepts a raw String', () {
       expect(adapter.canHandle('# Hello\nworld'), isTrue);
     });
 
-    test('accepts a non-empty List<Map> with content key', () {
+    patrolTest('accepts a non-empty List<Map> with content key', () {
       expect(
         adapter.canHandle([
           {'path': 'note.md', 'content': '# Hello'},
@@ -25,7 +25,7 @@ void main() {
       );
     });
 
-    test('accepts a List<Map> with only a path key', () {
+    patrolTest('accepts a List<Map> with only a path key', () {
       expect(
         adapter.canHandle([
           {'path': 'note.md'},
@@ -34,29 +34,29 @@ void main() {
       );
     });
 
-    test('rejects an empty List', () {
+    patrolTest('rejects an empty List', () {
       expect(adapter.canHandle([]), isFalse);
     });
 
-    test('rejects an integer', () {
+    patrolTest('rejects an integer', () {
       expect(adapter.canHandle(42), isFalse);
     });
 
-    test('rejects null', () {
+    patrolTest('rejects null', () {
       expect(adapter.canHandle(null), isFalse);
     });
   });
 
   // ── sourceName ─────────────────────────────────────────────────────────────
 
-  test('sourceName is obsidian', () {
+  patrolTest('sourceName is obsidian', () {
     expect(adapter.sourceName, 'obsidian');
   });
 
   // ── parse — single String input ────────────────────────────────────────────
 
   group('parse — String input', () {
-    test('simple note with h1 title', () async {
+    patrolTest('simple note with h1 title', () async {
       const md = '# My Note\nHello world.';
       final notes = await adapter.parse(md);
       expect(notes, hasLength(1));
@@ -64,7 +64,7 @@ void main() {
       expect(notes.first.markdownContent, 'Hello world.');
     });
 
-    test('empty string is skipped', () async {
+    patrolTest('empty string is skipped', () async {
       final notes = await adapter.parse('   ');
       expect(notes, isEmpty);
     });
@@ -73,7 +73,7 @@ void main() {
   // ── parse — List<Map> input ────────────────────────────────────────────────
 
   group('parse — List<Map> input', () {
-    test('parses multiple files', () async {
+    patrolTest('parses multiple files', () async {
       final input = [
         {'path': 'a.md', 'content': '# Alpha\nContent A.'},
         {'path': 'b.md', 'content': '# Beta\nContent B.'},
@@ -84,7 +84,7 @@ void main() {
       expect(notes[1].title, 'Beta');
     });
 
-    test('skips files with empty content', () async {
+    patrolTest('skips files with empty content', () async {
       final input = [
         {'path': 'empty.md', 'content': '   '},
         {'path': 'good.md', 'content': '# Real\nbody'},
@@ -94,7 +94,7 @@ void main() {
       expect(notes.first.title, 'Real');
     });
 
-    test('returns empty list for non-List input', () async {
+    patrolTest('returns empty list for non-List input', () async {
       final notes = await adapter.parse({'path': 'note.md', 'content': '# X'});
       // _normalise returns [] for non-String, non-List → no notes
       expect(notes, isEmpty);
@@ -104,7 +104,7 @@ void main() {
   // ── YAML frontmatter ───────────────────────────────────────────────────────
 
   group('YAML frontmatter', () {
-    test('extracts title from frontmatter', () async {
+    patrolTest('extracts title from frontmatter', () async {
       const md = '---\ntitle: My Front Title\n---\nBody text.';
       final notes = await adapter.parse(md);
       expect(notes.first.title, 'My Front Title');
@@ -112,45 +112,45 @@ void main() {
       expect(notes.first.markdownContent, 'Body text.');
     });
 
-    test('frontmatter title takes priority over h1', () async {
+    patrolTest('frontmatter title takes priority over h1', () async {
       const md = '---\ntitle: FM Title\n---\n# H1 Title\nContent.';
       final notes = await adapter.parse(md);
       // H1 is NOT promoted to title when frontmatter title exists
       expect(notes.first.title, 'FM Title');
     });
 
-    test('parses inline list tags', () async {
+    patrolTest('parses inline list tags', () async {
       const md = '---\ntags: [productivity, ai, flutter]\n---\nBody.';
       final notes = await adapter.parse(md);
       expect(notes.first.tags, containsAll(['productivity', 'ai', 'flutter']));
     });
 
-    test('parses multi-line list tags', () async {
+    patrolTest('parses multi-line list tags', () async {
       const md = '---\ntags:\n  - dart\n  - flutter\n---\nBody.';
       final notes = await adapter.parse(md);
       expect(notes.first.tags, containsAll(['dart', 'flutter']));
     });
 
-    test('parses created_at date', () async {
+    patrolTest('parses created_at date', () async {
       const md = '---\ncreated: 2024-01-15\n---\nBody.';
       final notes = await adapter.parse(md);
       expect(notes.first.createdAt, DateTime(2024, 1, 15));
     });
 
-    test('parses updated_at (modified key)', () async {
+    patrolTest('parses updated_at (modified key)', () async {
       const md = '---\nmodified: 2024-06-01\n---\nBody.';
       final notes = await adapter.parse(md);
       expect(notes.first.updatedAt, DateTime(2024, 6, 1));
     });
 
-    test('gracefully handles missing dates', () async {
+    patrolTest('gracefully handles missing dates', () async {
       const md = '---\ntitle: No Dates\n---\nBody.';
       final notes = await adapter.parse(md);
       expect(notes.first.createdAt, isNull);
       expect(notes.first.updatedAt, isNull);
     });
 
-    test('closing --- at EOF preserves frontmatter and title', () async {
+    patrolTest('closing --- at EOF preserves frontmatter and title', () async {
       const md = '---\ntitle: End Of File Fence\n---';
       final notes = await adapter.parse(md);
       expect(notes, hasLength(1));
@@ -159,14 +159,14 @@ void main() {
       expect(notes.first.rawMetadata['title'], 'End Of File Fence');
     });
 
-    test('stores raw frontmatter in rawMetadata', () async {
+    patrolTest('stores raw frontmatter in rawMetadata', () async {
       const md = '---\ntitle: Meta Test\nauthor: Sambath\n---\nBody.';
       final notes = await adapter.parse(md);
       expect(notes.first.rawMetadata['title'], 'Meta Test');
       expect(notes.first.rawMetadata['author'], 'Sambath');
     });
 
-    test('note without frontmatter parses correctly', () async {
+    patrolTest('note without frontmatter parses correctly', () async {
       const md = '# Plain Note\nJust text.';
       final notes = await adapter.parse(md);
       expect(notes.first.title, 'Plain Note');
@@ -177,7 +177,7 @@ void main() {
   // ── Title resolution fallback ──────────────────────────────────────────────
 
   group('title resolution', () {
-    test('falls back to filename when no frontmatter or h1', () async {
+    patrolTest('falls back to filename when no frontmatter or h1', () async {
       final input = [
         {'path': 'my-awesome-note.md', 'content': 'Just body text.'},
       ];
@@ -185,7 +185,7 @@ void main() {
       expect(notes.first.title, 'my-awesome-note');
     });
 
-    test('strips extension from filename title', () async {
+    patrolTest('strips extension from filename title', () async {
       final input = [
         {'path': 'folder/Meeting Notes.md', 'content': 'Agenda here.'},
       ];
@@ -193,7 +193,7 @@ void main() {
       expect(notes.first.title, 'Meeting Notes');
     });
 
-    test('h1 heading is promoted to title and removed from body', () async {
+    patrolTest('h1 heading is promoted to title and removed from body', () async {
       const md = '# Great Title\nBody content here.';
       final notes = await adapter.parse(md);
       expect(notes.first.title, 'Great Title');
@@ -205,26 +205,26 @@ void main() {
   // ── [[wikilinks]] extraction ───────────────────────────────────────────────
 
   group('wikilinks', () {
-    test('extracts simple [[wikilink]]', () async {
+    patrolTest('extracts simple [[wikilink]]', () async {
       const md = '# Note\nSee [[Related Note]] for more.';
       final notes = await adapter.parse(md);
       expect(notes.first.internalLinks, contains('Related Note'));
     });
 
-    test('extracts [[link|alias]] and stores target, not alias', () async {
+    patrolTest('extracts [[link|alias]] and stores target, not alias', () async {
       const md = '# Note\nCheck [[Target Page|nice alias]] here.';
       final notes = await adapter.parse(md);
       expect(notes.first.internalLinks, contains('Target Page'));
       expect(notes.first.internalLinks, isNot(contains('nice alias')));
     });
 
-    test('deduplicates repeated wikilinks', () async {
+    patrolTest('deduplicates repeated wikilinks', () async {
       const md = '# Note\n[[Page A]] and [[Page A]] again.';
       final notes = await adapter.parse(md);
       expect(notes.first.internalLinks.where((l) => l == 'Page A'), hasLength(1));
     });
 
-    test('returns empty internalLinks when no wikilinks', () async {
+    patrolTest('returns empty internalLinks when no wikilinks', () async {
       const md = '# Plain\nNo links here.';
       final notes = await adapter.parse(md);
       expect(notes.first.internalLinks, isEmpty);
@@ -234,25 +234,25 @@ void main() {
   // ── Inline #tags ───────────────────────────────────────────────────────────
 
   group('inline tags', () {
-    test('extracts inline #tags from body', () async {
+    patrolTest('extracts inline #tags from body', () async {
       const md = '# Note\nThis is about #flutter and #dart development.';
       final notes = await adapter.parse(md);
       expect(notes.first.tags, containsAll(['flutter', 'dart']));
     });
 
-    test('merges inline tags with frontmatter tags', () async {
+    patrolTest('merges inline tags with frontmatter tags', () async {
       const md = '---\ntags: [productivity]\n---\nWorking on #flutter today.';
       final notes = await adapter.parse(md);
       expect(notes.first.tags, containsAll(['productivity', 'flutter']));
     });
 
-    test('strips # prefix from inline tags', () async {
+    patrolTest('strips # prefix from inline tags', () async {
       const md = '# Note\nLearn #machine-learning today.';
       final notes = await adapter.parse(md);
       expect(notes.first.tags, contains('machine-learning'));
     });
 
-    test('does not extract # from markdown headings', () async {
+    patrolTest('does not extract # from markdown headings', () async {
       const md = '# My Note\n## Section\nBody.';
       final notes = await adapter.parse(md);
       // "My" and "Section" should NOT appear as tags
@@ -264,7 +264,7 @@ void main() {
   // ── Folder mapping ─────────────────────────────────────────────────────────
 
   group('folder mapping', () {
-    test('root-level file has null folderId', () async {
+    patrolTest('root-level file has null folderId', () async {
       final input = [
         {'path': 'note.md', 'content': '# Root note'},
       ];
@@ -272,7 +272,7 @@ void main() {
       expect(notes.first.folderId, isNull);
     });
 
-    test('nested file maps to obsidian_ prefixed folder slug', () async {
+    patrolTest('nested file maps to obsidian_ prefixed folder slug', () async {
       final input = [
         {'path': 'Work/Projects/meeting.md', 'content': '# Meeting'},
       ];
@@ -280,7 +280,7 @@ void main() {
       expect(notes.first.folderId, 'obsidian_work_projects');
     });
 
-    test('single-level sub-folder', () async {
+    patrolTest('single-level sub-folder', () async {
       final input = [
         {'path': 'Journal/today.md', 'content': '# Today'},
       ];
@@ -288,7 +288,7 @@ void main() {
       expect(notes.first.folderId, 'obsidian_journal');
     });
 
-    test('spaces in folder names become underscores', () async {
+    patrolTest('spaces in folder names become underscores', () async {
       final input = [
         {'path': 'My Vault/Daily Notes/2024-01-01.md', 'content': '# Day'},
       ];
@@ -300,13 +300,13 @@ void main() {
   // ── Edge cases ─────────────────────────────────────────────────────────────
 
   group('edge cases', () {
-    test('CRLF line endings are normalised', () async {
+    patrolTest('CRLF line endings are normalised', () async {
       const md = '---\r\ntitle: CRLF Test\r\n---\r\nBody.';
       final notes = await adapter.parse(md);
       expect(notes.first.title, 'CRLF Test');
     });
 
-    test('malformed frontmatter does not throw', () async {
+    patrolTest('malformed frontmatter does not throw', () async {
       // Missing closing ---
       const md = '---\ntitle: Broken\nBody without closing fence.';
       final notes = await adapter.parse(md);
@@ -314,7 +314,7 @@ void main() {
       expect(notes, hasLength(1));
     });
 
-    test('ImportedNote implements toString', () {
+    patrolTest('ImportedNote implements toString', () {
       const note = ImportedNote(
         title: 'Test',
         markdownContent: 'Body',

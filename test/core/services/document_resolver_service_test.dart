@@ -1,4 +1,4 @@
-import 'package:flutter_test/flutter_test.dart';
+import 'package:patrol/patrol.dart';
 import 'package:trovara/core/repository/interfaces/folder_repository.dart';
 import 'package:trovara/core/repository/interfaces/note_repository.dart';
 import 'package:trovara/core/services/ai/document_resolver_service.dart';
@@ -204,12 +204,12 @@ void main() {
     });
 
     group('resolve', () {
-      test('returns empty list for empty input', () {
+      patrolTest('returns empty list for empty input', () {
         final result = resolver.resolve([]);
         expect(result, isEmpty);
       });
 
-      test('resolves a single chunk to a single document', () {
+      patrolTest('resolves a single chunk to a single document', () {
         noteRepo.addNote(_note(id: 1, title: 'My Note'));
 
         final result = resolver.resolve([_scored(noteId: 1, score: 0.85)]);
@@ -221,7 +221,7 @@ void main() {
         expect(result.first.matchedChunkCount, 1);
       });
 
-      test('groups multiple chunks from the same note', () {
+      patrolTest('groups multiple chunks from the same note', () {
         noteRepo.addNote(_note(id: 1));
 
         final result = resolver.resolve([
@@ -237,7 +237,7 @@ void main() {
         expect(result.first.relevantChunks[1].embedding.chunkIndex, 1);
       });
 
-      test('ranks documents by max score descending', () {
+      patrolTest('ranks documents by max score descending', () {
         noteRepo.addNote(_note(id: 1, title: 'Low'));
         noteRepo.addNote(_note(id: 2, title: 'High'));
         noteRepo.addNote(_note(id: 3, title: 'Mid'));
@@ -254,7 +254,7 @@ void main() {
         expect(result[2].note.id, 1);
       });
 
-      test('filters out deleted notes', () {
+      patrolTest('filters out deleted notes', () {
         noteRepo.addNote(_note(id: 1, isDeleted: true));
         noteRepo.addNote(_note(id: 2));
 
@@ -264,7 +264,7 @@ void main() {
         expect(result.first.note.id, 2);
       });
 
-      test('filters out missing notes', () {
+      patrolTest('filters out missing notes', () {
         noteRepo.addNote(_note(id: 1));
 
         final result = resolver.resolve([_scored(noteId: 1, score: 0.8), _scored(noteId: 99, score: 0.95)]);
@@ -273,7 +273,7 @@ void main() {
         expect(result.first.note.id, 1);
       });
 
-      test('respects topN limit', () {
+      patrolTest('respects topN limit', () {
         for (int i = 1; i <= 10; i++) {
           noteRepo.addNote(_note(id: i, title: 'Note $i'));
         }
@@ -288,7 +288,7 @@ void main() {
         expect(result[2].note.id, 3);
       });
 
-      test('trims by maxTextLength', () {
+      patrolTest('trims by maxTextLength', () {
         noteRepo.addNote(_note(id: 1));
         noteRepo.addNote(_note(id: 2));
 
@@ -302,7 +302,7 @@ void main() {
         expect(result.first.note.id, 1);
       });
 
-      test('always includes at least one document even if it exceeds maxTextLength', () {
+      patrolTest('always includes at least one document even if it exceeds maxTextLength', () {
         noteRepo.addNote(_note(id: 1));
 
         final longText = 'x' * 10000;
@@ -311,7 +311,7 @@ void main() {
         expect(result.length, 1);
       });
 
-      test('uses max score when note has chunks with varying scores', () {
+      patrolTest('uses max score when note has chunks with varying scores', () {
         noteRepo.addNote(_note(id: 1));
 
         final result = resolver.resolve([
@@ -325,7 +325,7 @@ void main() {
     });
 
     group('RetrievedDocument', () {
-      test('combinedText joins chunks with double newline', () {
+      patrolTest('combinedText joins chunks with double newline', () {
         noteRepo.addNote(_note(id: 1));
 
         final result = resolver.resolve([
@@ -336,7 +336,7 @@ void main() {
         expect(result.first.combinedText, 'Hello\n\nWorld');
       });
 
-      test('avgScore is computed correctly', () {
+      patrolTest('avgScore is computed correctly', () {
         noteRepo.addNote(_note(id: 1));
 
         final result = resolver.resolve([
@@ -349,7 +349,7 @@ void main() {
     });
 
     group('resolveToTitles', () {
-      test('returns note titles in ranked order', () {
+      patrolTest('returns note titles in ranked order', () {
         noteRepo.addNote(_note(id: 1, title: 'Alpha'));
         noteRepo.addNote(_note(id: 2, title: 'Beta'));
 
@@ -360,7 +360,7 @@ void main() {
     });
 
     group('resolveToContextMaps', () {
-      test('returns context maps with metadata', () {
+      patrolTest('returns context maps with metadata', () {
         noteRepo.addNote(
           _note(id: 1, title: 'Morning Walk', folderId: 'journal', moodTags: ['happy'], activityTags: ['walking']),
         );
@@ -376,7 +376,7 @@ void main() {
         expect(maps.first['text'], 'Went for a walk');
       });
 
-      test('defaults folder name to Default when folder not found', () {
+      patrolTest('defaults folder name to Default when folder not found', () {
         noteRepo.addNote(_note(id: 1, folderId: 'missing'));
 
         final maps = resolver.resolveToContextMaps([_scored(noteId: 1, score: 0.9)]);
@@ -386,7 +386,7 @@ void main() {
     });
 
     group('resolveTopChunksToContext', () {
-      test('fills topKChunks after filtering missing/deleted notes', () {
+      patrolTest('fills topKChunks after filtering missing/deleted notes', () {
         noteRepo.addNote(_note(id: 1, title: 'Deleted', isDeleted: true));
         noteRepo.addNote(_note(id: 2, title: 'Live A'));
         noteRepo.addNote(_note(id: 3, title: 'Live B'));

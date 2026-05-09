@@ -1,10 +1,10 @@
-import 'package:flutter_test/flutter_test.dart';
+import 'package:patrol/patrol.dart';
 import 'package:trovara/core/import/converters/markdown_to_quill.dart';
 import 'package:trovara/core/import/converters/quill_to_markdown.dart';
 
 void main() {
   group('Markdown ↔ Quill round-trip', () {
-    test('preserves links, headings, and lists in a basic round-trip', () {
+    patrolTest('preserves links, headings, and lists in a basic round-trip', () {
       const md = '''
 # Title
 

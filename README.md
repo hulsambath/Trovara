@@ -31,6 +31,11 @@ Trovara is a comprehensive note-taking application built with Flutter that provi
 - `./scripts/build_apk.sh --trovara` - Build Android APK
 - `./scripts/build_runner.sh` - Generate code
 
+### Patrol E2E testing
+- Install the Patrol CLI separately: `dart pub global activate patrol_cli`
+- Run Patrol tests with `patrol test`
+- The first smoke test covers app launch and switching between the Notes and Chat tabs
+
 ### Credentials Management
 The app uses a sophisticated credentials management system:
 - **Location**: `../credentials/` (encrypted credential storage)

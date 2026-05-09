@@ -138,6 +138,7 @@ class _ChatContentState extends State<_ChatContent> {
           const SizedBox(height: 20),
           Text(
             'Chat is not available',
+            key: const ValueKey('chat-unavailable-title'),
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600, color: colors.onSurface),
@@ -145,6 +146,7 @@ class _ChatContentState extends State<_ChatContent> {
           const SizedBox(height: 8),
           Text(
             'Please configure your API key to start asking questions about your notes.',
+            key: const ValueKey('chat-unavailable-body'),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colors.onSurfaceVariant),
             textAlign: TextAlign.center,
           ),
