@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:trovara/widgets/trovara_card.dart';
 
 /// A utility class for showing loading overlays with consistent styling
 class NmLoadingOverlay {
@@ -25,13 +26,11 @@ class NmLoadingOverlay {
       builder: (context) => Material(
         color: Colors.black.withValues(alpha: 0.3),
         child: Center(
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [const CircularProgressIndicator(), const SizedBox(height: 16), Text(message)],
-              ),
+          child: TrovaraCard(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [const CircularProgressIndicator(), const SizedBox(height: 16), Text(message)],
             ),
           ),
         ),
