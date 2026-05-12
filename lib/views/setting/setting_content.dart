@@ -15,7 +15,7 @@ class _SettingContent extends StatelessWidget {
         if (viewModel.isSignedIn) ...[
           _buildSectionLabel(context, 'Account'),
           const SizedBox(height: 8),
-          Card(
+          TrovaraCard(
             child: Padding(
               padding: const EdgeInsets.all(12),
               child: Row(
@@ -62,7 +62,7 @@ class _SettingContent extends StatelessWidget {
         if (!viewModel.isSignedIn) ...[
           _buildSectionLabel(context, 'Account'),
           const SizedBox(height: 8),
-          Card(
+          TrovaraCard(
             child: ListTile(
               leading: const Icon(LucideIcons.logIn),
               title: const Text('Sign in to Google'),
@@ -76,7 +76,7 @@ class _SettingContent extends StatelessWidget {
         _buildSectionLabel(context, 'Appearance'),
         const SizedBox(height: 8),
         Consumer<ThemeProvider>(
-          builder: (context, themeProvider, _) => Card(
+          builder: (context, themeProvider, _) => TrovaraCard(
             child: ListTile(
               leading: Icon(
                 themeProvider.isDarkMode() ? LucideIcons.moon : LucideIcons.sun,
@@ -100,7 +100,7 @@ class _SettingContent extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 8),
-                Card(
+                TrovaraCard(
                   child: ListTile(
                     leading: Icon(LucideIcons.palette, color: Theme.of(context).colorScheme.primary),
                     title: const Text('App Icon'),
@@ -119,7 +119,7 @@ class _SettingContent extends StatelessWidget {
         if (viewModel.isSignedIn) ...[
           _buildSectionLabel(context, 'Cloud Sync'),
           const SizedBox(height: 8),
-          Card(
+          TrovaraCard(
             child: ListTile(
               leading: SvgPicture.asset('assets/icons/google drive.svg', width: 24, height: 24),
               title: const Text('Sync with Google Drive'),
@@ -134,7 +134,7 @@ class _SettingContent extends StatelessWidget {
         // ── Notes ──────────────────────────────────────────────────────────
         _buildSectionLabel(context, 'Notes'),
         const SizedBox(height: 8),
-        Card(
+        TrovaraCard(
           child: ListTile(
             leading: const Icon(LucideIcons.trash2),
             title: const Text('Recently Deleted'),
@@ -147,7 +147,7 @@ class _SettingContent extends StatelessWidget {
         // ── Export ─────────────────────────────────────────────────────────
         _buildSectionLabel(context, 'Export'),
         const SizedBox(height: 8),
-        Card(
+        TrovaraCard(
           child: Column(
             children: [
               ListTile(
@@ -175,7 +175,7 @@ class _SettingContent extends StatelessWidget {
         const SizedBox(height: 8),
         _buildImportInfoBanner(context),
         const SizedBox(height: 8),
-        Card(
+        TrovaraCard(
           child: Column(
             children: [
               // Trovara JSON
@@ -220,7 +220,7 @@ class _SettingContent extends StatelessWidget {
         // ── Search Index ───────────────────────────────────────────────────
         _buildSectionLabel(context, 'Search Index'),
         const SizedBox(height: 8),
-        Card(
+        TrovaraCard(
           child: ListTile(
             leading: Icon(LucideIcons.search, color: Theme.of(context).colorScheme.primary),
             title: const Text('Re-index all notes'),
