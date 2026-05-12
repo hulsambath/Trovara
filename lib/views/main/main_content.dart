@@ -107,11 +107,25 @@ class _MainContentState extends State<_MainContent> with SingleTickerProviderSta
       currentIndex: _currentIndex,
       onTap: _onTabTapped,
       type: BottomNavigationBarType.fixed,
+      selectedItemColor: Theme.of(context).colorScheme.primary,
+      unselectedItemColor: Theme.of(context).colorScheme.onSurfaceVariant,
       items: const [
-        BottomNavigationBarItem(icon: Icon(LucideIcons.notebookPen), label: 'Notes'),
-        BottomNavigationBarItem(icon: Icon(LucideIcons.messageCircle), label: 'Chat'),
-        BottomNavigationBarItem(icon: Icon(LucideIcons.chartColumn), label: 'Insights'),
-        BottomNavigationBarItem(icon: Icon(LucideIcons.settings), label: 'Settings'),
+        BottomNavigationBarItem(
+          icon: KeyedSubtree(key: ValueKey('tabNotes'), child: Icon(LucideIcons.notebookPen)),
+          label: 'Notes',
+        ),
+        BottomNavigationBarItem(
+          icon: KeyedSubtree(key: ValueKey('tabChat'), child: Icon(LucideIcons.messageCircle)),
+          label: 'Chat',
+        ),
+        BottomNavigationBarItem(
+          icon: KeyedSubtree(key: ValueKey('tabInsights'), child: Icon(LucideIcons.chartColumn)),
+          label: 'Insights',
+        ),
+        BottomNavigationBarItem(
+          icon: KeyedSubtree(key: ValueKey('tabSettings'), child: Icon(LucideIcons.settings)),
+          label: 'Settings',
+        ),
       ],
     ),
   );

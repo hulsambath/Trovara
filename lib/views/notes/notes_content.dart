@@ -36,21 +36,25 @@ class _NotesContent extends StatelessWidget {
     actions: [
       // ── Search ─────────────────────────────────────────────────────────
       IconButton(
+        key: const ValueKey('notes-search-button'),
         icon: const Icon(LucideIcons.search),
         onPressed: () => context.push('/search'),
         tooltip: 'Search & filter notes',
       ),
       IconButton(
+        key: const ValueKey('notes-create-button'),
         icon: const Icon(LucideIcons.plus),
         onPressed: () => viewModel.createNewNote(context),
         tooltip: 'Create new note',
       ),
       IconButton(
+        key: const ValueKey('notes-trash-button'),
         icon: const Icon(LucideIcons.trash2),
         onPressed: () => _openRecentlyDeleted(context),
         tooltip: 'Recently Deleted',
       ),
       IconButton(
+        key: const ValueKey('notes-sync-button'),
         icon: const Icon(LucideIcons.refreshCw),
         onPressed: () => viewModel.syncWithGoogleDrive(context),
         tooltip: 'Sync with Google Drive',
@@ -93,17 +97,20 @@ class _NotesContent extends StatelessWidget {
       children: [
         Icon(
           LucideIcons.filePlus,
+          key: const ValueKey('notes-empty-icon'),
           size: 56,
           color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
         ),
         const SizedBox(height: 16),
         Text(
           'No notes yet',
+          key: const ValueKey('notes-empty-title'),
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
         ),
         const SizedBox(height: 8),
         Text(
           'Tap + to create your first note',
+          key: const ValueKey('notes-empty-hint'),
           style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
         ),
       ],

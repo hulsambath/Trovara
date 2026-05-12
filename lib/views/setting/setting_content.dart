@@ -229,7 +229,23 @@ class _SettingContent extends StatelessWidget {
             onTap: () => viewModel.reembedAllNotes(context),
           ),
         ),
-
+        const SizedBox(height: 32),
+        FutureBuilder<PackageInfo>(
+          future: PackageInfo.fromPlatform(),
+          builder: (context, snapshot) {
+            if (snapshot.data == null) return const SizedBox.shrink();
+            final info = snapshot.data!;
+            final ver = '${info.version}+${info.buildNumber}';
+            return Center(
+              child: Text(
+                'Trovara okes $ver',
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5)),
+              ),
+            );
+          },
+        ),
         const SizedBox(height: kToolbarHeight * 2),
       ],
     ),
