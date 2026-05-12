@@ -647,15 +647,10 @@ class _SearchResultCard extends StatelessWidget {
         ? vm.buildHighlightSpans(previewText, subtitleStyle, highlightStyle)
         : <TextSpan>[];
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: () => context.push('/note?title=${Uri.encodeComponent(note.title)}'),
-        child: Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(color: colors.surfaceContainerLow, borderRadius: BorderRadius.circular(12)),
-          child: Column(
+    return TrovaraCard(
+      onTap: () => context.push('/note?title=${Uri.encodeComponent(note.title)}'),
+      padding: const EdgeInsets.all(14),
+      child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Title + favourite
@@ -699,8 +694,6 @@ class _SearchResultCard extends StatelessWidget {
               ),
             ],
           ),
-        ),
-      ),
     );
   }
 
