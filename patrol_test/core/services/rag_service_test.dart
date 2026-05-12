@@ -1,4 +1,4 @@
-import 'package:patrol/patrol.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:trovara/core/repository/interfaces/embedding_repository.dart';
 import 'package:trovara/core/repository/interfaces/folder_repository.dart';
 import 'package:trovara/core/repository/interfaces/note_repository.dart';
@@ -15,6 +15,7 @@ import 'package:trovara/core/services/notes/note_service.dart';
 import 'package:trovara/models/folder.dart';
 import 'package:trovara/models/note.dart';
 import 'package:trovara/models/note_embedding.dart';
+import '../test_support.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 //  Stubs — lightweight implementations for testing without ObjectBox or API
@@ -390,7 +391,7 @@ void main() {
   // ─────────────────────────────────────────────────────────────────────────
 
   group('RagResult', () {
-    patrolTest('stores answer and source titles', () {
+    patrolTest('stores answer and source titles', ($) async {
       final result = RagResult(
         answer: 'The answer',
         sourceNoteTitles: ['Note A', 'Note B'],
@@ -403,7 +404,7 @@ void main() {
       expect(result.matchedChunks, equals(3));
     });
 
-    patrolTest('toString includes summary info', () {
+    patrolTest('toString includes summary info', ($) async {
       final result = RagResult(answer: 'a' * 100, sourceNoteTitles: ['A', 'B'], prompt: '', matchedChunks: 5);
 
       final str = result.toString();
@@ -418,7 +419,7 @@ void main() {
   // ─────────────────────────────────────────────────────────────────────────
 
   group('RagService.query', () {
-    patrolTest('returns error when embedding fails', () async {
+    patrolTest('returns error when embedding fails', ($) async {
       final note = _makeNote(id: 1, title: 'Seed');
       noteRepo.seed([note]);
       embeddingRepo.seed([
@@ -440,7 +441,7 @@ void main() {
       expect(llm.generateCalled, isFalse);
     });
 
-    patrolTest('returns message when no chunks match', () async {
+    patrolTest('returns message when no chunks match', ($) async {
       // No embeddings in repository → search returns empty
       final (:service, :llm, rewrite: _, expand: _) = _buildRagService(
         noteRepo: noteRepo,
@@ -456,7 +457,7 @@ void main() {
       expect(llm.generateCalled, isFalse);
     });
 
-    patrolTest('returns message when notes are all deleted', () async {
+    patrolTest('returns message when notes are all deleted', ($) async {
       final deletedNote = _makeNote(id: 1, title: 'Deleted', isDeleted: true);
       noteRepo.seed([deletedNote]);
       embeddingRepo.seed([
@@ -476,7 +477,7 @@ void main() {
       expect(llm.generateCalled, isFalse);
     });
 
-    patrolTest('full pipeline produces answer with sources', () async {
+    patrolTest('full pipeline produces answer with sources', ($) async {
       final note = _makeNote(id: 1, title: 'Morning Meditation');
       noteRepo.seed([note]);
       embeddingRepo.seed([
@@ -502,7 +503,7 @@ void main() {
       expect(llm.generateCalled, isTrue);
     });
 
-    patrolTest('includes multiple source notes ranked by score', () async {
+    patrolTest('includes multiple source notes ranked by score', ($) async {
       final noteA = _makeNote(id: 1, title: 'Low Relevance');
       final noteB = _makeNote(id: 2, title: 'High Relevance');
       noteRepo.seed([noteA, noteB]);
@@ -530,7 +531,7 @@ void main() {
       expect(result.sourceNoteTitles.first, equals('High Relevance'));
     });
 
-    patrolTest('handles LLM generation error gracefully', () async {
+    patrolTest('handles LLM generation error gracefully', ($) async {
       final note = _makeNote(id: 1, title: 'Note');
       noteRepo.seed([note]);
       embeddingRepo.seed([
@@ -553,7 +554,7 @@ void main() {
       expect(result.prompt, isNotEmpty);
     });
 
-    patrolTest('ignores maxNotes parameter in single-turn mode', () async {
+    patrolTest('ignores maxNotes parameter in single-turn mode', ($) async {
       final notes = List.generate(10, (i) => _makeNote(id: i + 1, title: 'Note ${i + 1}'));
       noteRepo.seed(notes);
       for (final n in notes) {
@@ -575,7 +576,7 @@ void main() {
       expect(a.sourceNoteTitles, equals(b.sourceNoteTitles));
     });
 
-    patrolTest('prompt contains user question', () async {
+    patrolTest('prompt contains user question', ($) async {
       final note = _makeNote(id: 1, title: 'Note');
       noteRepo.seed([note]);
       embeddingRepo.seed([
@@ -595,7 +596,7 @@ void main() {
       expect(llm.lastPrompt, contains('What about meditation?'));
     });
 
-    patrolTest('invokes query rewrite and multi-query expansion', () async {
+    patrolTest('invokes query rewrite and multi-query expansion', ($) async {
       final note = _makeNote(id: 1, title: 'Note');
       noteRepo.seed([note]);
       embeddingRepo.seed([
@@ -615,7 +616,7 @@ void main() {
       expect(expand.calls, equals(1));
     });
 
-    patrolTest('passes prior transcript to rewrite and LLM when priorTurns provided', () async {
+    patrolTest('passes prior transcript to rewrite and LLM when priorTurns provided', ($) async {
       final note = _makeNote(id: 1, title: 'Note');
       noteRepo.seed([note]);
       embeddingRepo.seed([
@@ -644,7 +645,7 @@ void main() {
       expect(llm.lastHistory![1].role, 'assistant');
     });
 
-    patrolTest('rrfFuse selects expected top-3 from 3×5 pools', () {
+    patrolTest('rrfFuse selects expected top-3 from 3×5 pools', ($) async {
       // Three ranked lists (5 each). Key format is noteId:chunkIndex.
       final q1 = ['1:0', '2:0', '3:0', '4:0', '5:0'];
       final q2 = ['2:0', '6:0', '7:0', '1:0', '8:0'];
@@ -663,7 +664,7 @@ void main() {
       expect(top3, equals(['2:0', '1:0', '9:0']));
     });
 
-    patrolTest('rrfFuse tie-breaks by noteId asc then chunkIndex asc', () {
+    patrolTest('rrfFuse tie-breaks by noteId asc then chunkIndex asc', ($) async {
       final q1 = ['2:1', '1:2'];
       final q2 = ['1:2', '2:1'];
       final sim = {'1:2': 0.5, '2:1': 0.5};
@@ -681,7 +682,7 @@ void main() {
   // ─────────────────────────────────────────────────────────────────────────
 
   group('RagService.queryStream', () {
-    patrolTest('emits error message when embedding fails', () async {
+    patrolTest('emits error message when embedding fails', ($) async {
       final note = _makeNote(id: 1, title: 'Seed');
       noteRepo.seed([note]);
       embeddingRepo.seed([
@@ -700,7 +701,7 @@ void main() {
       expect(chunks.first, contains('unable to process'));
     });
 
-    patrolTest('emits error message when no results found (no indexed notes)', () async {
+    patrolTest('emits error message when no results found (no indexed notes)', ($) async {
       final (:service, llm: _, rewrite: _, expand: _) = _buildRagService(
         noteRepo: noteRepo,
         folderRepo: folderRepo,
@@ -713,7 +714,7 @@ void main() {
       expect(chunks.first, contains("haven't been indexed"));
     });
 
-    patrolTest('streams answer tokens', () async {
+    patrolTest('streams answer tokens', ($) async {
       final note = _makeNote(id: 1, title: 'Note');
       noteRepo.seed([note]);
       embeddingRepo.seed([
@@ -738,7 +739,7 @@ void main() {
       expect(combined, contains('word3'));
     });
 
-    patrolTest('emits error message when LLM stream fails', () async {
+    patrolTest('emits error message when LLM stream fails', ($) async {
       final note = _makeNote(id: 1, title: 'Note');
       noteRepo.seed([note]);
       embeddingRepo.seed([
@@ -764,7 +765,7 @@ void main() {
   // ─────────────────────────────────────────────────────────────────────────
 
   group('RagService.getSourceTitles', () {
-    patrolTest('returns empty when embedding fails', () async {
+    patrolTest('returns empty when embedding fails', ($) async {
       final (:service, llm: _, rewrite: _, expand: _) = _buildRagService(
         noteRepo: noteRepo,
         folderRepo: folderRepo,
@@ -776,7 +777,7 @@ void main() {
       expect(titles, isEmpty);
     });
 
-    patrolTest('returns titles for matching notes', () async {
+    patrolTest('returns titles for matching notes', ($) async {
       final note = _makeNote(id: 1, title: 'My Note');
       noteRepo.seed([note]);
       embeddingRepo.seed([
@@ -800,7 +801,7 @@ void main() {
   // ─────────────────────────────────────────────────────────────────────────
 
   group('isAvailable', () {
-    patrolTest('returns true when both services are available', () {
+    patrolTest('returns true when both services are available', ($) async {
       final (:service, llm: _, rewrite: _, expand: _) = _buildRagService(
         noteRepo: noteRepo,
         folderRepo: folderRepo,

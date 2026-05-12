@@ -1,8 +1,9 @@
-import 'package:patrol/patrol.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:trovara/core/repository/interfaces/embedding_repository.dart';
 import 'package:trovara/core/services/ai/embedding_service.dart';
 import 'package:trovara/models/note.dart';
 import 'package:trovara/models/note_embedding.dart';
+import '../test_support.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 //  Stubs
@@ -74,12 +75,12 @@ void main() {
   // ─────────────────────────────────────────────────────────────────────────
 
   group('buildEmbeddingInputs', () {
-    patrolTest('returns empty list for empty note', () {
+    patrolTest('returns empty list for empty note', ($) async {
       final note = _makeNote(id: 1, title: '', contentJson: '[]');
       expect(service.buildEmbeddingInputs(note), isEmpty);
     });
 
-    patrolTest('uses title when content is empty', () {
+    patrolTest('uses title when content is empty', ($) async {
       final note = _makeNote(id: 1, title: 'My Title', contentJson: '[]');
       final inputs = service.buildEmbeddingInputs(note);
 
@@ -87,7 +88,7 @@ void main() {
       expect(inputs.first, 'My Title');
     });
 
-    patrolTest('prepends title when content is non-empty', () {
+    patrolTest('prepends title when content is non-empty', ($) async {
       final note = _makeNote(id: 1, title: 'My Title', contentJson: _quillJson('Body text here'));
       final inputs = service.buildEmbeddingInputs(note);
 
@@ -96,7 +97,7 @@ void main() {
       expect(inputs.first, contains('Body text here'));
     });
 
-    patrolTest('is deterministic — same note → same inputs', () {
+    patrolTest('is deterministic — same note → same inputs', ($) async {
       final note = _makeNote(id: 1, title: 'Stable', contentJson: _quillJson('Content'));
       final a = service.buildEmbeddingInputs(note);
       final b = service.buildEmbeddingInputs(note);
@@ -110,7 +111,7 @@ void main() {
   // ─────────────────────────────────────────────────────────────────────────
 
   group('computeContentSignature', () {
-    patrolTest('is deterministic — same inputs → same hash', () {
+    patrolTest('is deterministic — same inputs → same hash', ($) async {
       final inputs = ['Title: A\n\nBody'];
       final a = EmbeddingService.computeContentSignature(
         inputs,
@@ -127,7 +128,7 @@ void main() {
       expect(a, equals(b));
     });
 
-    patrolTest('different content → different hash', () {
+    patrolTest('different content → different hash', ($) async {
       final a = EmbeddingService.computeContentSignature(
         ['Title: A\n\nBody'],
         modelName: _testModel,
@@ -143,7 +144,7 @@ void main() {
       expect(a, isNot(equals(b)));
     });
 
-    patrolTest('different model → different hash', () {
+    patrolTest('different model → different hash', ($) async {
       final inputs = ['same content'];
       final a = EmbeddingService.computeContentSignature(
         inputs,
@@ -160,7 +161,7 @@ void main() {
       expect(a, isNot(equals(b)));
     });
 
-    patrolTest('normalizes \\r\\n to \\n', () {
+    patrolTest('normalizes \\r\\n to \\n', ($) async {
       final a = EmbeddingService.computeContentSignature(
         ['line1\r\nline2'],
         modelName: _testModel,
@@ -182,12 +183,12 @@ void main() {
   // ─────────────────────────────────────────────────────────────────────────
 
   group('isNoteStale', () {
-    patrolTest('returns true when no embeddings exist', () async {
+    patrolTest('returns true when no embeddings exist', ($) async {
       final note = _makeNote(id: 1, title: 'New');
       expect(await service.isNoteStale(note), isTrue);
     });
 
-    patrolTest('returns true when model version differs', () async {
+    patrolTest('returns true when model version differs', ($) async {
       final note = _makeNote(id: 1, title: 'Note', contentJson: _quillJson('Body'));
 
       // Store embedding with a different model version
@@ -213,7 +214,7 @@ void main() {
       expect(await service.isNoteStale(note), isTrue);
     });
 
-    patrolTest('returns false when signature matches (same content)', () async {
+    patrolTest('returns false when signature matches (same content)', ($) async {
       final note = _makeNote(id: 1, title: 'Stable', contentJson: _quillJson('Same content'));
 
       final inputs = service.buildEmbeddingInputs(note);
@@ -238,7 +239,7 @@ void main() {
       expect(await service.isNoteStale(note), isFalse);
     });
 
-    patrolTest('returns false when only updatedAt differs (signature match)', () async {
+    patrolTest('returns false when only updatedAt differs (signature match)', ($) async {
       final note = _makeNote(
         id: 1,
         title: 'Note',
@@ -269,7 +270,7 @@ void main() {
       expect(await service.isNoteStale(note), isFalse);
     });
 
-    patrolTest('returns true when content changes (signature mismatch)', () async {
+    patrolTest('returns true when content changes (signature mismatch)', ($) async {
       final note = _makeNote(id: 1, title: 'Note', contentJson: _quillJson('New content'));
 
       // Store embedding with a signature from OLD content
@@ -295,7 +296,7 @@ void main() {
       expect(await service.isNoteStale(note), isTrue);
     });
 
-    patrolTest('returns true when title changes (signature mismatch)', () async {
+    patrolTest('returns true when title changes (signature mismatch)', ($) async {
       final note = _makeNote(id: 1, title: 'New Title', contentJson: _quillJson('Body'));
 
       // Store embedding with signature from OLD title
@@ -323,7 +324,7 @@ void main() {
 
     // ─── Lazy fallback (empty contentSignature) ──────────────────────────
 
-    patrolTest('lazy fallback: returns true when signature empty and updatedAt is newer', () async {
+    patrolTest('lazy fallback: returns true when signature empty and updatedAt is newer', ($) async {
       final note = _makeNote(id: 1, title: 'Note', updatedAt: DateTime(2026, 3, 20));
 
       repo.seed([
@@ -341,7 +342,7 @@ void main() {
       expect(await service.isNoteStale(note), isTrue);
     });
 
-    patrolTest('lazy fallback: returns false when signature empty and updatedAt matches', () async {
+    patrolTest('lazy fallback: returns false when signature empty and updatedAt matches', ($) async {
       final timestamp = DateTime(2026, 3, 1);
       final note = _makeNote(id: 1, title: 'Note', updatedAt: timestamp);
 

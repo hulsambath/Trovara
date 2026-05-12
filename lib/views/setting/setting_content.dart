@@ -238,7 +238,7 @@ class _SettingContent extends StatelessWidget {
             final ver = '${info.version}+${info.buildNumber}';
             return Center(
               child: Text(
-                'Trovara $ver',
+                'Trovara okes $ver',
                 style: Theme.of(
                   context,
                 ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5)),

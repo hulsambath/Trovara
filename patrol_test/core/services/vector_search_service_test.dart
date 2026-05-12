@@ -1,7 +1,8 @@
-import 'package:patrol/patrol.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:trovara/core/repository/interfaces/embedding_repository.dart';
 import 'package:trovara/core/services/ai/vector_search_service.dart';
 import 'package:trovara/models/note_embedding.dart';
+import '../test_support.dart';
 
 /// A mock implementation of [IEmbeddingRepository] for testing.
 class MockEmbeddingRepository implements IEmbeddingRepository {
@@ -72,7 +73,7 @@ void main() {
     });
 
     group('cosineSimilarity', () {
-      patrolTest('identical vectors have similarity 1.0', () {
+      patrolTest('identical vectors have similarity 1.0', ($) async {
         final vector = [1.0, 0.0, 0.0];
         mockRepository.addTestEmbedding(noteId: 1, vector: vector);
 
@@ -82,7 +83,7 @@ void main() {
         expect(results.first.score, closeTo(1.0, 0.0001));
       });
 
-      patrolTest('orthogonal vectors have similarity 0.0', () {
+      patrolTest('orthogonal vectors have similarity 0.0', ($) async {
         // [1, 0] and [0, 1] are orthogonal
         mockRepository.addTestEmbedding(noteId: 1, vector: [1.0, 0.0]);
 
@@ -92,7 +93,7 @@ void main() {
         expect(results.first.score, closeTo(0.0, 0.0001));
       });
 
-      patrolTest('opposite vectors have similarity -1.0', () {
+      patrolTest('opposite vectors have similarity -1.0', ($) async {
         mockRepository.addTestEmbedding(noteId: 1, vector: [1.0, 0.0]);
 
         // Opposite direction - use very low minScore to capture negative similarity
@@ -102,7 +103,7 @@ void main() {
         expect(results.first.score, closeTo(-1.0, 0.0001));
       });
 
-      patrolTest('similar vectors have high similarity', () {
+      patrolTest('similar vectors have high similarity', ($) async {
         mockRepository.addTestEmbedding(noteId: 1, vector: [1.0, 0.1, 0.0]);
 
         final results = service.search([1.0, 0.0, 0.0], minScore: 0.0);
@@ -113,12 +114,12 @@ void main() {
     });
 
     group('search', () {
-      patrolTest('returns empty list when no embeddings exist', () {
+      patrolTest('returns empty list when no embeddings exist', ($) async {
         final results = service.search([1.0, 0.0, 0.0]);
         expect(results, isEmpty);
       });
 
-      patrolTest('returns results sorted by descending score', () {
+      patrolTest('returns results sorted by descending score', ($) async {
         // Three vectors with decreasing similarity to [1, 0, 0]
         mockRepository.addTestEmbedding(noteId: 1, vector: [1.0, 0.0, 0.0]); // exact match
         mockRepository.addTestEmbedding(noteId: 2, vector: [0.9, 0.1, 0.0]); // close
@@ -134,7 +135,7 @@ void main() {
         expect(results[1].score, greaterThan(results[2].score));
       });
 
-      patrolTest('respects topK limit', () {
+      patrolTest('respects topK limit', ($) async {
         for (int i = 1; i <= 10; i++) {
           mockRepository.addTestEmbedding(noteId: i, vector: [1.0, 0.0, 0.0]);
         }
@@ -144,7 +145,7 @@ void main() {
         expect(results.length, 3);
       });
 
-      patrolTest('filters by minScore', () {
+      patrolTest('filters by minScore', ($) async {
         mockRepository.addTestEmbedding(noteId: 1, vector: [1.0, 0.0, 0.0]); // score ~1.0
         mockRepository.addTestEmbedding(noteId: 2, vector: [0.7, 0.7, 0.0]); // score ~0.7
         mockRepository.addTestEmbedding(noteId: 3, vector: [0.0, 1.0, 0.0]); // score ~0.0
@@ -155,7 +156,7 @@ void main() {
         expect(results.every((r) => r.score >= 0.5), isTrue);
       });
 
-      patrolTest('handles multiple chunks from same note', () {
+      patrolTest('handles multiple chunks from same note', ($) async {
         mockRepository.addTestEmbedding(noteId: 1, chunkIndex: 0, vector: [1.0, 0.0, 0.0], chunkText: 'chunk 0');
         mockRepository.addTestEmbedding(noteId: 1, chunkIndex: 1, vector: [0.9, 0.1, 0.0], chunkText: 'chunk 1');
 
@@ -167,7 +168,7 @@ void main() {
     });
 
     group('searchExcluding', () {
-      patrolTest('excludes specified note IDs', () {
+      patrolTest('excludes specified note IDs', ($) async {
         mockRepository.addTestEmbedding(noteId: 1, vector: [1.0, 0.0, 0.0]);
         mockRepository.addTestEmbedding(noteId: 2, vector: [1.0, 0.0, 0.0]);
         mockRepository.addTestEmbedding(noteId: 3, vector: [1.0, 0.0, 0.0]);
@@ -180,12 +181,12 @@ void main() {
     });
 
     group('findSimilarToNote', () {
-      patrolTest('returns empty list if note has no embeddings', () {
+      patrolTest('returns empty list if note has no embeddings', ($) async {
         final results = service.findSimilarToNote(999);
         expect(results, isEmpty);
       });
 
-      patrolTest('finds similar notes excluding the source note', () {
+      patrolTest('finds similar notes excluding the source note', ($) async {
         // Source note (id: 1) with one chunk
         mockRepository.addTestEmbedding(noteId: 1, vector: [1.0, 0.0, 0.0]);
         // Similar note (id: 2)
@@ -200,7 +201,7 @@ void main() {
         expect(results[0].embedding.noteId, 2); // Most similar
       });
 
-      patrolTest('averages multiple chunks from source note', () {
+      patrolTest('averages multiple chunks from source note', ($) async {
         // Source note with two chunks
         mockRepository.addTestEmbedding(noteId: 1, chunkIndex: 0, vector: [1.0, 0.0, 0.0]);
         mockRepository.addTestEmbedding(noteId: 1, chunkIndex: 1, vector: [0.0, 1.0, 0.0]);
@@ -216,7 +217,7 @@ void main() {
     });
 
     group('getStats', () {
-      patrolTest('returns zeros when no embeddings exist', () {
+      patrolTest('returns zeros when no embeddings exist', ($) async {
         final stats = service.getStats();
 
         expect(stats.totalChunks, 0);
@@ -225,7 +226,7 @@ void main() {
         expect(stats.embeddingDimension, 0);
       });
 
-      patrolTest('correctly calculates statistics', () {
+      patrolTest('correctly calculates statistics', ($) async {
         // 3 chunks across 2 notes
         mockRepository.addTestEmbedding(noteId: 1, chunkIndex: 0, vector: [1.0, 0.0, 0.0]);
         mockRepository.addTestEmbedding(noteId: 1, chunkIndex: 1, vector: [0.9, 0.1, 0.0]);

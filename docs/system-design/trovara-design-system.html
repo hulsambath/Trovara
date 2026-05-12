@@ -1,0 +1,3756 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Trovara — Design System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* ─────────────────────────────────────────────────────────────────
+   TROVARA DESIGN SYSTEM  ·  v1.0
+   Font substitute: Outfit (closest open-source match to Garet)
+───────────────────────────────────────────────────────────────── */
+
+      /* ══════════════════════════════════════════════
+   DESIGN TOKENS — LIGHT
+══════════════════════════════════════════════ */
+      :root,
+      [data-theme="light"] {
+        /* Brand */
+        --color-primary: #415bca;
+        --color-primary-hover: #3449b5;
+        --color-primary-container: #dde3ff;
+        --color-on-primary: #ffffff;
+        --color-on-primary-container: #001159;
+
+        /* Secondary */
+        --color-secondary: #5b5d72;
+        --color-secondary-container: #dfe1f9;
+        --color-on-secondary: #ffffff;
+        --color-on-secondary-container: #181a2c;
+
+        /* Tertiary */
+        --color-tertiary: #77536b;
+        --color-tertiary-container: #ffd6f1;
+        --color-on-tertiary: #ffffff;
+
+        /* Surface */
+        --color-surface: #fafafa;
+        --color-surface-dim: #dadadc;
+        --color-surface-bright: #ffffff;
+        --color-surface-container-lowest: #ffffff;
+        --color-surface-container-low: #f0f0f8;
+        --color-surface-container: #e8e8f0;
+        --color-surface-container-high: #e2e2ea;
+        --color-surface-container-highest: #dcdce4;
+
+        /* On-surface */
+        --color-on-surface: #1a1b23;
+        --color-on-surface-variant: #46475a;
+        --color-outline: #767788;
+        --color-outline-variant: #c5c6d8;
+
+        /* Feedback */
+        --color-error: #ba1a1a;
+        --color-error-container: #ffdad6;
+        --color-success: #1a7a40;
+        --color-success-container: #b7f0ce;
+        --color-warning: #b35900;
+        --color-warning-container: #ffdcc2;
+
+        /* Scaffold */
+        --color-scaffold-bg: #f6f6ff;
+
+        /* Shadow */
+        --shadow-sm:
+          0 1px 3px rgba(65, 91, 202, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
+        --shadow-md:
+          0 4px 12px rgba(65, 91, 202, 0.12), 0 2px 4px rgba(0, 0, 0, 0.06);
+        --shadow-lg:
+          0 8px 24px rgba(65, 91, 202, 0.16), 0 4px 8px rgba(0, 0, 0, 0.08);
+
+        /* Misc */
+        --scrim: rgba(0, 0, 0, 0.32);
+      }
+
+      /* ══════════════════════════════════════════════
+   DESIGN TOKENS — DARK
+══════════════════════════════════════════════ */
+      [data-theme="dark"] {
+        --color-primary: #b8c4ff;
+        --color-primary-hover: #cad4ff;
+        --color-primary-container: #2843b1;
+        --color-on-primary: #092189;
+        --color-on-primary-container: #dde3ff;
+
+        --color-secondary: #c3c4dd;
+        --color-secondary-container: #434559;
+        --color-on-secondary: #2c2e42;
+        --color-on-secondary-container: #dfe1f9;
+
+        --color-tertiary: #e5bbd7;
+        --color-tertiary-container: #5c3b52;
+        --color-on-tertiary: #44253b;
+
+        --color-surface: #121318;
+        --color-surface-dim: #121318;
+        --color-surface-bright: #38393f;
+        --color-surface-container-lowest: #0c0d13;
+        --color-surface-container-low: #1a1b23;
+        --color-surface-container: #1e1f28;
+        --color-surface-container-high: #29292f;
+        --color-surface-container-highest: #343438;
+
+        --color-on-surface: #e3e2ec;
+        --color-on-surface-variant: #c5c6d8;
+        --color-outline: #8f909f;
+        --color-outline-variant: #46475a;
+
+        --color-error: #ffb4ab;
+        --color-error-container: #93000a;
+        --color-success: #6bd98a;
+        --color-success-container: #005225;
+        --color-warning: #ffb780;
+        --color-warning-container: #7a3900;
+
+        --color-scaffold-bg: #121318;
+
+        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
+        --shadow-md:
+          0 4px 12px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.2);
+        --shadow-lg:
+          0 8px 24px rgba(0, 0, 0, 0.5), 0 4px 8px rgba(0, 0, 0, 0.3);
+
+        --scrim: rgba(0, 0, 0, 0.5);
+      }
+
+      /* ══════════════════════════════════════════════
+   GLOBAL TOKENS
+══════════════════════════════════════════════ */
+      :root {
+        /* Typography */
+        --font-family: "Outfit", sans-serif;
+        --font-mono: "JetBrains Mono", monospace;
+
+        /* Type scale (Material 3 equivalent) */
+        --text-display-large: 57px;
+        --text-display-medium: 45px;
+        --text-display-small: 36px;
+        --text-headline-large: 32px;
+        --text-headline-medium: 28px;
+        --text-headline-small: 24px;
+        --text-title-large: 22px;
+        --text-title-medium: 16px;
+        --text-title-small: 14px;
+        --text-body-large: 16px;
+        --text-body-medium: 14px;
+        --text-body-small: 12px;
+        --text-label-large: 14px;
+        --text-label-medium: 12px;
+        --text-label-small: 11px;
+
+        /* Spacing scale */
+        --space-1: 4px;
+        --space-2: 8px;
+        --space-3: 12px;
+        --space-4: 16px;
+        --space-5: 20px;
+        --space-6: 24px;
+        --space-8: 32px;
+        --space-10: 40px;
+        --space-12: 48px;
+        --space-16: 64px;
+
+        /* Border radius */
+        --radius-xs: 4px;
+        --radius-sm: 8px;
+        --radius-md: 12px;
+        --radius-lg: 16px;
+        --radius-xl: 24px;
+        --radius-full: 9999px;
+
+        /* Elevation (z-index) */
+        --z-base: 0;
+        --z-raised: 1;
+        --z-overlay: 2;
+        --z-modal: 10;
+        --z-toast: 20;
+
+        /* Motion */
+        --transition-fast: 100ms ease;
+        --transition-normal: 200ms ease;
+        --transition-slow: 350ms cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+
+      /* ══════════════════════════════════════════════
+   TAG PALETTE
+══════════════════════════════════════════════ */
+      :root {
+        --tag-blue: #2196f3;
+        --tag-green: #4caf50;
+        --tag-purple: #9c27b0;
+        --tag-orange: #ff9800;
+        --tag-red: #f44336;
+        --tag-brown: #795548;
+        --tag-amber: #ffc107;
+        --tag-indigo: #3f51b5;
+      }
+
+      /* ══════════════════════════════════════════════
+   RESET & BASE
+══════════════════════════════════════════════ */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        font-family: var(--font-family);
+        font-size: var(--text-body-medium);
+        color: var(--color-on-surface);
+        background: var(--color-scaffold-bg);
+        transition:
+          background 0.2s,
+          color 0.2s;
+        line-height: 1.6;
+      }
+      a {
+        color: var(--color-primary);
+        text-decoration: none;
+      }
+
+      /* ══════════════════════════════════════════════
+   PAGE SHELL
+══════════════════════════════════════════════ */
+      .shell {
+        display: flex;
+        min-height: 100vh;
+      }
+
+      /* SIDEBAR */
+      .sidebar {
+        width: 240px;
+        flex-shrink: 0;
+        background: var(--color-surface-container-low);
+        border-right: 1px solid var(--color-outline-variant);
+        padding: var(--space-6) 0;
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        overflow-y: auto;
+      }
+      .sidebar-logo {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        padding: 0 var(--space-4) var(--space-6);
+        border-bottom: 1px solid var(--color-outline-variant);
+        margin-bottom: var(--space-4);
+      }
+      .sidebar-logo-mark {
+        width: 32px;
+        height: 32px;
+        padding: 3px;
+        box-sizing: border-box;
+        background: #415bca;
+        border-radius: 8px;
+        box-shadow: var(--shadow-sm);
+        object-fit: cover;
+        flex-shrink: 0;
+      }
+      .sidebar-logo svg {
+        width: 28px;
+        height: 28px;
+      }
+      .sidebar-logo span {
+        font-size: var(--text-title-large);
+        font-weight: 700;
+        color: var(--color-on-surface);
+        letter-spacing: -0.3px;
+      }
+      .sidebar-logo small {
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
+        color: var(--color-on-surface-variant);
+        display: block;
+        line-height: 1;
+      }
+      .nav-group {
+        margin-bottom: var(--space-1);
+      }
+      .nav-label {
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1.4px;
+        color: var(--color-on-surface-variant);
+        padding: var(--space-3) var(--space-4) var(--space-1);
+      }
+      .nav-item {
+        display: block;
+        padding: var(--space-2) var(--space-4);
+        font-size: var(--text-body-small);
+        font-weight: 500;
+        color: var(--color-on-surface-variant);
+        border-radius: 0;
+        transition:
+          background var(--transition-fast),
+          color var(--transition-fast);
+        cursor: pointer;
+        border-left: 2px solid transparent;
+      }
+      .nav-item:hover {
+        background: var(--color-surface-container);
+        color: var(--color-on-surface);
+      }
+      .nav-item.active {
+        background: var(--color-primary-container);
+        color: var(--color-on-primary-container);
+        border-left-color: var(--color-primary);
+        font-weight: 600;
+      }
+
+      /* MAIN CONTENT */
+      .main {
+        flex: 1;
+        padding: var(--space-8) var(--space-10);
+        max-width: 960px;
+      }
+      .page-header {
+        margin-bottom: var(--space-12);
+        padding-bottom: var(--space-6);
+        border-bottom: 1px solid var(--color-outline-variant);
+      }
+      .page-header h1 {
+        font-size: var(--text-display-small);
+        font-weight: 800;
+        color: var(--color-on-surface);
+        letter-spacing: -1px;
+        line-height: 1.1;
+      }
+      .page-header h1 span {
+        color: var(--color-primary);
+      }
+      .page-header p {
+        margin-top: var(--space-3);
+        font-size: var(--text-body-large);
+        color: var(--color-on-surface-variant);
+        max-width: 560px;
+      }
+      .badge-row {
+        display: flex;
+        gap: var(--space-2);
+        margin-top: var(--space-4);
+        flex-wrap: wrap;
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        background: var(--color-surface-container);
+        border: 1px solid var(--color-outline-variant);
+        border-radius: var(--radius-full);
+        padding: 3px 10px;
+        font-size: var(--text-label-small);
+        font-weight: 600;
+        color: var(--color-on-surface-variant);
+      }
+      .badge.primary {
+        background: var(--color-primary-container);
+        border-color: var(--color-primary);
+        color: var(--color-on-primary-container);
+      }
+
+      /* THEME TOGGLE */
+      .theme-toggle {
+        position: fixed;
+        top: var(--space-4);
+        right: var(--space-4);
+        background: var(--color-surface-container-high);
+        border: 1px solid var(--color-outline-variant);
+        border-radius: var(--radius-full);
+        padding: 6px 14px;
+        cursor: pointer;
+        font-family: var(--font-family);
+        font-size: var(--text-body-small);
+        font-weight: 600;
+        color: var(--color-on-surface);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: background var(--transition-fast);
+        z-index: var(--z-toast);
+      }
+      .theme-toggle:hover {
+        background: var(--color-surface-container-highest);
+      }
+
+      /* SECTION */
+      .section {
+        margin-bottom: var(--space-16);
+      }
+      .section-title {
+        font-size: var(--text-headline-small);
+        font-weight: 700;
+        color: var(--color-on-surface);
+        margin-bottom: var(--space-2);
+        letter-spacing: -0.3px;
+      }
+      .section-sub {
+        font-size: var(--text-body-medium);
+        color: var(--color-on-surface-variant);
+        margin-bottom: var(--space-6);
+      }
+      .subsection {
+        margin-bottom: var(--space-8);
+      }
+      .subsection-title {
+        font-size: var(--text-title-medium);
+        font-weight: 600;
+        color: var(--color-on-surface);
+        margin-bottom: var(--space-4);
+        padding-bottom: var(--space-2);
+        border-bottom: 1px solid var(--color-outline-variant);
+      }
+
+      /* DEMO BOX */
+      .demo-box {
+        background: var(--color-surface-container-low);
+        border: 1px solid var(--color-outline-variant);
+        border-radius: var(--radius-lg);
+        padding: var(--space-6);
+        position: relative;
+      }
+      .demo-box.dark {
+        background: #1a1b23;
+        border-color: #2a2b36;
+      }
+      .demo-label {
+        font-size: var(--text-label-small);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
+        color: var(--color-on-surface-variant);
+        margin-bottom: var(--space-4);
+      }
+      .demo-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-3);
+        align-items: flex-start;
+      }
+      .demo-row.center {
+        align-items: center;
+      }
+      .demo-col {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-3);
+      }
+
+      /* Surface scale tabs */
+      .surface-tabs {
+        display: inline-flex;
+        gap: 4px;
+        padding: 4px;
+        background: var(--color-surface-container);
+        border: 1px solid var(--color-outline-variant);
+        border-radius: var(--radius-full);
+        margin-bottom: var(--space-4);
+      }
+      .surface-tab {
+        border: none;
+        background: transparent;
+        color: var(--color-on-surface-variant);
+        padding: 9px 16px;
+        border-radius: var(--radius-full);
+        font-family: var(--font-family);
+        font-size: var(--text-label-medium);
+        font-weight: 600;
+        cursor: pointer;
+        transition:
+          background var(--transition-fast),
+          color var(--transition-fast),
+          transform var(--transition-fast);
+      }
+      .surface-tab.active {
+        background: var(--color-primary);
+        color: var(--color-on-primary);
+      }
+      .surface-tab:active {
+        transform: scale(0.98);
+      }
+      .surface-panel {
+        display: none;
+      }
+      .surface-panel.active {
+        display: block;
+      }
+      .surface-panel-note {
+        margin-top: var(--space-3);
+        font-size: var(--text-label-small);
+        color: var(--color-on-surface-variant);
+      }
+
+      /* SPEC TABLE */
+      .spec-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: var(--text-body-small);
+      }
+      .spec-table th {
+        text-align: left;
+        padding: var(--space-2) var(--space-3);
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--color-on-surface-variant);
+        background: var(--color-surface-container);
+        border-bottom: 1px solid var(--color-outline-variant);
+      }
+      .spec-table td {
+        padding: var(--space-2) var(--space-3);
+        border-bottom: 1px solid var(--color-outline-variant);
+        color: var(--color-on-surface);
+        vertical-align: middle;
+      }
+      .spec-table tr:last-child td {
+        border-bottom: none;
+      }
+      .spec-table tr:hover td {
+        background: var(--color-surface-container-low);
+      }
+      code {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        background: var(--color-surface-container-highest);
+        border: 1px solid var(--color-outline-variant);
+        border-radius: var(--radius-xs);
+        padding: 1px 6px;
+        color: var(--color-primary);
+      }
+
+      /* ══════════════════════════════════════════════
+   § 1 · COLOR SWATCHES
+══════════════════════════════════════════════ */
+      .swatch-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+        gap: var(--space-3);
+      }
+      .swatch {
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--color-outline-variant);
+      }
+      .swatch-color {
+        height: 60px;
+      }
+      .swatch-info {
+        background: var(--color-surface-container-low);
+        padding: var(--space-2) var(--space-2);
+      }
+      .swatch-name {
+        font-size: 10px;
+        font-weight: 700;
+        color: var(--color-on-surface);
+      }
+      .swatch-hex {
+        font-size: 10px;
+        font-family: var(--font-mono);
+        color: var(--color-on-surface-variant);
+      }
+
+      .tag-swatch-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: var(--space-2);
+      }
+      .tag-swatch {
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+      }
+      .tag-swatch-color {
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+      }
+      .tag-swatch-info {
+        background: var(--color-surface-container-low);
+        padding: var(--space-1) var(--space-2);
+        border: 1px solid var(--color-outline-variant);
+        border-top: none;
+        border-radius: 0 0 var(--radius-md) var(--radius-md);
+      }
+      .tag-swatch-name {
+        font-size: 10px;
+        font-weight: 700;
+        color: var(--color-on-surface);
+      }
+      .tag-swatch-hex {
+        font-size: 9px;
+        font-family: var(--font-mono);
+        color: var(--color-on-surface-variant);
+      }
+
+      /* ══════════════════════════════════════════════
+   § 2 · TYPOGRAPHY SCALE
+══════════════════════════════════════════════ */
+      .type-sample {
+        display: flex;
+        align-items: baseline;
+        gap: var(--space-4);
+        padding: var(--space-3) 0;
+        border-bottom: 1px solid var(--color-outline-variant);
+      }
+      .type-sample:last-child {
+        border-bottom: none;
+      }
+      .type-meta {
+        min-width: 180px;
+        flex-shrink: 0;
+      }
+      .type-role {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--color-on-surface-variant);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      .type-spec {
+        font-size: 10px;
+        font-family: var(--font-mono);
+        color: var(--color-outline);
+        margin-top: 2px;
+      }
+      .display-large {
+        font-size: 57px;
+        font-weight: 700;
+        line-height: 1.1;
+        color: var(--color-on-surface);
+        letter-spacing: -1px;
+      }
+      .display-medium {
+        font-size: 45px;
+        font-weight: 700;
+        line-height: 1.1;
+        color: var(--color-on-surface);
+        letter-spacing: -0.5px;
+      }
+      .display-small {
+        font-size: 36px;
+        font-weight: 600;
+        line-height: 1.1;
+        color: var(--color-on-surface);
+      }
+      .headline-large {
+        font-size: 32px;
+        font-weight: 700;
+        color: var(--color-on-surface);
+      }
+      .headline-medium {
+        font-size: 28px;
+        font-weight: 600;
+        color: var(--color-on-surface);
+      }
+      .headline-small {
+        font-size: 24px;
+        font-weight: 600;
+        color: var(--color-on-surface);
+      }
+      .title-large {
+        font-size: 22px;
+        font-weight: 600;
+        color: var(--color-on-surface);
+      }
+      .title-medium {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--color-on-surface);
+      }
+      .title-small {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--color-on-surface);
+      }
+      .body-large {
+        font-size: 16px;
+        font-weight: 400;
+        color: var(--color-on-surface);
+      }
+      .body-medium {
+        font-size: 14px;
+        font-weight: 400;
+        color: var(--color-on-surface);
+      }
+      .body-small {
+        font-size: 12px;
+        font-weight: 400;
+        color: var(--color-on-surface);
+      }
+      .label-large {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--color-on-surface);
+      }
+      .label-medium {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--color-on-surface);
+      }
+      .label-small {
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--color-on-surface);
+      }
+
+      /* ══════════════════════════════════════════════
+   § 3 · BUTTONS
+══════════════════════════════════════════════ */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        border: none;
+        cursor: pointer;
+        font-family: var(--font-family);
+        font-weight: 600;
+        font-size: var(--text-label-large);
+        border-radius: var(--radius-full);
+        transition:
+          background var(--transition-fast),
+          transform var(--transition-fast),
+          box-shadow var(--transition-fast);
+        outline: none;
+        text-decoration: none;
+        white-space: nowrap;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .btn:active {
+        transform: scale(0.97);
+      }
+
+      /* Filled */
+      .btn-filled {
+        background: var(--color-primary);
+        color: var(--color-on-primary);
+        padding: 10px 24px;
+        height: 40px;
+      }
+      .btn-filled:hover {
+        background: var(--color-primary-hover);
+        box-shadow: var(--shadow-md);
+      }
+
+      /* Tonal */
+      .btn-tonal {
+        background: var(--color-primary-container);
+        color: var(--color-on-primary-container);
+        padding: 10px 24px;
+        height: 40px;
+      }
+      .btn-tonal:hover {
+        filter: brightness(0.95);
+        box-shadow: var(--shadow-sm);
+      }
+
+      /* Outlined */
+      .btn-outlined {
+        background: transparent;
+        color: var(--color-primary);
+        border: 1.5px solid var(--color-primary);
+        padding: 10px 24px;
+        height: 40px;
+      }
+      .btn-outlined:hover {
+        background: var(--color-primary-container);
+      }
+
+      /* Text */
+      .btn-text {
+        background: transparent;
+        color: var(--color-primary);
+        padding: 10px 12px;
+        height: 40px;
+      }
+      .btn-text:hover {
+        background: var(--color-primary-container);
+      }
+
+      /* Danger */
+      .btn-danger {
+        background: var(--color-error);
+        color: #fff;
+        padding: 10px 24px;
+        height: 40px;
+      }
+      .btn-danger:hover {
+        filter: brightness(0.9);
+        box-shadow: var(--shadow-md);
+      }
+
+      /* Sizes */
+      .btn-sm {
+        font-size: var(--text-label-medium);
+        padding: 6px 16px;
+        height: 32px;
+      }
+      .btn-lg {
+        font-size: var(--text-title-small);
+        padding: 14px 32px;
+        height: 52px;
+      }
+
+      /* Icon button */
+      .btn-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: var(--radius-full);
+        background: transparent;
+        border: none;
+        color: var(--color-on-surface-variant);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: background var(--transition-fast);
+        font-size: 18px;
+      }
+      .btn-icon:hover {
+        background: var(--color-surface-container-highest);
+      }
+      .btn-icon.primary {
+        background: var(--color-primary-container);
+        color: var(--color-on-primary-container);
+      }
+
+      /* FAB */
+      .fab {
+        width: 56px;
+        height: 56px;
+        background: var(--color-primary-container);
+        color: var(--color-on-primary-container);
+        border: none;
+        border-radius: var(--radius-lg);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: var(--shadow-lg);
+        font-size: 22px;
+        transition:
+          transform var(--transition-fast),
+          box-shadow var(--transition-fast);
+      }
+      .fab:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+      }
+      .fab:active {
+        transform: scale(0.95);
+      }
+
+      /* Disabled state */
+      .btn:disabled,
+      .btn[disabled] {
+        opacity: 0.38;
+        pointer-events: none;
+      }
+
+      /* ══════════════════════════════════════════════
+   § 4 · INPUTS
+══════════════════════════════════════════════ */
+      .input-group {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-1);
+        width: 280px;
+      }
+      .input-label {
+        font-size: var(--text-label-medium);
+        font-weight: 600;
+        color: var(--color-on-surface-variant);
+      }
+      .input-field {
+        background: var(--color-surface-container-low);
+        border: 1.5px solid var(--color-outline-variant);
+        border-radius: var(--radius-md);
+        padding: 11px var(--space-3);
+        font-family: var(--font-family);
+        font-size: var(--text-body-medium);
+        color: var(--color-on-surface);
+        outline: none;
+        transition:
+          border-color var(--transition-fast),
+          box-shadow var(--transition-fast);
+        width: 100%;
+      }
+      .input-field::placeholder {
+        color: var(--color-on-surface-variant);
+        opacity: 0.6;
+      }
+      .input-field:focus {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 3px
+          color-mix(in srgb, var(--color-primary) 15%, transparent);
+      }
+      .input-field.error {
+        border-color: var(--color-error);
+      }
+      .input-field.error:focus {
+        box-shadow: 0 0 0 3px
+          color-mix(in srgb, var(--color-error) 15%, transparent);
+      }
+      .input-helper {
+        font-size: var(--text-label-small);
+        color: var(--color-on-surface-variant);
+      }
+      .input-error {
+        font-size: var(--text-label-small);
+        color: var(--color-error);
+      }
+
+      /* Note title (borderless style used in NoteContent) */
+      .input-borderless {
+        background: transparent;
+        border: none;
+        border-radius: 0;
+        padding: 8px 0;
+        font-family: var(--font-family);
+        font-size: var(--text-title-large);
+        font-weight: 600;
+        color: var(--color-on-surface);
+        outline: none;
+        width: 100%;
+      }
+      .input-borderless::placeholder {
+        color: var(--color-on-surface-variant);
+        opacity: 0.5;
+      }
+
+      /* Search bar */
+      .search-bar {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        background: var(--color-surface-container);
+        border: 1.5px solid var(--color-outline-variant);
+        border-radius: var(--radius-full);
+        padding: 8px var(--space-4);
+      }
+      .search-bar input {
+        flex: 1;
+        background: transparent;
+        border: none;
+        font-family: var(--font-family);
+        font-size: var(--text-body-medium);
+        color: var(--color-on-surface);
+        outline: none;
+      }
+      .search-bar input::placeholder {
+        color: var(--color-on-surface-variant);
+        opacity: 0.7;
+      }
+      .search-icon {
+        color: var(--color-on-surface-variant);
+        font-size: 16px;
+      }
+
+      /* ══════════════════════════════════════════════
+   § 5 · TAG CHIPS
+══════════════════════════════════════════════ */
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        border-radius: var(--radius-full);
+        padding: 5px 12px;
+        font-family: var(--font-family);
+        font-size: var(--text-label-medium);
+        font-weight: 500;
+        cursor: pointer;
+        transition:
+          transform var(--transition-fast),
+          box-shadow var(--transition-fast);
+        border: 1.5px solid transparent;
+        white-space: nowrap;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .chip:active {
+        transform: scale(0.95);
+      }
+
+      /* Default / Unselected */
+      .chip-default {
+        background: var(--color-surface-container);
+        color: var(--color-on-surface-variant);
+        border-color: var(--color-outline-variant);
+      }
+      .chip-default:hover {
+        background: var(--color-surface-container-high);
+      }
+
+      /* Colored chip (selected state uses tag color) */
+      .chip-colored {
+        color: var(--chip-color, var(--color-primary));
+        background: color-mix(
+          in srgb,
+          var(--chip-color, var(--color-primary)) 12%,
+          transparent
+        );
+        border-color: color-mix(
+          in srgb,
+          var(--chip-color, var(--color-primary)) 30%,
+          transparent
+        );
+        font-weight: 600;
+      }
+      .chip-colored:hover {
+        background: color-mix(
+          in srgb,
+          var(--chip-color, var(--color-primary)) 20%,
+          transparent
+        );
+      }
+
+      /* Compact chip */
+      .chip-compact {
+        padding: 3px 8px;
+        font-size: var(--text-label-small);
+        border-radius: var(--radius-full);
+      }
+
+      /* Removable chip */
+      .chip-remove {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: inherit;
+        opacity: 0.7;
+        padding: 0;
+        font-size: 12px;
+        display: inline-flex;
+        align-items: center;
+      }
+      .chip-remove:hover {
+        opacity: 1;
+      }
+
+      /* ══════════════════════════════════════════════
+   § 6 · NOTE CARD
+══════════════════════════════════════════════ */
+      .note-card {
+        background: var(--color-surface-container-low);
+        border-radius: var(--radius-md);
+        padding: var(--space-4) var(--space-4) calc(var(--space-4) - 2px);
+        cursor: pointer;
+        transition:
+          box-shadow var(--transition-fast),
+          transform var(--transition-fast);
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-2);
+        border: 1px solid var(--color-outline-variant);
+      }
+      .note-card:hover {
+        box-shadow: var(--shadow-md);
+        transform: translateY(-1px);
+      }
+      .note-card-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: var(--space-2);
+      }
+      .note-card-title {
+        font-size: var(--text-title-medium);
+        font-weight: 600;
+        color: var(--color-on-surface);
+        line-height: 1.3;
+        flex: 1;
+      }
+      .note-card-actions {
+        display: flex;
+        gap: 0;
+        flex-shrink: 0;
+      }
+      .note-card-preview {
+        font-size: var(--text-body-small);
+        color: var(--color-on-surface-variant);
+        line-height: 1.5;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .note-card-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-2);
+        flex-wrap: wrap;
+        margin-top: var(--space-1);
+      }
+      .note-card-date {
+        font-size: var(--text-label-small);
+        color: var(--color-on-surface-variant);
+      }
+      .note-card-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+      }
+
+      /* Deleted state */
+      .note-card.deleted {
+        opacity: 0.6;
+        border-style: dashed;
+      }
+      .note-card.deleted .note-card-title {
+        text-decoration: line-through;
+      }
+
+      /* Favorite indicator */
+      .fav-icon {
+        color: var(--color-on-surface-variant);
+      }
+      .fav-icon.active {
+        color: #ffc107;
+      }
+
+      /* ══════════════════════════════════════════════
+   § 7 · APP BAR
+══════════════════════════════════════════════ */
+      .app-bar {
+        background: var(--color-surface);
+        border-bottom: 1px solid var(--color-outline-variant);
+        height: 56px;
+        display: flex;
+        align-items: center;
+        padding: 0 var(--space-4);
+        gap: var(--space-2);
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+      }
+      .app-bar-title {
+        font-size: var(--text-title-large);
+        font-weight: 600;
+        color: var(--color-on-surface);
+        flex: 1;
+      }
+      .app-bar-actions {
+        display: flex;
+        gap: var(--space-1);
+      }
+      .back-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--color-on-surface-variant);
+        font-size: 20px;
+        width: 40px;
+        height: 40px;
+        border-radius: var(--radius-full);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background var(--transition-fast);
+      }
+      .back-btn:hover {
+        background: var(--color-surface-container);
+      }
+
+      /* ══════════════════════════════════════════════
+   § 8 · BOTTOM NAV
+══════════════════════════════════════════════ */
+      .bottom-nav {
+        background: var(--color-surface);
+        border-top: 1px solid var(--color-outline-variant);
+        display: flex;
+        height: 72px;
+        border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+      }
+      .bottom-nav-item {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        cursor: pointer;
+        background: none;
+        border: none;
+        font-family: var(--font-family);
+        transition: color var(--transition-fast);
+        color: var(--color-on-surface-variant);
+      }
+      .bottom-nav-item .nav-indicator {
+        width: 64px;
+        height: 32px;
+        border-radius: var(--radius-full);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        transition: background var(--transition-normal);
+      }
+      .bottom-nav-item.active {
+        color: var(--color-on-secondary-container);
+      }
+      .bottom-nav-item.active .nav-indicator {
+        background: var(--color-secondary-container);
+      }
+      .bottom-nav-label {
+        font-size: 11px;
+        font-weight: 600;
+        line-height: 1;
+      }
+
+      /* ══════════════════════════════════════════════
+   § 9 · TOAST
+══════════════════════════════════════════════ */
+      .toast {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-3);
+        background: var(--color-surface-container-highest);
+        color: var(--color-on-surface);
+        border-radius: var(--radius-md);
+        padding: var(--space-3) var(--space-4);
+        box-shadow: var(--shadow-lg);
+        font-size: var(--text-body-small);
+        font-weight: 500;
+        min-width: 200px;
+        max-width: 360px;
+      }
+      .toast .toast-icon {
+        font-size: 18px;
+        flex-shrink: 0;
+      }
+      .toast .toast-action {
+        margin-left: auto;
+        background: none;
+        border: none;
+        color: var(--color-primary);
+        font-weight: 700;
+        font-size: var(--text-label-medium);
+        cursor: pointer;
+        font-family: var(--font-family);
+        padding: 0;
+        flex-shrink: 0;
+      }
+      .toast.success {
+        border-left: 3px solid var(--color-success);
+      }
+      .toast.error {
+        border-left: 3px solid var(--color-error);
+      }
+      .toast.warning {
+        border-left: 3px solid var(--color-warning);
+      }
+      .toast.info {
+        border-left: 3px solid var(--color-primary);
+      }
+
+      /* ══════════════════════════════════════════════
+   § 10 · CHAT BUBBLES
+══════════════════════════════════════════════ */
+      .chat-container {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-4);
+        padding: var(--space-4);
+        background: var(--color-surface-container-low);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--color-outline-variant);
+        max-width: 420px;
+      }
+      .chat-row {
+        display: flex;
+        gap: var(--space-2);
+      }
+      .chat-row.user {
+        flex-direction: row-reverse;
+      }
+
+      .chat-avatar {
+        width: 28px;
+        height: 28px;
+        border-radius: var(--radius-full);
+        background: var(--color-primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        color: var(--color-on-primary);
+        flex-shrink: 0;
+        margin-top: 2px;
+      }
+      .chat-avatar.user-avatar {
+        background: var(--color-secondary-container);
+        color: var(--color-on-secondary-container);
+      }
+
+      .chat-bubble {
+        padding: var(--space-3) var(--space-4);
+        border-radius: var(--radius-lg);
+        max-width: 280px;
+        font-size: var(--text-body-medium);
+        line-height: 1.5;
+      }
+      .chat-bubble.ai {
+        background: var(--color-surface-container);
+        color: var(--color-on-surface);
+        border-radius: var(--radius-xs) var(--radius-lg) var(--radius-lg)
+          var(--radius-lg);
+      }
+      .chat-bubble.user {
+        background: var(--color-primary);
+        color: var(--color-on-primary);
+        border-radius: var(--radius-lg) var(--radius-xs) var(--radius-lg)
+          var(--radius-lg);
+      }
+
+      /* Typing indicator */
+      .typing-indicator {
+        display: flex;
+        gap: 5px;
+        padding: 6px 0;
+      }
+      .typing-dot {
+        width: 7px;
+        height: 7px;
+        background: var(--color-on-surface-variant);
+        border-radius: var(--radius-full);
+        opacity: 0.5;
+        animation: bounce 1.2s infinite;
+      }
+      .typing-dot:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+      .typing-dot:nth-child(3) {
+        animation-delay: 0.4s;
+      }
+      @keyframes bounce {
+        0%,
+        60%,
+        100% {
+          transform: translateY(0);
+        }
+        30% {
+          transform: translateY(-5px);
+        }
+      }
+
+      /* Source attribution chips */
+      .source-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin-top: var(--space-2);
+      }
+      .source-chip {
+        font-size: 10px;
+        font-weight: 600;
+        background: var(--color-secondary-container);
+        color: var(--color-on-secondary-container);
+        border-radius: var(--radius-full);
+        padding: 2px 8px;
+        border: 1px solid var(--color-outline-variant);
+      }
+
+      /* Chat input */
+      .chat-input-row {
+        display: flex;
+        align-items: flex-end;
+        gap: var(--space-2);
+        background: var(--color-surface-container-low);
+        border: 1.5px solid var(--color-outline-variant);
+        border-radius: var(--radius-xl);
+        padding: 8px 8px 8px 16px;
+      }
+      .chat-input-row textarea {
+        flex: 1;
+        background: transparent;
+        border: none;
+        font-family: var(--font-family);
+        font-size: var(--text-body-medium);
+        color: var(--color-on-surface);
+        resize: none;
+        outline: none;
+        line-height: 1.5;
+        height: 24px;
+        max-height: 120px;
+      }
+      .chat-input-row textarea::placeholder {
+        color: var(--color-on-surface-variant);
+        opacity: 0.7;
+      }
+      .chat-send-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: var(--radius-full);
+        background: var(--color-primary);
+        color: var(--color-on-primary);
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 15px;
+        flex-shrink: 0;
+        transition: background var(--transition-fast);
+      }
+      .chat-send-btn:hover {
+        background: var(--color-primary-hover);
+      }
+
+      /* ══════════════════════════════════════════════
+   § 11 · DIALOG / MODAL
+══════════════════════════════════════════════ */
+      .dialog-backdrop {
+        background: var(--scrim);
+        border-radius: var(--radius-lg);
+        padding: var(--space-6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .dialog {
+        background: var(--color-surface-container-low);
+        border-radius: var(--radius-xl);
+        width: 320px;
+        padding: var(--space-6);
+        box-shadow: var(--shadow-lg);
+      }
+      .dialog-icon {
+        font-size: 24px;
+        margin-bottom: var(--space-3);
+      }
+      .dialog-title {
+        font-size: var(--text-headline-small);
+        font-weight: 700;
+        color: var(--color-on-surface);
+        margin-bottom: var(--space-2);
+      }
+      .dialog-body {
+        font-size: var(--text-body-medium);
+        color: var(--color-on-surface-variant);
+        line-height: 1.5;
+        margin-bottom: var(--space-6);
+      }
+      .dialog-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: var(--space-2);
+      }
+
+      /* ══════════════════════════════════════════════
+   § 12 · INSIGHT / STAT CARD
+══════════════════════════════════════════════ */
+      .stat-card {
+        background: var(--color-surface-container-low);
+        border: 1px solid var(--color-outline-variant);
+        border-radius: var(--radius-lg);
+        padding: var(--space-4);
+      }
+      .stat-label {
+        font-size: var(--text-label-medium);
+        color: var(--color-on-surface-variant);
+        font-weight: 600;
+        margin-bottom: var(--space-1);
+      }
+      .stat-value {
+        font-size: var(--text-display-small);
+        font-weight: 700;
+        color: var(--color-primary);
+        line-height: 1.1;
+      }
+      .stat-sub {
+        font-size: var(--text-body-small);
+        color: var(--color-on-surface-variant);
+        margin-top: var(--space-1);
+      }
+
+      /* Heatmap legend */
+      .heatmap-row {
+        display: flex;
+        gap: 4px;
+        flex-wrap: wrap;
+      }
+      .heat-cell {
+        width: 14px;
+        height: 14px;
+        border-radius: var(--radius-xs);
+        transition: transform var(--transition-fast);
+      }
+      .heat-cell:hover {
+        transform: scale(1.3);
+      }
+      .heat-0 {
+        background: var(--color-surface-container-highest);
+      }
+      .heat-1 {
+        background: color-mix(
+          in srgb,
+          var(--color-primary) 25%,
+          var(--color-surface-container-highest)
+        );
+      }
+      .heat-2 {
+        background: color-mix(
+          in srgb,
+          var(--color-primary) 50%,
+          var(--color-surface-container-highest)
+        );
+      }
+      .heat-3 {
+        background: color-mix(
+          in srgb,
+          var(--color-primary) 75%,
+          var(--color-surface-container-highest)
+        );
+      }
+      .heat-4 {
+        background: var(--color-primary);
+      }
+
+      /* ══════════════════════════════════════════════
+   § 13 · CONNECTIVITY BANNER
+══════════════════════════════════════════════ */
+      .connectivity-banner {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        background: var(--color-error-container);
+        color: var(--color-error);
+        padding: 6px var(--space-4);
+        font-size: var(--text-label-medium);
+        font-weight: 600;
+        border-radius: var(--radius-sm);
+      }
+      .connectivity-banner.online {
+        background: var(--color-success-container);
+        color: var(--color-success);
+      }
+
+      /* ══════════════════════════════════════════════
+   § 14 · FOLDER / SECTION DIVIDER
+══════════════════════════════════════════════ */
+      .section-divider {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        margin: var(--space-3) 0;
+      }
+      .section-divider-line {
+        flex: 1;
+        height: 1px;
+        background: var(--color-outline-variant);
+      }
+      .section-divider-label {
+        font-size: var(--text-label-small);
+        font-weight: 700;
+        color: var(--color-on-surface-variant);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      /* ══════════════════════════════════════════════
+   § 15 · MOBILE FRAME
+══════════════════════════════════════════════ */
+      .phone-frame {
+        width: 320px;
+        max-height: 580px;
+        background: var(--color-surface);
+        border-radius: 32px;
+        border: 2px solid var(--color-outline-variant);
+        box-shadow: var(--shadow-lg);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+      .phone-screen {
+        flex: 1;
+        overflow-y: auto;
+        background: var(--color-scaffold-bg);
+        padding: var(--space-3);
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-2);
+      }
+
+      /* ══════════════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════════════ */
+      @media (max-width: 768px) {
+        .sidebar {
+          display: none;
+        }
+        .main {
+          padding: var(--space-5) var(--space-4);
+        }
+        .display-large {
+          font-size: 36px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">
+      ☀️ Light
+    </button>
+
+    <div class="shell">
+      <!-- ═══════════ SIDEBAR ═══════════ -->
+      <nav class="sidebar">
+        <div class="sidebar-logo">
+          <img
+            class="sidebar-logo-mark"
+            src="../../assets/app_icon/512x512.png"
+            alt="Trovara app icon"
+          />
+          <div>
+            <span>trovara</span>
+            <small>Design System v1.0</small>
+          </div>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-label">Foundations</div>
+          <a class="nav-item active" href="#colors">Colors</a>
+          <a class="nav-item" href="#typography">Typography</a>
+          <a class="nav-item" href="#spacing">Spacing & Radius</a>
+          <a class="nav-item" href="#shadows">Elevation & Shadow</a>
+        </div>
+        <div class="nav-group">
+          <div class="nav-label">Components</div>
+          <a class="nav-item" href="#buttons">Buttons</a>
+          <a class="nav-item" href="#inputs">Inputs</a>
+          <a class="nav-item" href="#tags">Tag Chips</a>
+          <a class="nav-item" href="#cards">Note Card</a>
+          <a class="nav-item" href="#appbar">App Bar</a>
+          <a class="nav-item" href="#bottomnav">Bottom Nav</a>
+          <a class="nav-item" href="#toast">Toast</a>
+          <a class="nav-item" href="#chat">Chat Bubbles</a>
+          <a class="nav-item" href="#dialog">Dialog</a>
+          <a class="nav-item" href="#insights">Insights</a>
+        </div>
+        <div class="nav-group">
+          <div class="nav-label">Patterns</div>
+          <a class="nav-item" href="#screens">Screen Wireframes</a>
+        </div>
+      </nav>
+
+      <!-- ═══════════ MAIN ═══════════ -->
+      <main class="main">
+        <!-- PAGE HEADER -->
+        <div class="page-header">
+          <h1>Trovara <span>Design System</span></h1>
+          <p>
+            A unified visual language for every widget, screen, and interaction
+            in the Trovara note-taking app.
+          </p>
+          <div class="badge-row">
+            <span class="badge primary">v1.0</span>
+            <span class="badge">Flutter Material 3</span>
+            <span class="badge">Font: Garet (Outfit fallback)</span>
+            <span class="badge">Brand #415bca</span>
+          </div>
+        </div>
+
+        <!-- ════════════════════════════════════
+         § 1  COLORS
+    ════════════════════════════════════ -->
+        <section class="section" id="colors">
+          <h2 class="section-title">Colors</h2>
+          <p class="section-sub">
+            All colors are derived from the Trovara brand seed
+            <code>#415bca</code> via Material 3 tonal palette generation. Always
+            reference CSS variables — never hardcode hex values.
+          </p>
+
+          <div class="subsection">
+            <div class="subsection-title">Brand & Primary</div>
+            <div class="swatch-grid">
+              <div class="swatch">
+                <div class="swatch-color" style="background: #415bca"></div>
+                <div class="swatch-info">
+                  <div class="swatch-name">Primary</div>
+                  <div class="swatch-hex">#415bca</div>
+                </div>
+              </div>
+              <div class="swatch">
+                <div class="swatch-color" style="background: #3449b5"></div>
+                <div class="swatch-info">
+                  <div class="swatch-name">Primary Hover</div>
+                  <div class="swatch-hex">#3449b5</div>
+                </div>
+              </div>
+              <div class="swatch">
+                <div class="swatch-color" style="background: #dde3ff"></div>
+                <div class="swatch-info">
+                  <div class="swatch-name">Primary Container</div>
+                  <div class="swatch-hex">#dde3ff</div>
+                </div>
+              </div>
+              <div class="swatch">
+                <div class="swatch-color" style="background: #001159"></div>
+                <div class="swatch-info">
+                  <div class="swatch-name">On Primary Container</div>
+                  <div class="swatch-hex">#001159</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="subsection">
+            <div class="subsection-title">Surface Scale</div>
+            <p class="section-sub" style="margin-bottom: var(--space-4)">
+              Compare the same surface tokens in light and dark. The colors
+              below match the active theme palette and switch with the tabs.
+            </p>
+
+            <div
+              class="surface-tabs"
+              role="tablist"
+              aria-label="Surface scale themes"
+            >
+              <button
+                class="surface-tab active"
+                type="button"
+                data-surface-tab="light"
+                aria-selected="true"
+              >
+                Light
+              </button>
+              <button
+                class="surface-tab"
+                type="button"
+                data-surface-tab="dark"
+                aria-selected="false"
+              >
+                Dark
+              </button>
+            </div>
+
+            <div class="surface-panel active" data-surface-panel="light">
+              <div class="swatch-grid">
+                <div class="swatch">
+                  <div
+                    class="swatch-color"
+                    style="
+                      background: #ffffff;
+                      border-bottom: 1px solid #e0e0e0;
+                    "
+                  ></div>
+                  <div class="swatch-info">
+                    <div class="swatch-name">Surface Lowest</div>
+                    <div class="swatch-hex">#ffffff</div>
+                  </div>
+                </div>
+                <div class="swatch">
+                  <div class="swatch-color" style="background: #f0f0f8"></div>
+                  <div class="swatch-info">
+                    <div class="swatch-name">Surface Container Low</div>
+                    <div class="swatch-hex">#f0f0f8</div>
+                  </div>
+                </div>
+                <div class="swatch">
+                  <div class="swatch-color" style="background: #e8e8f0"></div>
+                  <div class="swatch-info">
+                    <div class="swatch-name">Surface Container</div>
+                    <div class="swatch-hex">#e8e8f0</div>
+                  </div>
+                </div>
+                <div class="swatch">
+                  <div class="swatch-color" style="background: #dcdce4"></div>
+                  <div class="swatch-info">
+                    <div class="swatch-name">Surface Highest</div>
+                    <div class="swatch-hex">#dcdce4</div>
+                  </div>
+                </div>
+                <div class="swatch">
+                  <div class="swatch-color" style="background: #f6f6ff"></div>
+                  <div class="swatch-info">
+                    <div class="swatch-name">Scaffold BG</div>
+                    <div class="swatch-hex">#f6f6ff</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="surface-panel" data-surface-panel="dark">
+              <div class="swatch-grid">
+                <div class="swatch">
+                  <div class="swatch-color" style="background: #0c0d13"></div>
+                  <div class="swatch-info">
+                    <div class="swatch-name">Surface Lowest</div>
+                    <div class="swatch-hex">#0c0d13</div>
+                  </div>
+                </div>
+                <div class="swatch">
+                  <div class="swatch-color" style="background: #1a1b23"></div>
+                  <div class="swatch-info">
+                    <div class="swatch-name">Surface Container Low</div>
+                    <div class="swatch-hex">#1a1b23</div>
+                  </div>
+                </div>
+                <div class="swatch">
+                  <div class="swatch-color" style="background: #1e1f28"></div>
+                  <div class="swatch-info">
+                    <div class="swatch-name">Surface Container</div>
+                    <div class="swatch-hex">#1e1f28</div>
+                  </div>
+                </div>
+                <div class="swatch">
+                  <div class="swatch-color" style="background: #343438"></div>
+                  <div class="swatch-info">
+                    <div class="swatch-name">Surface Highest</div>
+                    <div class="swatch-hex">#343438</div>
+                  </div>
+                </div>
+                <div class="swatch">
+                  <div class="swatch-color" style="background: #121318"></div>
+                  <div class="swatch-info">
+                    <div class="swatch-name">Scaffold BG</div>
+                    <div class="swatch-hex">#121318</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="surface-panel-note">
+              Use the tabs while toggling the page theme to compare both surface
+              scales against the same token names.
+            </div>
+          </div>
+
+          <div class="subsection">
+            <div class="subsection-title">On-Surface & Outline</div>
+            <div class="swatch-grid">
+              <div class="swatch">
+                <div class="swatch-color" style="background: #1a1b23"></div>
+                <div class="swatch-info">
+                  <div class="swatch-name">On Surface</div>
+                  <div class="swatch-hex">#1a1b23</div>
+                </div>
+              </div>
+              <div class="swatch">
+                <div class="swatch-color" style="background: #46475a"></div>
+                <div class="swatch-info">
+                  <div class="swatch-name">On Surface Variant</div>
+                  <div class="swatch-hex">#46475a</div>
+                </div>
+              </div>
+              <div class="swatch">
+                <div class="swatch-color" style="background: #767788"></div>
+                <div class="swatch-info">
+                  <div class="swatch-name">Outline</div>
+                  <div class="swatch-hex">#767788</div>
+                </div>
+              </div>
+              <div class="swatch">
+                <div class="swatch-color" style="background: #c5c6d8"></div>
+                <div class="swatch-info">
+                  <div class="swatch-name">Outline Variant</div>
+                  <div class="swatch-hex">#c5c6d8</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="subsection">
+            <div class="subsection-title">Feedback Colors</div>
+            <div class="swatch-grid">
+              <div class="swatch">
+                <div class="swatch-color" style="background: #ba1a1a"></div>
+                <div class="swatch-info">
+                  <div class="swatch-name">Error</div>
+                  <div class="swatch-hex">#ba1a1a</div>
+                </div>
+              </div>
+              <div class="swatch">
+                <div class="swatch-color" style="background: #1a7a40"></div>
+                <div class="swatch-info">
+                  <div class="swatch-name">Success</div>
+                  <div class="swatch-hex">#1a7a40</div>
+                </div>
+              </div>
+              <div class="swatch">
+                <div class="swatch-color" style="background: #b35900"></div>
+                <div class="swatch-info">
+                  <div class="swatch-name">Warning</div>
+                  <div class="swatch-hex">#b35900</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="subsection">
+            <div class="subsection-title">Tag Palette</div>
+            <p
+              class="section-sub"
+              style="margin-bottom: var(--space-3); margin-top: -8px"
+            >
+              Used exclusively for activity, mood, time, and growth tag chips.
+            </p>
+            <div class="tag-swatch-grid">
+              <div class="tag-swatch">
+                <div class="tag-swatch-color" style="background: #2196f3">
+                  💼
+                </div>
+                <div class="tag-swatch-info">
+                  <div class="tag-swatch-name">Blue</div>
+                  <div class="tag-swatch-hex">#2196F3</div>
+                </div>
+              </div>
+              <div class="tag-swatch">
+                <div class="tag-swatch-color" style="background: #4caf50">
+                  🏠
+                </div>
+                <div class="tag-swatch-info">
+                  <div class="tag-swatch-name">Green</div>
+                  <div class="tag-swatch-hex">#4CAF50</div>
+                </div>
+              </div>
+              <div class="tag-swatch">
+                <div class="tag-swatch-color" style="background: #9c27b0">
+                  ✈️
+                </div>
+                <div class="tag-swatch-info">
+                  <div class="tag-swatch-name">Purple</div>
+                  <div class="tag-swatch-hex">#9C27B0</div>
+                </div>
+              </div>
+              <div class="tag-swatch">
+                <div class="tag-swatch-color" style="background: #ff9800">
+                  🎨
+                </div>
+                <div class="tag-swatch-info">
+                  <div class="tag-swatch-name">Orange</div>
+                  <div class="tag-swatch-hex">#FF9800</div>
+                </div>
+              </div>
+              <div class="tag-swatch">
+                <div class="tag-swatch-color" style="background: #f44336">
+                  ❤️
+                </div>
+                <div class="tag-swatch-info">
+                  <div class="tag-swatch-name">Red</div>
+                  <div class="tag-swatch-hex">#F44336</div>
+                </div>
+              </div>
+              <div class="tag-swatch">
+                <div class="tag-swatch-color" style="background: #795548">
+                  🍽️
+                </div>
+                <div class="tag-swatch-info">
+                  <div class="tag-swatch-name">Brown</div>
+                  <div class="tag-swatch-hex">#795548</div>
+                </div>
+              </div>
+              <div class="tag-swatch">
+                <div class="tag-swatch-color" style="background: #ffc107">
+                  🏆
+                </div>
+                <div class="tag-swatch-info">
+                  <div class="tag-swatch-name">Amber</div>
+                  <div class="tag-swatch-hex">#FFC107</div>
+                </div>
+              </div>
+              <div class="tag-swatch">
+                <div class="tag-swatch-color" style="background: #3f51b5">
+                  🌙
+                </div>
+                <div class="tag-swatch-info">
+                  <div class="tag-swatch-name">Indigo</div>
+                  <div class="tag-swatch-hex">#3F51B5</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ════════════════════════════════════
+         § 2  TYPOGRAPHY
+    ════════════════════════════════════ -->
+        <section class="section" id="typography">
+          <h2 class="section-title">Typography</h2>
+          <p class="section-sub">
+            Font family: <strong>Garet</strong> (bundled asset). All sizes
+            follow the Material 3 type scale. Font is never loaded from Google
+            Fonts at runtime.
+          </p>
+
+          <div class="demo-box">
+            <div class="type-sample">
+              <div class="type-meta">
+                <div class="type-role">Display Large</div>
+                <div class="type-spec">57px · w700 · -1px ls</div>
+              </div>
+              <div class="display-large">Aa</div>
+            </div>
+            <div class="type-sample">
+              <div class="type-meta">
+                <div class="type-role">Display Medium</div>
+                <div class="type-spec">45px · w700</div>
+              </div>
+              <div class="display-medium">Aa</div>
+            </div>
+            <div class="type-sample">
+              <div class="type-meta">
+                <div class="type-role">Display Small</div>
+                <div class="type-spec">36px · w600</div>
+              </div>
+              <div class="display-small">Aa</div>
+            </div>
+            <div class="type-sample">
+              <div class="type-meta">
+                <div class="type-role">Headline Large</div>
+                <div class="type-spec">32px · w700</div>
+              </div>
+              <div class="headline-large">Aa</div>
+            </div>
+            <div class="type-sample">
+              <div class="type-meta">
+                <div class="type-role">Headline Medium</div>
+                <div class="type-spec">28px · w600</div>
+              </div>
+              <div class="headline-medium">Aa</div>
+            </div>
+            <div class="type-sample">
+              <div class="type-meta">
+                <div class="type-role">Headline Small</div>
+                <div class="type-spec">24px · w600</div>
+              </div>
+              <div class="headline-small">Aa</div>
+            </div>
+            <div class="type-sample">
+              <div class="type-meta">
+                <div class="type-role">Title Large</div>
+                <div class="type-spec">22px · w600</div>
+              </div>
+              <div class="title-large">My Notes</div>
+            </div>
+            <div class="type-sample">
+              <div class="type-meta">
+                <div class="type-role">Title Medium</div>
+                <div class="type-spec">16px · w600</div>
+              </div>
+              <div class="title-medium">Morning Reflection</div>
+            </div>
+            <div class="type-sample">
+              <div class="type-meta">
+                <div class="type-role">Title Small</div>
+                <div class="type-spec">14px · w500</div>
+              </div>
+              <div class="title-small">Tag: Work</div>
+            </div>
+            <div class="type-sample">
+              <div class="type-meta">
+                <div class="type-role">Body Large</div>
+                <div class="type-spec">16px · w400</div>
+              </div>
+              <div class="body-large">
+                Started the day with a quick standup meeting.
+              </div>
+            </div>
+            <div class="type-sample">
+              <div class="type-meta">
+                <div class="type-role">Body Medium</div>
+                <div class="type-spec">14px · w400</div>
+              </div>
+              <div class="body-medium">
+                Notes are organized using tags and folders for quick retrieval.
+              </div>
+            </div>
+            <div class="type-sample">
+              <div class="type-meta">
+                <div class="type-role">Body Small</div>
+                <div class="type-spec">12px · w400</div>
+              </div>
+              <div class="body-small">Last edited · 2 hours ago · 3 tags</div>
+            </div>
+            <div class="type-sample">
+              <div class="type-meta">
+                <div class="type-role">Label Large</div>
+                <div class="type-spec">14px · w600</div>
+              </div>
+              <div class="label-large">Save</div>
+            </div>
+            <div class="type-sample">
+              <div class="type-meta">
+                <div class="type-role">Label Medium</div>
+                <div class="type-spec">12px · w500</div>
+              </div>
+              <div class="label-medium">Work · Travel · Health</div>
+            </div>
+            <div class="type-sample">
+              <div class="type-meta">
+                <div class="type-role">Label Small</div>
+                <div class="type-spec">11px · w500</div>
+              </div>
+              <div class="label-small">May 10, 2026</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ════════════════════════════════════
+         § 3  SPACING & RADIUS
+    ════════════════════════════════════ -->
+        <section class="section" id="spacing">
+          <h2 class="section-title">Spacing & Border Radius</h2>
+          <p class="section-sub">
+            An 4-point spatial system. Border radius choices map directly to
+            widget roles.
+          </p>
+
+          <div
+            class="demo-row"
+            style="margin-bottom: var(--space-6); align-items: flex-end"
+          >
+            <div
+              style="
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 6px;
+              "
+            >
+              <div
+                style="
+                  width: 4px;
+                  height: 4px;
+                  background: var(--color-primary);
+                  border-radius: 1px;
+                "
+              ></div>
+              <code>space-1<br />4px</code>
+            </div>
+            <div
+              style="
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 6px;
+              "
+            >
+              <div
+                style="
+                  width: 8px;
+                  height: 8px;
+                  background: var(--color-primary);
+                  border-radius: 1px;
+                "
+              ></div>
+              <code>space-2<br />8px</code>
+            </div>
+            <div
+              style="
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 6px;
+              "
+            >
+              <div
+                style="
+                  width: 12px;
+                  height: 12px;
+                  background: var(--color-primary);
+                  border-radius: 1px;
+                "
+              ></div>
+              <code>space-3<br />12px</code>
+            </div>
+            <div
+              style="
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 6px;
+              "
+            >
+              <div
+                style="
+                  width: 16px;
+                  height: 16px;
+                  background: var(--color-primary);
+                  border-radius: 1px;
+                "
+              ></div>
+              <code>space-4<br />16px</code>
+            </div>
+            <div
+              style="
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 6px;
+              "
+            >
+              <div
+                style="
+                  width: 20px;
+                  height: 20px;
+                  background: var(--color-primary);
+                  border-radius: 1px;
+                "
+              ></div>
+              <code>space-5<br />20px</code>
+            </div>
+            <div
+              style="
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 6px;
+              "
+            >
+              <div
+                style="
+                  width: 24px;
+                  height: 24px;
+                  background: var(--color-primary);
+                  border-radius: 1px;
+                "
+              ></div>
+              <code>space-6<br />24px</code>
+            </div>
+            <div
+              style="
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 6px;
+              "
+            >
+              <div
+                style="
+                  width: 32px;
+                  height: 32px;
+                  background: var(--color-primary);
+                  border-radius: 1px;
+                "
+              ></div>
+              <code>space-8<br />32px</code>
+            </div>
+            <div
+              style="
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 6px;
+              "
+            >
+              <div
+                style="
+                  width: 48px;
+                  height: 48px;
+                  background: var(--color-primary);
+                  border-radius: 1px;
+                "
+              ></div>
+              <code>space-12<br />48px</code>
+            </div>
+          </div>
+
+          <table class="spec-table">
+            <thead>
+              <tr>
+                <th>Token</th>
+                <th>Value</th>
+                <th>Used for</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>--radius-xs</code></td>
+                <td>4px</td>
+                <td>Heatmap cells, code blocks, divider chips</td>
+              </tr>
+              <tr>
+                <td><code>--radius-sm</code></td>
+                <td>8px</td>
+                <td>Toast/snackbar, connectivity banner, small overlays</td>
+              </tr>
+              <tr>
+                <td><code>--radius-md</code></td>
+                <td>12px</td>
+                <td>
+                  <strong>Note cards, input fields, tag chip containers</strong>
+                </td>
+              </tr>
+              <tr>
+                <td><code>--radius-lg</code></td>
+                <td>16px</td>
+                <td>
+                  Insight cards, note editor body, phone frame sections, app bar
+                </td>
+              </tr>
+              <tr>
+                <td><code>--radius-xl</code></td>
+                <td>24px</td>
+                <td>Dialogs/modals, large bottom sheets</td>
+              </tr>
+              <tr>
+                <td><code>--radius-full</code></td>
+                <td>9999px</td>
+                <td>
+                  All chips, buttons, FAB, search bar, avatars, nav indicator
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- ════════════════════════════════════
+         § 4  ELEVATION / SHADOW
+    ════════════════════════════════════ -->
+        <section class="section" id="shadows">
+          <h2 class="section-title">Elevation & Shadow</h2>
+          <p class="section-sub">
+            Three tinted shadow levels using the brand primary color. Used on
+            hover states and floating elements.
+          </p>
+
+          <div class="demo-row">
+            <div
+              style="
+                background: var(--color-surface-container-low);
+                border-radius: var(--radius-md);
+                padding: 24px 32px;
+                box-shadow: var(--shadow-sm);
+                text-align: center;
+              "
+            >
+              <div class="label-medium">shadow-sm</div>
+              <div
+                class="body-small"
+                style="margin-top: 4px; color: var(--color-on-surface-variant)"
+              >
+                Resting cards
+              </div>
+            </div>
+            <div
+              style="
+                background: var(--color-surface-container-low);
+                border-radius: var(--radius-md);
+                padding: 24px 32px;
+                box-shadow: var(--shadow-md);
+                text-align: center;
+              "
+            >
+              <div class="label-medium">shadow-md</div>
+              <div
+                class="body-small"
+                style="margin-top: 4px; color: var(--color-on-surface-variant)"
+              >
+                Hovered cards, FAB
+              </div>
+            </div>
+            <div
+              style="
+                background: var(--color-surface-container-low);
+                border-radius: var(--radius-md);
+                padding: 24px 32px;
+                box-shadow: var(--shadow-lg);
+                text-align: center;
+              "
+            >
+              <div class="label-medium">shadow-lg</div>
+              <div
+                class="body-small"
+                style="margin-top: 4px; color: var(--color-on-surface-variant)"
+              >
+                Dialogs, toasts, FAB hover
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ════════════════════════════════════
+         § 5  BUTTONS
+    ════════════════════════════════════ -->
+        <section class="section" id="buttons">
+          <h2 class="section-title">Buttons</h2>
+          <p class="section-sub">
+            All buttons use <code>font-weight: 600</code>,
+            <code>border-radius: full</code>, and height 40px (default). Provide
+            clear visual feedback on hover/active states.
+          </p>
+
+          <div class="subsection">
+            <div class="subsection-title">Variants</div>
+            <div class="demo-box">
+              <div class="demo-row center">
+                <button class="btn btn-filled">Filled</button>
+                <button class="btn btn-tonal">Tonal</button>
+                <button class="btn btn-outlined">Outlined</button>
+                <button class="btn btn-text">Text</button>
+                <button class="btn btn-danger">Danger</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="subsection">
+            <div class="subsection-title">Sizes</div>
+            <div class="demo-box">
+              <div class="demo-row center">
+                <button class="btn btn-filled btn-sm">Small</button>
+                <button class="btn btn-filled">Default (40px)</button>
+                <button class="btn btn-filled btn-lg">Large</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="subsection">
+            <div class="subsection-title">Icon Button & FAB</div>
+            <div class="demo-box">
+              <div class="demo-row center">
+                <button class="btn-icon" title="Bookmark">🔖</button>
+                <button class="btn-icon" title="Search">🔍</button>
+                <button class="btn-icon primary" title="Add tag">🏷️</button>
+                <button class="fab" title="New note">✏️</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="subsection">
+            <div class="subsection-title">Disabled State</div>
+            <div class="demo-box">
+              <div class="demo-row center">
+                <button class="btn btn-filled" disabled>Save (disabled)</button>
+                <button class="btn btn-outlined" disabled>
+                  Cancel (disabled)
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <table class="spec-table" style="margin-top: var(--space-4)">
+            <thead>
+              <tr>
+                <th>Variant</th>
+                <th>Background</th>
+                <th>Height</th>
+                <th>Use case</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Filled</td>
+                <td><code>primary</code></td>
+                <td>40px</td>
+                <td>Primary CTA — Save, Confirm</td>
+              </tr>
+              <tr>
+                <td>Tonal</td>
+                <td><code>primary-container</code></td>
+                <td>40px</td>
+                <td>Secondary CTA — Sync, Export</td>
+              </tr>
+              <tr>
+                <td>Outlined</td>
+                <td>transparent</td>
+                <td>40px</td>
+                <td>Neutral action — Cancel, Back</td>
+              </tr>
+              <tr>
+                <td>Text</td>
+                <td>transparent</td>
+                <td>40px</td>
+                <td>Tertiary/inline — Learn more, Undo</td>
+              </tr>
+              <tr>
+                <td>Danger</td>
+                <td><code>error</code></td>
+                <td>40px</td>
+                <td>Destructive actions — Delete, Empty trash</td>
+              </tr>
+              <tr>
+                <td>Icon</td>
+                <td>transparent</td>
+                <td>40px</td>
+                <td>App bar actions, inline icons</td>
+              </tr>
+              <tr>
+                <td>FAB</td>
+                <td><code>primary-container</code></td>
+                <td>56px</td>
+                <td>New note — main screen only</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- ════════════════════════════════════
+         § 6  INPUTS
+    ════════════════════════════════════ -->
+        <section class="section" id="inputs">
+          <h2 class="section-title">Inputs</h2>
+          <p class="section-sub">
+            All input fields use <code>surface-container-low</code> background
+            with a subtle 1.5px border. Focus ring uses a 3px primary-tinted
+            outline.
+          </p>
+
+          <div class="demo-box">
+            <div class="demo-row" style="flex-wrap: wrap; gap: var(--space-6)">
+              <!-- Default -->
+              <div class="input-group">
+                <label class="input-label">Note Title</label>
+                <input
+                  class="input-field"
+                  type="text"
+                  placeholder="Title"
+                  value="Morning Reflection"
+                />
+                <span class="input-helper">Plain text. No formatting.</span>
+              </div>
+              <!-- Focus (simulate) -->
+              <div class="input-group">
+                <label class="input-label">Search Notes</label>
+                <div class="search-bar">
+                  <span class="search-icon">🔍</span>
+                  <input type="text" placeholder="Search your notes…" />
+                </div>
+              </div>
+              <!-- Error -->
+              <div class="input-group">
+                <label class="input-label">Tag Name</label>
+                <input
+                  class="input-field error"
+                  type="text"
+                  placeholder="Enter tag name"
+                  value="ab"
+                />
+                <span class="input-error"
+                  >⚠ Tag name must be at least 3 characters.</span
+                >
+              </div>
+              <!-- Note editor title (borderless) -->
+              <div class="input-group" style="width: 240px">
+                <label class="input-label">Editor Title (borderless)</label>
+                <div
+                  style="
+                    background: var(--color-surface-container-low);
+                    border-radius: var(--radius-md);
+                    padding: var(--space-3);
+                  "
+                >
+                  <input
+                    class="input-borderless"
+                    type="text"
+                    placeholder="Title"
+                    value="Daily Journal"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ════════════════════════════════════
+         § 7  TAG CHIPS
+    ════════════════════════════════════ -->
+        <section class="section" id="tags">
+          <h2 class="section-title">Tag Chips</h2>
+          <p class="section-sub">
+            Tags are the core taxonomy of Trovara. Each category has a fixed
+            color palette. All chips use <code>border-radius: full</code>.
+            Selected chips show the tag color on a tinted background.
+          </p>
+
+          <div class="subsection">
+            <div class="subsection-title">Activity Tags</div>
+            <div class="demo-box">
+              <div class="demo-row">
+                <span class="chip chip-colored" style="--chip-color: #2196f3"
+                  >💼 Work</span
+                >
+                <span class="chip chip-colored" style="--chip-color: #4caf50"
+                  >🏠 Home</span
+                >
+                <span class="chip chip-default">✈️ Travel</span>
+                <span class="chip chip-default">🎨 Hobbies</span>
+                <span class="chip chip-colored" style="--chip-color: #f44336"
+                  >❤️ Health</span
+                >
+                <span class="chip chip-default">🍽️ Food</span>
+              </div>
+              <div
+                class="demo-label"
+                style="
+                  margin-top: var(--space-3);
+                  margin-bottom: 0;
+                  font-size: 10px;
+                  color: var(--color-on-surface-variant);
+                "
+              >
+                Blue = selected · Grey = unselected
+              </div>
+            </div>
+          </div>
+
+          <div class="subsection">
+            <div class="subsection-title">Mood Tags</div>
+            <div class="demo-box">
+              <div class="demo-row">
+                <span class="chip chip-colored" style="--chip-color: #4caf50"
+                  >😊 Happy</span
+                >
+                <span class="chip chip-default">😢 Sad</span>
+                <span class="chip chip-default">😠 Angry</span>
+                <span class="chip chip-colored" style="--chip-color: #9c27b0"
+                  >😌 Calm</span
+                >
+                <span class="chip chip-default">😰 Stressed</span>
+                <span class="chip chip-colored" style="--chip-color: #795548"
+                  >🙏 Grateful</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <div class="subsection">
+            <div class="subsection-title">Time Tags</div>
+            <div class="demo-box">
+              <div class="demo-row">
+                <span class="chip chip-colored" style="--chip-color: #ff9800"
+                  >☀️ Morning ✦</span
+                >
+                <span class="chip chip-default">☀️ Afternoon</span>
+                <span class="chip chip-default">🌆 Evening</span>
+                <span class="chip chip-colored" style="--chip-color: #3f51b5"
+                  >🌙 Night</span
+                >
+                <span class="chip chip-default">💼 Weekday</span>
+                <span class="chip chip-default">🏖️ Weekend</span>
+              </div>
+              <div
+                class="demo-label"
+                style="
+                  margin-top: var(--space-2);
+                  margin-bottom: 0;
+                  font-size: 10px;
+                  color: var(--color-primary);
+                "
+              >
+                ✦ = Smart suggestion based on creation time
+              </div>
+            </div>
+          </div>
+
+          <div class="subsection">
+            <div class="subsection-title">Personal Growth Tags</div>
+            <div class="demo-box">
+              <div class="demo-row">
+                <span class="chip chip-colored" style="--chip-color: #2196f3"
+                  >🎓 Learning</span
+                >
+                <span class="chip chip-default">🏁 Goals</span>
+                <span class="chip chip-colored" style="--chip-color: #9c27b0"
+                  >🧘 Self-Care</span
+                >
+                <span class="chip chip-default">🎨 Creativity</span>
+                <span class="chip chip-default">🧠 Reflection</span>
+                <span class="chip chip-colored" style="--chip-color: #ffc107"
+                  >🏆 Achievement</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <div class="subsection">
+            <div class="subsection-title">Custom Tags (user-defined)</div>
+            <div class="demo-box">
+              <div class="demo-row">
+                <span class="chip chip-colored" style="--chip-color: #415bca"
+                  >flutter</span
+                >
+                <span class="chip chip-colored" style="--chip-color: #1a7a40"
+                  >mindfulness</span
+                >
+                <span class="chip chip-colored" style="--chip-color: #795548"
+                  >coffee</span
+                >
+                <span class="chip chip-default">+ Add tag</span>
+              </div>
+              <div style="margin-top: var(--space-3)">
+                <div class="demo-label" style="margin-bottom: var(--space-2)">
+                  Compact (note card)
+                </div>
+                <div class="demo-row">
+                  <span
+                    class="chip chip-compact chip-colored"
+                    style="--chip-color: #415bca"
+                    >flutter</span
+                  >
+                  <span
+                    class="chip chip-compact chip-colored"
+                    style="--chip-color: #1a7a40"
+                    >mindfulness</span
+                  >
+                  <span class="chip chip-compact chip-default">+2</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <table class="spec-table" style="margin-top: var(--space-4)">
+            <thead>
+              <tr>
+                <th>State</th>
+                <th>Background</th>
+                <th>Border</th>
+                <th>Text color</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Unselected</td>
+                <td><code>surface-container</code></td>
+                <td><code>outline-variant</code></td>
+                <td><code>on-surface-variant</code></td>
+              </tr>
+              <tr>
+                <td>Selected</td>
+                <td><code>tag-color @ 12% opacity</code></td>
+                <td><code>tag-color @ 30% opacity</code></td>
+                <td><code>tag-color</code> full</td>
+              </tr>
+              <tr>
+                <td>Compact</td>
+                <td>Same as selected</td>
+                <td>Same</td>
+                <td>Same</td>
+              </tr>
+              <tr>
+                <td>+N overflow</td>
+                <td><code>surface-container-highest</code></td>
+                <td><code>outline-variant</code></td>
+                <td><code>on-surface-variant</code></td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- ════════════════════════════════════
+         § 8  NOTE CARD
+    ════════════════════════════════════ -->
+        <section class="section" id="cards">
+          <h2 class="section-title">Note Card</h2>
+          <p class="section-sub">
+            The primary list item. Uses <code>surface-container-low</code>,
+            <code>radius-md (12px)</code>, 16px horizontal / 14px vertical
+            padding. Hover lifts with <code>shadow-md</code>.
+          </p>
+
+          <div class="demo-box">
+            <div class="demo-col" style="max-width: 460px">
+              <!-- Standard card -->
+              <div class="note-card">
+                <div class="note-card-header">
+                  <div class="note-card-title">Morning Reflection — Week 3</div>
+                  <div class="note-card-actions">
+                    <button
+                      class="btn-icon"
+                      style="width: 32px; height: 32px; font-size: 14px"
+                    >
+                      ⌄
+                    </button>
+                    <button
+                      class="btn-icon fav-icon active"
+                      style="width: 32px; height: 32px; font-size: 14px"
+                    >
+                      ★
+                    </button>
+                  </div>
+                </div>
+                <div class="note-card-preview">
+                  Started the day with a 20-minute journaling session. Reflected
+                  on last week's goals and identified three areas for
+                  improvement in my work process.
+                </div>
+                <div class="note-card-tags">
+                  <span
+                    class="chip chip-compact chip-colored"
+                    style="--chip-color: #4caf50"
+                    >😊 Happy</span
+                  >
+                  <span
+                    class="chip chip-compact chip-colored"
+                    style="--chip-color: #2196f3"
+                    >💼 Work</span
+                  >
+                  <span
+                    class="chip chip-compact chip-colored"
+                    style="--chip-color: #ff9800"
+                    >☀️ Morning</span
+                  >
+                  <span class="chip chip-compact chip-default">+1</span>
+                </div>
+                <div class="note-card-footer">
+                  <span class="note-card-date">May 10, 2026 · 09:14 AM</span>
+                </div>
+              </div>
+
+              <!-- No-content card (title only) -->
+              <div class="note-card">
+                <div class="note-card-header">
+                  <div class="note-card-title">Quick grocery list</div>
+                  <div class="note-card-actions">
+                    <button
+                      class="btn-icon fav-icon"
+                      style="width: 32px; height: 32px; font-size: 14px"
+                    >
+                      ☆
+                    </button>
+                  </div>
+                </div>
+                <div class="note-card-footer">
+                  <span class="note-card-date">May 9, 2026</span>
+                </div>
+              </div>
+
+              <!-- Deleted card -->
+              <div class="note-card deleted">
+                <div class="note-card-header">
+                  <div class="note-card-title">Old draft — 2025 Q4 goals</div>
+                  <div class="note-card-actions">
+                    <button
+                      class="btn btn-text btn-sm"
+                      style="color: var(--color-primary)"
+                    >
+                      Restore
+                    </button>
+                  </div>
+                </div>
+                <div class="note-card-footer">
+                  <span class="note-card-date">⏳ Deleted 5 days ago</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <table class="spec-table" style="margin-top: var(--space-4)">
+            <thead>
+              <tr>
+                <th>Property</th>
+                <th>Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Background</td>
+                <td><code>surface-container-low</code></td>
+              </tr>
+              <tr>
+                <td>Border radius</td>
+                <td><code>radius-md (12px)</code></td>
+              </tr>
+              <tr>
+                <td>Padding</td>
+                <td>16px horizontal · 14px vertical</td>
+              </tr>
+              <tr>
+                <td>Hover shadow</td>
+                <td><code>shadow-md</code> + <code>translateY(-1px)</code></td>
+              </tr>
+              <tr>
+                <td>Title style</td>
+                <td><code>title-medium · w600</code></td>
+              </tr>
+              <tr>
+                <td>Preview style</td>
+                <td><code>body-small</code> · 2-line clamp</td>
+              </tr>
+              <tr>
+                <td>Gap between rows</td>
+                <td><code>space-2 (8px)</code></td>
+              </tr>
+              <tr>
+                <td>Icon button size</td>
+                <td>32×32px within card</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- ════════════════════════════════════
+         § 9  APP BAR
+    ════════════════════════════════════ -->
+        <section class="section" id="appbar">
+          <h2 class="section-title">App Bar</h2>
+          <p class="section-sub">
+            Height: 56px. Background: <code>surface</code>.
+            <code>surfaceTintColor: transparent</code>. Title uses
+            <code>title-large · w600</code>. Actions are 40×40 icon buttons.
+          </p>
+
+          <div class="demo-box" style="padding: 0; overflow: hidden">
+            <!-- Notes app bar -->
+            <div class="app-bar">
+              <div class="app-bar-title">Notes</div>
+              <div class="app-bar-actions">
+                <button class="btn-icon">🗑️</button>
+                <button class="btn-icon">🔍</button>
+                <button class="btn-icon">⚙️</button>
+              </div>
+            </div>
+            <!-- Note editor app bar -->
+            <div
+              class="app-bar"
+              style="
+                border-radius: 0;
+                border-top: 1px solid var(--color-outline-variant);
+              "
+            >
+              <button class="back-btn">←</button>
+              <div class="app-bar-title">Morning Reflection</div>
+              <div class="app-bar-actions">
+                <button class="btn-icon" title="Tags">🏷️</button>
+                <button class="btn-icon" title="Save">💾</button>
+              </div>
+            </div>
+            <!-- Insights app bar -->
+            <div
+              class="app-bar"
+              style="
+                border-radius: 0;
+                border-top: 1px solid var(--color-outline-variant);
+              "
+            >
+              <div class="app-bar-title">Insights</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ════════════════════════════════════
+         § 10  BOTTOM NAV
+    ════════════════════════════════════ -->
+        <section class="section" id="bottomnav">
+          <h2 class="section-title">Bottom Navigation</h2>
+          <p class="section-sub">
+            Height: 72px. Three destinations: Notes, Insights, Settings. Active
+            item uses a pill indicator in <code>secondary-container</code>.
+          </p>
+
+          <div
+            class="demo-box"
+            style="padding: 0; max-width: 360px; overflow: hidden"
+          >
+            <div class="bottom-nav">
+              <button class="bottom-nav-item active">
+                <div class="nav-indicator">📝</div>
+                <span class="bottom-nav-label">Notes</span>
+              </button>
+              <button class="bottom-nav-item">
+                <div class="nav-indicator">📊</div>
+                <span class="bottom-nav-label">Insights</span>
+              </button>
+              <button class="bottom-nav-item">
+                <div class="nav-indicator">⚙️</div>
+                <span class="bottom-nav-label">Settings</span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ════════════════════════════════════
+         § 11  TOAST
+    ════════════════════════════════════ -->
+        <section class="section" id="toast">
+          <h2 class="section-title">Toast / Snackbar (NmToast)</h2>
+          <p class="section-sub">
+            Shown via <code>NmToast.show()</code>. Left-border communicates
+            severity. Max width 360px. Optional action button aligned right.
+          </p>
+
+          <div class="demo-box">
+            <div class="demo-col" style="align-items: flex-start">
+              <div class="toast info">
+                <span class="toast-icon">ℹ️</span>
+                <span>Note saved successfully.</span>
+                <button class="toast-action">Undo</button>
+              </div>
+              <div class="toast success">
+                <span class="toast-icon">✅</span>
+                <span>Synced with Google Drive.</span>
+              </div>
+              <div class="toast error">
+                <span class="toast-icon">❌</span>
+                <span>Could not connect. Check your internet.</span>
+                <button class="toast-action">Retry</button>
+              </div>
+              <div class="toast warning">
+                <span class="toast-icon">⚠️</span>
+                <span>Note moved to Recently Deleted.</span>
+                <button class="toast-action">Undo</button>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top: var(--space-4)">
+            <div class="connectivity-banner">📡 No internet connection</div>
+            <div
+              class="connectivity-banner online"
+              style="margin-top: var(--space-2)"
+            >
+              ✅ Back online
+            </div>
+          </div>
+        </section>
+
+        <!-- ════════════════════════════════════
+         § 12  CHAT BUBBLES
+    ════════════════════════════════════ -->
+        <section class="section" id="chat">
+          <h2 class="section-title">Chat Bubbles</h2>
+          <p class="section-sub">
+            Used in the "Ask your notes" RAG chat interface. AI bubbles appear
+            left with a sparkle avatar; user bubbles appear right in primary
+            color.
+          </p>
+
+          <div
+            class="demo-row"
+            style="
+              align-items: flex-start;
+              flex-wrap: wrap;
+              gap: var(--space-6);
+            "
+          >
+            <div class="chat-container">
+              <div class="chat-row">
+                <div class="chat-avatar">✦</div>
+                <div>
+                  <div class="chat-bubble ai">
+                    Hello! I can help you search through your notes. What would
+                    you like to know?
+                  </div>
+                  <div class="source-chips">
+                    <span class="source-chip">Morning Reflection</span>
+                    <span class="source-chip">Week Goals</span>
+                  </div>
+                </div>
+              </div>
+              <div class="chat-row user">
+                <div class="chat-avatar user-avatar">U</div>
+                <div class="chat-bubble user">
+                  What did I write about mindfulness last week?
+                </div>
+              </div>
+              <div class="chat-row">
+                <div class="chat-avatar">✦</div>
+                <div class="chat-bubble ai">
+                  In your "Morning Reflection" note from May 5…
+                  <div class="typing-indicator" style="padding: 8px 0 2px">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style="max-width: 340px">
+              <div class="demo-label">Chat Input Field</div>
+              <div class="chat-input-row">
+                <textarea
+                  placeholder="Ask about your notes…"
+                  rows="1"
+                ></textarea>
+                <button class="chat-send-btn">➤</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ════════════════════════════════════
+         § 13  DIALOGS
+    ════════════════════════════════════ -->
+        <section class="section" id="dialog">
+          <h2 class="section-title">Dialogs</h2>
+          <p class="section-sub">
+            Dialogs use <code>radius-xl (24px)</code>,
+            <code>surface-container-low</code> background, and
+            <code>shadow-lg</code>. Scrim overlay at 32% opacity. Action buttons
+            right-aligned.
+          </p>
+
+          <div class="demo-row" style="flex-wrap: wrap; gap: var(--space-4)">
+            <!-- Confirm delete -->
+            <div class="dialog" style="box-shadow: var(--shadow-lg)">
+              <div class="dialog-icon">🗑️</div>
+              <div class="dialog-title">Delete note?</div>
+              <div class="dialog-body">
+                This note will be moved to Recently Deleted. It will be
+                permanently deleted after 30 days.
+              </div>
+              <div class="dialog-actions">
+                <button class="btn btn-outlined btn-sm">Cancel</button>
+                <button class="btn btn-danger btn-sm">Delete</button>
+              </div>
+            </div>
+
+            <!-- Sign in -->
+            <div class="dialog" style="box-shadow: var(--shadow-lg)">
+              <div class="dialog-icon">☁️</div>
+              <div class="dialog-title">Sync with Drive</div>
+              <div class="dialog-body">
+                Sign in with Google to enable automatic backup and cross-device
+                sync.
+              </div>
+              <div class="dialog-actions">
+                <button class="btn btn-text btn-sm">Not now</button>
+                <button class="btn btn-filled btn-sm">Sign in</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ════════════════════════════════════
+         § 14  INSIGHTS
+    ════════════════════════════════════ -->
+        <section class="section" id="insights">
+          <h2 class="section-title">Insights Components</h2>
+          <p class="section-sub">
+            Stat cards, activity heatmap, and legend components used in the
+            Insights screen.
+          </p>
+
+          <div class="subsection">
+            <div class="subsection-title">Stat Cards</div>
+            <div class="demo-row" style="flex-wrap: wrap">
+              <div class="stat-card" style="flex: 1; min-width: 140px">
+                <div class="stat-label">Notes this week</div>
+                <div class="stat-value">12</div>
+                <div class="stat-sub">↑ 3 from last week</div>
+              </div>
+              <div class="stat-card" style="flex: 1; min-width: 140px">
+                <div class="stat-label">Top tag</div>
+                <div class="stat-value" style="font-size: 28px">💼 Work</div>
+                <div class="stat-sub">Used 8 times</div>
+              </div>
+              <div class="stat-card" style="flex: 1; min-width: 140px">
+                <div class="stat-label">Avg. sentiment</div>
+                <div class="stat-value" style="color: var(--color-success)">
+                  😊 +0.7
+                </div>
+                <div class="stat-sub">Positive trend</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="subsection">
+            <div class="subsection-title">
+              Activity Heatmap (12-week excerpt)
+            </div>
+            <div class="demo-box">
+              <div class="heatmap-row" id="heatmap"></div>
+              <div
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 6px;
+                  margin-top: var(--space-3);
+                "
+              >
+                <span
+                  style="
+                    font-size: 12px;
+                    color: var(--color-on-surface-variant);
+                  "
+                  >Less</span
+                >
+                <div class="heat-cell heat-0"></div>
+                <div class="heat-cell heat-1"></div>
+                <div class="heat-cell heat-2"></div>
+                <div class="heat-cell heat-3"></div>
+                <div class="heat-cell heat-4"></div>
+                <span
+                  style="
+                    font-size: 12px;
+                    color: var(--color-on-surface-variant);
+                  "
+                  >More</span
+                >
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ════════════════════════════════════
+         § 15  SCREEN WIREFRAMES
+    ════════════════════════════════════ -->
+        <section class="section" id="screens">
+          <h2 class="section-title">Screen Wireframes</h2>
+          <p class="section-sub">
+            How all components assemble into full screens.
+          </p>
+
+          <div
+            class="demo-row"
+            style="
+              align-items: flex-start;
+              flex-wrap: wrap;
+              gap: var(--space-6);
+            "
+          >
+            <!-- Notes list screen -->
+            <div>
+              <div class="demo-label" style="margin-bottom: var(--space-2)">
+                Notes List Screen
+              </div>
+              <div class="phone-frame">
+                <div class="app-bar" style="border-radius: 0">
+                  <div class="app-bar-title">Notes</div>
+                  <div class="app-bar-actions">
+                    <button class="btn-icon" style="font-size: 16px">🗑️</button>
+                    <button class="btn-icon" style="font-size: 16px">🔍</button>
+                  </div>
+                </div>
+                <div class="phone-screen">
+                  <div class="search-bar" style="margin-bottom: var(--space-1)">
+                    <span class="search-icon">🔍</span>
+                    <input
+                      type="text"
+                      placeholder="Search notes…"
+                      style="font-size: 13px"
+                    />
+                  </div>
+                  <div class="section-divider">
+                    <div class="section-divider-line"></div>
+                    <div class="section-divider-label">Today</div>
+                    <div class="section-divider-line"></div>
+                  </div>
+                  <div class="note-card">
+                    <div class="note-card-header">
+                      <div class="note-card-title" style="font-size: 14px">
+                        Morning Reflection
+                      </div>
+                      <button
+                        class="btn-icon fav-icon active"
+                        style="width: 28px; height: 28px; font-size: 12px"
+                      >
+                        ★
+                      </button>
+                    </div>
+                    <div class="note-card-tags">
+                      <span
+                        class="chip chip-compact chip-colored"
+                        style="--chip-color: #4caf50; font-size: 10px"
+                        >😊 Happy</span
+                      >
+                      <span
+                        class="chip chip-compact chip-colored"
+                        style="--chip-color: #ff9800; font-size: 10px"
+                        >☀️ Morning</span
+                      >
+                    </div>
+                    <div class="note-card-footer">
+                      <span class="note-card-date">09:14 AM</span>
+                    </div>
+                  </div>
+                  <div class="note-card">
+                    <div class="note-card-header">
+                      <div class="note-card-title" style="font-size: 14px">
+                        Q3 Planning Notes
+                      </div>
+                      <button
+                        class="btn-icon fav-icon"
+                        style="width: 28px; height: 28px; font-size: 12px"
+                      >
+                        ☆
+                      </button>
+                    </div>
+                    <div class="note-card-tags">
+                      <span
+                        class="chip chip-compact chip-colored"
+                        style="--chip-color: #2196f3; font-size: 10px"
+                        >💼 Work</span
+                      >
+                    </div>
+                    <div class="note-card-footer">
+                      <span class="note-card-date">Yesterday</span>
+                    </div>
+                  </div>
+                  <div class="note-card">
+                    <div class="note-card-header">
+                      <div class="note-card-title" style="font-size: 14px">
+                        Book notes: Atomic Habits
+                      </div>
+                    </div>
+                    <div class="note-card-tags">
+                      <span
+                        class="chip chip-compact chip-colored"
+                        style="--chip-color: #2196f3; font-size: 10px"
+                        >🎓 Learning</span
+                      >
+                    </div>
+                    <div class="note-card-footer">
+                      <span class="note-card-date">May 8</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- FAB -->
+                <div style="position: relative">
+                  <button
+                    class="fab"
+                    style="
+                      position: absolute;
+                      bottom: 16px;
+                      right: 16px;
+                      width: 48px;
+                      height: 48px;
+                      font-size: 18px;
+                    "
+                  >
+                    ✏️
+                  </button>
+                  <div style="height: 88px"></div>
+                </div>
+                <div class="bottom-nav">
+                  <button class="bottom-nav-item active">
+                    <div
+                      class="nav-indicator"
+                      style="width: 52px; height: 28px; font-size: 16px"
+                    >
+                      📝
+                    </div>
+                    <span class="bottom-nav-label">Notes</span>
+                  </button>
+                  <button class="bottom-nav-item">
+                    <div
+                      class="nav-indicator"
+                      style="width: 52px; height: 28px; font-size: 16px"
+                    >
+                      📊
+                    </div>
+                    <span class="bottom-nav-label">Insights</span>
+                  </button>
+                  <button class="bottom-nav-item">
+                    <div
+                      class="nav-indicator"
+                      style="width: 52px; height: 28px; font-size: 16px"
+                    >
+                      ⚙️
+                    </div>
+                    <span class="bottom-nav-label">Settings</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Note editor screen -->
+            <div>
+              <div class="demo-label" style="margin-bottom: var(--space-2)">
+                Note Editor Screen
+              </div>
+              <div class="phone-frame">
+                <div class="app-bar" style="border-radius: 0">
+                  <button class="back-btn" style="font-size: 16px">←</button>
+                  <div class="app-bar-title" style="font-size: 16px">
+                    Editing
+                  </div>
+                  <div class="app-bar-actions">
+                    <button class="btn-icon" style="font-size: 15px">🏷️</button>
+                    <button class="btn-icon" style="font-size: 15px">💾</button>
+                  </div>
+                </div>
+                <div class="phone-screen" style="gap: 0">
+                  <div
+                    style="
+                      background: var(--color-surface-container-low);
+                      border-radius: var(--radius-md);
+                      padding: var(--space-3);
+                      flex: 1;
+                      display: flex;
+                      flex-direction: column;
+                      gap: var(--space-3);
+                    "
+                  >
+                    <input
+                      class="input-borderless"
+                      style="font-size: 18px"
+                      type="text"
+                      value="Morning Reflection"
+                      readonly
+                    />
+                    <div
+                      style="
+                        font-size: 13px;
+                        color: var(--color-on-surface-variant);
+                        line-height: 1.6;
+                        flex: 1;
+                      "
+                    >
+                      Started the day with intention. Took 15 minutes to review
+                      my goals before checking notifications. The focus session
+                      was productive.<br /><br />
+                      <span
+                        style="
+                          color: var(--color-on-surface-variant);
+                          opacity: 0.5;
+                        "
+                        >|</span
+                      >
+                    </div>
+                  </div>
+                </div>
+                <div
+                  style="
+                    background: var(--color-surface);
+                    border-top: 1px solid var(--color-outline-variant);
+                    padding: 8px var(--space-3);
+                    display: flex;
+                    gap: var(--space-2);
+                    overflow-x: auto;
+                  "
+                >
+                  <button
+                    class="btn-icon"
+                    style="
+                      width: 32px;
+                      height: 32px;
+                      font-size: 13px;
+                      flex-shrink: 0;
+                      font-weight: 700;
+                    "
+                  >
+                    B
+                  </button>
+                  <button
+                    class="btn-icon"
+                    style="
+                      width: 32px;
+                      height: 32px;
+                      font-size: 13px;
+                      flex-shrink: 0;
+                      font-style: italic;
+                    "
+                  >
+                    I
+                  </button>
+                  <button
+                    class="btn-icon"
+                    style="
+                      width: 32px;
+                      height: 32px;
+                      font-size: 13px;
+                      flex-shrink: 0;
+                      text-decoration: underline;
+                    "
+                  >
+                    U
+                  </button>
+                  <button
+                    class="btn-icon"
+                    style="
+                      width: 32px;
+                      height: 32px;
+                      font-size: 13px;
+                      flex-shrink: 0;
+                    "
+                  >
+                    ≡
+                  </button>
+                  <button
+                    class="btn-icon"
+                    style="
+                      width: 32px;
+                      height: 32px;
+                      font-size: 13px;
+                      flex-shrink: 0;
+                    "
+                  >
+                    —
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Insights screen -->
+            <div>
+              <div class="demo-label" style="margin-bottom: var(--space-2)">
+                Insights Screen
+              </div>
+              <div class="phone-frame">
+                <div class="app-bar" style="border-radius: 0">
+                  <div class="app-bar-title">Insights</div>
+                </div>
+                <div class="phone-screen">
+                  <div class="demo-row" style="gap: var(--space-2)">
+                    <div class="stat-card" style="flex: 1">
+                      <div class="stat-label" style="font-size: 10px">
+                        This week
+                      </div>
+                      <div class="stat-value" style="font-size: 28px">12</div>
+                      <div class="stat-sub">notes</div>
+                    </div>
+                    <div class="stat-card" style="flex: 1">
+                      <div class="stat-label" style="font-size: 10px">Mood</div>
+                      <div
+                        class="stat-value"
+                        style="font-size: 22px; color: var(--color-success)"
+                      >
+                        😊
+                      </div>
+                      <div class="stat-sub">Positive</div>
+                    </div>
+                  </div>
+                  <div class="stat-card">
+                    <div
+                      class="stat-label"
+                      style="font-size: 10px; margin-bottom: var(--space-2)"
+                    >
+                      12-week Activity
+                    </div>
+                    <div
+                      class="heatmap-row"
+                      id="heatmap2"
+                      style="gap: 3px; flex-wrap: wrap"
+                    ></div>
+                    <div
+                      style="
+                        display: flex;
+                        align-items: center;
+                        gap: 4px;
+                        margin-top: var(--space-2);
+                      "
+                    >
+                      <span
+                        style="
+                          font-size: 10px;
+                          color: var(--color-on-surface-variant);
+                        "
+                        >Less</span
+                      >
+                      <div
+                        class="heat-cell heat-0"
+                        style="width: 10px; height: 10px"
+                      ></div>
+                      <div
+                        class="heat-cell heat-2"
+                        style="width: 10px; height: 10px"
+                      ></div>
+                      <div
+                        class="heat-cell heat-4"
+                        style="width: 10px; height: 10px"
+                      ></div>
+                      <span
+                        style="
+                          font-size: 10px;
+                          color: var(--color-on-surface-variant);
+                        "
+                        >More</span
+                      >
+                    </div>
+                  </div>
+                  <div class="stat-card">
+                    <div
+                      class="stat-label"
+                      style="font-size: 10px; margin-bottom: var(--space-2)"
+                    >
+                      Top Tags
+                    </div>
+                    <div class="demo-row" style="gap: var(--space-1)">
+                      <span
+                        class="chip chip-compact chip-colored"
+                        style="--chip-color: #2196f3; font-size: 10px"
+                        >💼 Work · 8</span
+                      >
+                      <span
+                        class="chip chip-compact chip-colored"
+                        style="--chip-color: #4caf50; font-size: 10px"
+                        >😊 Happy · 6</span
+                      >
+                      <span
+                        class="chip chip-compact chip-colored"
+                        style="--chip-color: #ff9800; font-size: 10px"
+                        >☀️ Morning · 5</span
+                      >
+                    </div>
+                  </div>
+                </div>
+                <div class="bottom-nav">
+                  <button class="bottom-nav-item">
+                    <div
+                      class="nav-indicator"
+                      style="width: 52px; height: 28px; font-size: 16px"
+                    >
+                      📝
+                    </div>
+                    <span class="bottom-nav-label">Notes</span>
+                  </button>
+                  <button class="bottom-nav-item active">
+                    <div
+                      class="nav-indicator"
+                      style="width: 52px; height: 28px; font-size: 16px"
+                    >
+                      📊
+                    </div>
+                    <span class="bottom-nav-label">Insights</span>
+                  </button>
+                  <button class="bottom-nav-item">
+                    <div
+                      class="nav-indicator"
+                      style="width: 52px; height: 28px; font-size: 16px"
+                    >
+                      ⚙️
+                    </div>
+                    <span class="bottom-nav-label">Settings</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Footer -->
+        <div
+          style="
+            border-top: 1px solid var(--color-outline-variant);
+            padding-top: var(--space-6);
+            margin-top: var(--space-8);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: var(--space-2);
+          "
+        >
+          <div>
+            <div class="label-medium" style="color: var(--color-on-surface)">
+              Trovara Design System
+            </div>
+            <div
+              class="body-small"
+              style="color: var(--color-on-surface-variant); margin-top: 2px"
+            >
+              v1.0 · Brand #415bca · Font: Garet · Material 3
+            </div>
+          </div>
+          <div
+            class="body-small"
+            style="color: var(--color-on-surface-variant)"
+          >
+            Every widget in the app must reference these tokens.
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      /* ─── Theme toggle ─── */
+      function toggleTheme() {
+        const html = document.documentElement;
+        const btn = document.getElementById("themeBtn");
+        const isDark = html.dataset.theme === "dark";
+        html.dataset.theme = isDark ? "light" : "dark";
+        btn.textContent = isDark ? "🌙 Dark" : "☀️ Light";
+      }
+
+      /* ─── Active nav on scroll ─── */
+      const sections = document.querySelectorAll("section[id], .page-header");
+      const navItems = document.querySelectorAll(".nav-item");
+      window.addEventListener(
+        "scroll",
+        () => {
+          let current = "";
+          sections.forEach((s) => {
+            if (window.scrollY >= s.offsetTop - 80) current = s.id;
+          });
+          navItems.forEach((item) => {
+            item.classList.remove("active");
+            if (item.getAttribute("href") === "#" + current)
+              item.classList.add("active");
+          });
+        },
+        { passive: true },
+      );
+
+      /* ─── Smooth scroll for nav links ─── */
+      navItems.forEach((item) => {
+        item.addEventListener("click", (e) => {
+          const href = item.getAttribute("href");
+          if (href && href.startsWith("#")) {
+            e.preventDefault();
+            const el = document.querySelector(href);
+            if (el) el.scrollIntoView({ behavior: "smooth" });
+          }
+        });
+      });
+
+      /* ─── Heatmap generator ─── */
+      function genHeatmap(id, cols) {
+        const container = document.getElementById(id);
+        if (!container) return;
+        const days = cols * 7;
+        for (let i = 0; i < days; i++) {
+          const cell = document.createElement("div");
+          const v = [0, 0, 0, 0, 1, 1, 2, 2, 3, 4][
+            Math.floor(Math.random() * 10)
+          ];
+          cell.className = `heat-cell heat-${v}`;
+          container.appendChild(cell);
+        }
+      }
+      genHeatmap("heatmap", 12);
+      genHeatmap("heatmap2", 8);
+
+      /* ─── Surface scale tabs ─── */
+      const surfaceTabs = document.querySelectorAll(".surface-tab");
+      const surfacePanels = document.querySelectorAll(
+        ".surface-panel[data-surface-panel]",
+      );
+
+      surfaceTabs.forEach((tab) => {
+        tab.addEventListener("click", () => {
+          const target = tab.dataset.surfaceTab;
+
+          surfaceTabs.forEach((otherTab) => {
+            const isActive = otherTab === tab;
+            otherTab.classList.toggle("active", isActive);
+            otherTab.setAttribute("aria-selected", String(isActive));
+          });
+
+          surfacePanels.forEach((panel) => {
+            panel.classList.toggle(
+              "active",
+              panel.dataset.surfacePanel === target,
+            );
+          });
+        });
+      });
+
+      /* ─── Chip toggle demo ─── */
+      document.querySelectorAll(".chip").forEach((chip) => {
+        chip.addEventListener("click", () => {
+          // Visual toggle only
+          chip.style.opacity = chip.style.opacity === "0.5" ? "1" : "0.5";
+        });
+      });
+    </script>
+  </body>
+</html>

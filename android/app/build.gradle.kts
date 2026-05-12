@@ -146,6 +146,9 @@ android {
         release {
             // Signing is set per product flavor (stagingRelease / prodRelease only). Do not fall back
             // to the other flavor’s key here — that would sign `prod` builds with the staging keystore.
+            
+            // Enable ProGuard/R8 rules if minification is ever enabled
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
         debug {
             signingConfig = signingConfigs.getByName("debug")

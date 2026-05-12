@@ -1,4 +1,5 @@
-import 'package:patrol/patrol.dart';
+import 'package:flutter_test/flutter_test.dart';
+import '../test_support.dart';
 import 'package:trovara/core/repository/interfaces/folder_repository.dart';
 import 'package:trovara/core/repository/interfaces/note_repository.dart';
 import 'package:trovara/core/services/ai/document_resolver_service.dart';
@@ -219,12 +220,12 @@ void main() {
   // ─────────────────────────────────────────────────────────────────────────
 
   group('buildFromDocuments', () {
-    patrolTest('returns null for empty document list', () {
+    patrolTest('returns null for empty document list', ($) async {
       final result = promptBuilder.buildFromDocuments(userQuery: 'What about meditation?', documents: []);
       expect(result, isNull);
     });
 
-    patrolTest('includes system prompt', () {
+    patrolTest('includes system prompt', ($) async {
       final note = _makeNote(id: 1, title: 'Morning');
       noteRepo.seed([note]);
 
@@ -239,7 +240,7 @@ void main() {
       expect(prompt, contains(PromptBuilderService.systemPrompt));
     });
 
-    patrolTest('includes context delimiters', () {
+    patrolTest('includes context delimiters', ($) async {
       final note = _makeNote(id: 1, title: 'Note A');
       noteRepo.seed([note]);
 
@@ -251,7 +252,7 @@ void main() {
       expect(prompt, contains('END OF NOTES'));
     });
 
-    patrolTest('includes note title, date, and folder', () {
+    patrolTest('includes note title, date, and folder', ($) async {
       final note = _makeNote(id: 1, title: 'Morning Reflection', folderId: 'journal', createdAt: DateTime(2026, 2, 20));
       noteRepo.seed([note]);
 
@@ -264,7 +265,7 @@ void main() {
       expect(prompt, contains('Folder: journal'));
     });
 
-    patrolTest('includes mood, activity, time, and growth tags', () {
+    patrolTest('includes mood, activity, time, and growth tags', ($) async {
       final note = _makeNote(
         id: 1,
         title: 'Tagged Note',
@@ -285,7 +286,7 @@ void main() {
       expect(prompt, contains('growth: mindfulness'));
     });
 
-    patrolTest('omits Tags line when note has no tags', () {
+    patrolTest('omits Tags line when note has no tags', ($) async {
       final note = _makeNote(id: 1, title: 'No Tags');
       noteRepo.seed([note]);
 
@@ -296,7 +297,7 @@ void main() {
       expect(prompt, isNot(contains('Tags:')));
     });
 
-    patrolTest('includes combined chunk text as content', () {
+    patrolTest('includes combined chunk text as content', ($) async {
       final note = _makeNote(id: 1, title: 'Multi-chunk');
       noteRepo.seed([note]);
 
@@ -316,7 +317,7 @@ void main() {
       expect(prompt, contains('Second chunk'));
     });
 
-    patrolTest('includes user question at the end', () {
+    patrolTest('includes user question at the end', ($) async {
       final note = _makeNote(id: 1, title: 'Note');
       noteRepo.seed([note]);
 
@@ -330,7 +331,7 @@ void main() {
       expect(prompt, contains('User question: What did I write about meditation?'));
     });
 
-    patrolTest('numbers multiple notes sequentially', () {
+    patrolTest('numbers multiple notes sequentially', ($) async {
       final noteA = _makeNote(id: 1, title: 'Alpha');
       final noteB = _makeNote(id: 2, title: 'Beta');
       noteRepo.seed([noteA, noteB]);
@@ -346,7 +347,7 @@ void main() {
       expect(prompt, contains('[Note 2]'));
     });
 
-    patrolTest('prompt structure has correct ordering', () {
+    patrolTest('prompt structure has correct ordering', ($) async {
       final note = _makeNote(id: 1, title: 'Ordering Test');
       noteRepo.seed([note]);
 
@@ -377,12 +378,12 @@ void main() {
   // ─────────────────────────────────────────────────────────────────────────
 
   group('buildFromChunks', () {
-    patrolTest('returns null for empty scored chunks', () {
+    patrolTest('returns null for empty scored chunks', ($) async {
       final result = promptBuilder.buildFromChunks(userQuery: 'test', scoredChunks: []);
       expect(result, isNull);
     });
 
-    patrolTest('returns null when all notes are deleted', () {
+    patrolTest('returns null when all notes are deleted', ($) async {
       final deletedNote = _makeNote(id: 1, title: 'Deleted', isDeleted: true);
       noteRepo.seed([deletedNote]);
 
@@ -390,7 +391,7 @@ void main() {
       expect(result, isNull);
     });
 
-    patrolTest('resolves chunks and builds prompt end-to-end', () {
+    patrolTest('resolves chunks and builds prompt end-to-end', ($) async {
       final note = _makeNote(id: 1, title: 'End to End');
       noteRepo.seed([note]);
 
@@ -404,7 +405,7 @@ void main() {
       expect(prompt, contains('User question: meditation tips?'));
     });
 
-    patrolTest('respects maxNotes parameter', () {
+    patrolTest('respects maxNotes parameter', ($) async {
       final notes = List.generate(10, (i) => _makeNote(id: i + 1, title: 'Note ${i + 1}'));
       noteRepo.seed(notes);
 
@@ -425,7 +426,7 @@ void main() {
   // ─────────────────────────────────────────────────────────────────────────
 
   group('buildSingleTurnUserPayload', () {
-    patrolTest('omits system prompt; includes Question and Information', () {
+    patrolTest('omits system prompt; includes Question and Information', ($) async {
       final payload = promptBuilder.buildSingleTurnUserPayload(
         userQuery: 'What about meditation?',
         topChunkContexts: [
@@ -448,12 +449,12 @@ void main() {
   });
 
   group('buildSingleTurn', () {
-    patrolTest('returns null when no contexts', () {
+    patrolTest('returns null when no contexts', ($) async {
       final prompt = promptBuilder.buildSingleTurn(userQuery: 'test', topChunkContexts: []);
       expect(prompt, isNull);
     });
 
-    patrolTest('returns null when all contexts have empty text', () {
+    patrolTest('returns null when all contexts have empty text', ($) async {
       final prompt = promptBuilder.buildSingleTurn(
         userQuery: 'test',
         topChunkContexts: [
@@ -464,7 +465,7 @@ void main() {
       expect(prompt, isNull);
     });
 
-    patrolTest('formats Question and Information sections', () {
+    patrolTest('formats Question and Information sections', ($) async {
       final prompt = promptBuilder.buildSingleTurn(
         userQuery: 'What did I write about meditation?',
         topChunkContexts: [
@@ -485,7 +486,7 @@ void main() {
       expect(prompt, contains('Text: Meditated for 20 minutes.'));
     });
 
-    patrolTest('does not include source/context wording in system prompt', () {
+    patrolTest('does not include source/context wording in system prompt', ($) async {
       final sys = PromptBuilderService.singleTurnSystemPrompt.toLowerCase();
       expect(sys, isNot(contains('context:')));
       expect(sys, contains('do not mention sources or context'));
@@ -497,17 +498,17 @@ void main() {
   // ─────────────────────────────────────────────────────────────────────────
 
   group('estimateTokenCount', () {
-    patrolTest('estimates ~4 chars per token', () {
+    patrolTest('estimates ~4 chars per token', ($) async {
       final prompt = 'a' * 400;
       expect(PromptBuilderService.estimateTokenCount(prompt), equals(100));
     });
 
-    patrolTest('rounds up for non-exact division', () {
+    patrolTest('rounds up for non-exact division', ($) async {
       final prompt = 'a' * 401;
       expect(PromptBuilderService.estimateTokenCount(prompt), equals(101));
     });
 
-    patrolTest('returns 0 for empty string', () {
+    patrolTest('returns 0 for empty string', ($) async {
       expect(PromptBuilderService.estimateTokenCount(''), equals(0));
     });
   });
@@ -517,7 +518,7 @@ void main() {
   // ─────────────────────────────────────────────────────────────────────────
 
   group('extractSourceTitles', () {
-    patrolTest('returns titles in ranked order', () {
+    patrolTest('returns titles in ranked order', ($) async {
       final noteA = _makeNote(id: 1, title: 'Lower Score');
       final noteB = _makeNote(id: 2, title: 'Higher Score');
       noteRepo.seed([noteA, noteB]);
@@ -529,7 +530,7 @@ void main() {
       expect(titles, equals(['Higher Score', 'Lower Score']));
     });
 
-    patrolTest('respects maxNotes for titles', () {
+    patrolTest('respects maxNotes for titles', ($) async {
       final notes = List.generate(5, (i) => _makeNote(id: i + 1, title: 'N${i + 1}'));
       noteRepo.seed(notes);
 
@@ -546,15 +547,15 @@ void main() {
   // ─────────────────────────────────────────────────────────────────────────
 
   group('systemPrompt', () {
-    patrolTest('mentions Trovara by name', () {
+    patrolTest('mentions Trovara by name', ($) async {
       expect(PromptBuilderService.systemPrompt, contains('Trovara'));
     });
 
-    patrolTest('instructs to answer only from notes', () {
+    patrolTest('instructs to answer only from notes', ($) async {
       expect(PromptBuilderService.systemPrompt, contains('Answer ONLY based on the provided note context'));
     });
 
-    patrolTest('includes fallback instruction', () {
+    patrolTest('includes fallback instruction', ($) async {
       expect(PromptBuilderService.systemPrompt, contains("I couldn't find relevant information"));
     });
   });

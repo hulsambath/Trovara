@@ -1,0 +1,127 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/block-generated-edits.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/post-edit-reminder.sh"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/stop-checks.sh"
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "Bash(flutter analyze*)",
+      "Bash(flutter test*)",
+      "Bash(flutter pub get)",
+      "Bash(flutter pub run*)",
+      "Bash(flutter pub outdated*)",
+      "Bash(flutter pub deps*)",
+      "Bash(flutter clean)",
+      "Bash(flutter doctor*)",
+      "Bash(flutter devices)",
+      "Bash(flutter --version)",
+      "Bash(dart analyze*)",
+      "Bash(dart format*)",
+      "Bash(dart pub*)",
+      "Bash(dart run*)",
+      "Bash(dart fix*)",
+      "Bash(dart --version)",
+      "Bash(./scripts/*.sh:*)",
+      "Bash(jq*)",
+      "Bash(grep*)",
+      "Bash(rg*)",
+      "Bash(find . *)",
+      "Bash(ls*)",
+      "Bash(cat*)",
+      "Bash(head*)",
+      "Bash(tail*)",
+      "Bash(wc*)",
+      "Bash(sort*)",
+      "Bash(uniq*)",
+      "Bash(diff*)",
+      "Bash(comm*)",
+      "Bash(tree*)",
+      "Bash(file*)",
+      "Bash(which*)",
+      "Bash(echo*)",
+      "Bash(printf*)",
+      "Bash(test*)",
+      "Bash(true)",
+      "Bash(false)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git show*)",
+      "Bash(git branch*)",
+      "Bash(git ls-files*)",
+      "Bash(git rev-parse*)",
+      "Bash(git stash list)",
+      "Bash(git remote*)",
+      "Bash(git blame*)",
+      "Bash(git config --get*)",
+      "Bash(git fetch*)",
+      "Bash(git pull --ff-only*)",
+      "Bash(gh pr view*)",
+      "Bash(gh pr list*)",
+      "Bash(gh pr diff*)",
+      "Bash(gh pr checks*)",
+      "Bash(gh issue view*)",
+      "Bash(gh issue list*)",
+      "Bash(gh api*)",
+      "Bash(gh run list*)",
+      "Bash(gh run view*)",
+      "Bash(adb devices)",
+      "Bash(xcrun simctl list*)",
+      "Bash(chmod +x*)"
+    ],
+    "deny": [
+      "Bash(git push --force*)",
+      "Bash(git push -f*)",
+      "Bash(git reset --hard*)",
+      "Bash(git clean -fd*)",
+      "Bash(git checkout .*)",
+      "Bash(git restore .*)",
+      "Bash(rm -rf*)",
+      "Bash(rm -f /*)",
+      "Bash(sudo*)",
+      "Bash(curl * | sh*)",
+      "Bash(curl * | bash*)",
+      "Bash(wget * | sh*)",
+      "Bash(npm publish*)",
+      "Bash(pub publish*)",
+      "Bash(shorebird release*)",
+      "Bash(shorebird patch*)",
+      "Read(./../credentials/**)",
+      "Read(./upload_certificate.pem)",
+      "Read(.env)",
+      "Read(.env.*)",
+      "Read(**/google-services.json)",
+      "Read(**/GoogleService-Info.plist)"
+    ]
+  }
+}

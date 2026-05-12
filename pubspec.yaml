@@ -1,7 +1,7 @@
 name: trovara
 description: "Trovara"
 publish_to: "none"
-version: 1.0.0+5
+version: 1.0.0+6
 
 environment:
   sdk: ^3.8.1
@@ -59,6 +59,7 @@ dev_dependencies:
   flutter_native_splash: ^2.4.7
   flutter_gen_runner: ^5.12.0
   patrol: ^4.5.0
+  patrol_finders: ^3.2.0
 
 flutter:
   uses-material-design: true
@@ -75,3 +76,6 @@ flutter:
       fonts:
         - asset: assets/fonts/Garet-Book.ttf
           weight: 400
+
+patrol:
+  flavor: staging

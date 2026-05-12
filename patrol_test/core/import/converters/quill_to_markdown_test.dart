@@ -1,14 +1,10 @@
-import 'dart:convert';
-
-import 'package:patrol/patrol.dart';
-import 'package:trovara/core/import/converters/quill_to_markdown.dart';
+import 'package:flutter_test/flutter_test.dart';
+import '../../test_support.dart';
 
 void main() {
-  String mdFromOps(List<Map<String, dynamic>> ops) => QuillToMarkdownConverter.convert(jsonEncode({'ops': ops}));
-
   group('QuillToMarkdownConverter', () {
-    patrolTest('exports link attribute as markdown link', () {
-      final md = mdFromOps([
+    patrolTest('exports link attribute as markdown link', ($) async {
+      final md = markdownFromQuillOps([
         {
           'insert': 'Google',
           'attributes': {'link': 'https://google.com'},
@@ -18,8 +14,8 @@ void main() {
       expect(md, '[Google](https://google.com)');
     });
 
-    patrolTest('exports header attribute as heading prefix', () {
-      final md = mdFromOps([
+    patrolTest('exports header attribute as heading prefix', ($) async {
+      final md = markdownFromQuillOps([
         {'insert': 'Title'},
         {
           'insert': '\n',
@@ -29,8 +25,8 @@ void main() {
       expect(md, '## Title');
     });
 
-    patrolTest('exports bullet list attribute', () {
-      final md = mdFromOps([
+    patrolTest('exports bullet list attribute', ($) async {
+      final md = markdownFromQuillOps([
         {'insert': 'Item'},
         {
           'insert': '\n',
@@ -40,14 +36,47 @@ void main() {
       expect(md, '- Item');
     });
 
-    patrolTest('exports divider embed as --- line', () {
-      final md = mdFromOps([
+    patrolTest('exports divider embed as --- line', ($) async {
+      final md = markdownFromQuillOps([
         {
           'insert': {'divider': true},
         },
         {'insert': '\n'},
       ]);
       expect(md, '---');
+    });
+
+    patrolTest('exports bold attribute as markdown bold', ($) async {
+      final md = markdownFromQuillOps([
+        {
+          'insert': 'bold text',
+          'attributes': {'bold': true},
+        },
+        {'insert': '\n'},
+      ]);
+      expect(md, '**bold text**');
+    });
+
+    patrolTest('exports italic attribute as markdown italic', ($) async {
+      final md = markdownFromQuillOps([
+        {
+          'insert': 'italic text',
+          'attributes': {'italic': true},
+        },
+        {'insert': '\n'},
+      ]);
+      expect(md, '*italic text*');
+    });
+
+    patrolTest('exports blockquote attribute as markdown quote', ($) async {
+      final md = markdownFromQuillOps([
+        {'insert': 'quote line'},
+        {
+          'insert': '\n',
+          'attributes': {'blockquote': true},
+        },
+      ]);
+      expect(md, '> quote line');
     });
   });
 }
