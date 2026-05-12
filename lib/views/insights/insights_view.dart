@@ -7,6 +7,7 @@ import 'package:trovara/views/insights/widgets/legend.dart';
 import 'package:trovara/views/insights/widgets/sentiment_trend_chart.dart';
 import 'package:trovara/views/insights/widgets/tag_display_helper.dart';
 import 'package:trovara/views/insights/widgets/tag_frequency_chart.dart';
+import 'package:trovara/widgets/trovara_card.dart';
 
 import 'insights_view_model.dart';
 
