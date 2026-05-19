@@ -49,7 +49,10 @@ class _SuggestedQuestions extends StatelessWidget {
   }
 
   Widget _buildChip(BuildContext context, ColorScheme colors, String question) => GestureDetector(
-    onTap: () => onTap(question),
+    onTap: () {
+      _chatUiLogger.d('Chat action: tap suggested question "$question"');
+      onTap(question);
+    },
     child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(

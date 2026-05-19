@@ -14,8 +14,11 @@ import 'package:flutter/widgets.dart';
 class $AssetsAppIconGen {
   const $AssetsAppIconGen();
 
-  /// File path: assets/app_icon/1024x1024.png
-  AssetGenImage get a1024x1024 => const AssetGenImage('assets/app_icon/1024x1024.png');
+  /// File path: assets/app_icon/512x512.png
+  AssetGenImage get a512x512 => const AssetGenImage('assets/app_icon/512x512.png');
+
+  /// File path: assets/app_icon/512x512_ios.png
+  AssetGenImage get a512x512Ios => const AssetGenImage('assets/app_icon/512x512_ios.png');
 
   /// File path: assets/app_icon/happy.png
   AssetGenImage get happy => const AssetGenImage('assets/app_icon/happy.png');
@@ -24,7 +27,7 @@ class $AssetsAppIconGen {
   AssetGenImage get sleepy => const AssetGenImage('assets/app_icon/sleepy.png');
 
   /// List of all assets
-  List<AssetGenImage> get values => [a1024x1024, happy, sleepy];
+  List<AssetGenImage> get values => [a512x512, a512x512Ios, happy, sleepy];
 }
 
 class $AssetsIconsGen {
@@ -35,6 +38,16 @@ class $AssetsIconsGen {
 
   /// List of all assets
   List<String> get values => [googleDrive];
+}
+
+class $AssetsSplashScreenGen {
+  const $AssetsSplashScreenGen();
+
+  /// File path: assets/splash_screen/512x512.png
+  AssetGenImage get a512x512 => const AssetGenImage('assets/splash_screen/512x512.png');
+
+  /// List of all assets
+  List<AssetGenImage> get values => [a512x512];
 }
 
 class $AssetsTranslationsGen {
@@ -55,6 +68,7 @@ class Assets {
 
   static const $AssetsAppIconGen appIcon = $AssetsAppIconGen();
   static const $AssetsIconsGen icons = $AssetsIconsGen();
+  static const $AssetsSplashScreenGen splashScreen = $AssetsSplashScreenGen();
   static const $AssetsTranslationsGen translations = $AssetsTranslationsGen();
   static const String shorebird = 'shorebird.yaml';
 

@@ -50,10 +50,10 @@ class _ChatBubble extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildAssistantContent(context, colors),
-              if (!message.isLoading && message.sourceNoteTitles.isNotEmpty)
+              if (!message.isLoading && message.sourceNotes.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.only(top: 10),
-                  child: _SourceAttribution(titles: message.sourceNoteTitles),
+                  child: _SourceAttribution(sources: message.sourceNotes),
                 ),
             ],
           ),

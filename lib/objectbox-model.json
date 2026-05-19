@@ -263,7 +263,7 @@
     },
     {
       "id": "6:7377808252709342167",
-      "lastPropertyId": "9:2695552612240637623",
+      "lastPropertyId": "11:7718944088103282693",
       "name": "ChatMessageEntity",
       "properties": [
         {
@@ -311,6 +311,16 @@
           "id": "9:2695552612240637623",
           "name": "updatedAt",
           "type": 10
+        },
+        {
+          "id": "10:2875880551088493416",
+          "name": "sourceNoteIds",
+          "type": 27
+        },
+        {
+          "id": "11:7718944088103282693",
+          "name": "sourceNoteLabels",
+          "type": 30
         }
       ],
       "relations": []

@@ -1,4 +1,5 @@
 import 'package:objectbox/objectbox.dart';
+import 'package:trovara/models/chat_source_note.dart';
 
 /// Represents a single persisted message in a chat thread.
 ///
@@ -22,6 +23,14 @@ class ChatMessageEntity {
   /// the assistant response. Only populated for assistant messages.
   List<String> sourceNoteTitles;
 
+  /// Optional note IDs used as context when generating the assistant response.
+  /// Only populated for assistant messages.
+  List<int> sourceNoteIds;
+
+  /// Optional labels (tags) used to describe source notes.
+  /// Only populated for assistant messages.
+  List<String> sourceNoteLabels;
+
   /// Optional token counts for analytics / debugging.
   int? promptTokens;
   int? completionTokens;
@@ -35,11 +44,15 @@ class ChatMessageEntity {
     required this.role,
     required this.content,
     List<String>? sourceNoteTitles,
+    List<int>? sourceNoteIds,
+    List<String>? sourceNoteLabels,
     this.promptTokens,
     this.completionTokens,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) : sourceNoteTitles = sourceNoteTitles ?? const [],
+       sourceNoteIds = sourceNoteIds ?? const [],
+       sourceNoteLabels = sourceNoteLabels ?? const [],
        createdAt = createdAt ?? DateTime.now(),
        updatedAt = updatedAt ?? DateTime.now();
 
@@ -53,6 +66,8 @@ class ChatMessageEntity {
     'role': role,
     'content': content,
     'sourceNoteTitles': sourceNoteTitles,
+    'sourceNoteIds': sourceNoteIds,
+    'sourceNoteLabels': sourceNoteLabels,
     'promptTokens': promptTokens,
     'completionTokens': completionTokens,
     'createdAt': createdAt.toIso8601String(),
@@ -65,6 +80,8 @@ class ChatMessageEntity {
     role: json['role'] as String? ?? 'user',
     content: json['content'] as String? ?? '',
     sourceNoteTitles: List<String>.from(json['sourceNoteTitles'] as List? ?? const []),
+    sourceNoteIds: List<int>.from(json['sourceNoteIds'] as List? ?? const []),
+    sourceNoteLabels: List<String>.from(json['sourceNoteLabels'] as List? ?? const []),
     promptTokens: json['promptTokens'] as int?,
     completionTokens: json['completionTokens'] as int?,
     createdAt: _parseDate(json['createdAt']),
@@ -100,7 +117,7 @@ class ChatMessage {
 
   /// Titles of source notes used to generate this answer.
   /// Only populated for AI messages after generation completes.
-  final List<String> sourceNoteTitles;
+  final List<ChatSourceNote> sourceNotes;
 
   /// Whether the AI is still generating this message.
   /// Used by the UI to show a typing indicator.
@@ -114,19 +131,19 @@ class ChatMessage {
     required this.content,
     required this.isUser,
     DateTime? timestamp,
-    this.sourceNoteTitles = const [],
+    this.sourceNotes = const [],
     this.isLoading = false,
     this.isError = false,
   }) : timestamp = timestamp ?? DateTime.now();
 
   /// Create a copy with updated fields.
-  ChatMessage copyWith({String? content, List<String>? sourceNoteTitles, bool? isLoading, bool? isError}) =>
+  ChatMessage copyWith({String? content, List<ChatSourceNote>? sourceNotes, bool? isLoading, bool? isError}) =>
       ChatMessage(
         id: id,
         content: content ?? this.content,
         isUser: isUser,
         timestamp: timestamp,
-        sourceNoteTitles: sourceNoteTitles ?? this.sourceNoteTitles,
+        sourceNotes: sourceNotes ?? this.sourceNotes,
         isLoading: isLoading ?? this.isLoading,
         isError: isError ?? this.isError,
       );

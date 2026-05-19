@@ -3,11 +3,14 @@ import 'dart:async';
 import 'package:logger/logger.dart';
 import 'package:trovara/core/base/base_view_model.dart';
 import 'package:trovara/core/di/service_locator.dart';
-import 'package:trovara/core/services/chat/chat_service.dart';
 import 'package:trovara/core/services/ai/rag_chat_memory.dart';
 import 'package:trovara/core/services/ai/rag_service.dart';
+import 'package:trovara/core/services/chat/chat_service.dart';
+import 'package:trovara/core/services/notes/note_service.dart';
 import 'package:trovara/models/chat_message.dart';
+import 'package:trovara/models/chat_source_note.dart';
 import 'package:trovara/models/chat_thread.dart';
+import 'package:trovara/models/note.dart';
 
 /// ViewModel for the Chat UI with auto-save history (ChatGPT architecture).
 ///
@@ -23,11 +26,13 @@ import 'package:trovara/models/chat_thread.dart';
 class ChatViewModel extends BaseViewModel {
   final RagService _ragService;
   final ChatService _chatService;
+  final NoteService _noteService;
   final Logger _logger = Logger();
 
-  ChatViewModel({RagService? ragService, ChatService? chatService})
+  ChatViewModel({RagService? ragService, ChatService? chatService, NoteService? noteService})
     : _ragService = ragService ?? ServiceLocator().ragService,
-      _chatService = chatService ?? ServiceLocator().chatService;
+      _chatService = chatService ?? ServiceLocator().chatService,
+      _noteService = noteService ?? ServiceLocator().noteService;
 
   // ═══════════════════════════════════════════════════════════════════════════
   //  State
@@ -65,6 +70,7 @@ class ChatViewModel extends BaseViewModel {
 
   /// Load an existing thread and restore its messages into the UI.
   Future<void> loadThread(ChatThread thread) async {
+    _logger.d('Chat action: load thread ${thread.id} (${thread.title ?? 'New conversation'})');
     _currentThread = thread;
     _messages.clear();
 
@@ -73,11 +79,13 @@ class ChatViewModel extends BaseViewModel {
       _messages.add(_entityToUiMessage(entity));
     }
 
+    _logger.d('Chat action: loaded ${_messages.length} messages for thread ${thread.id}');
     notifyListeners();
   }
 
   /// Start a fresh conversation. The thread is lazily created on first message.
   void startNewChat() {
+    _logger.d('Chat action: start new chat (currentThread=${_currentThread?.id})');
     _currentThread = null;
     _messages.clear();
     notifyListeners();
@@ -100,9 +108,13 @@ class ChatViewModel extends BaseViewModel {
   /// Send a user question, persist it, stream the AI response, and persist that too.
   Future<void> sendMessage(String question) async {
     final trimmed = question.trim();
-    if (trimmed.isEmpty || _isProcessing) return;
+    if (trimmed.isEmpty || _isProcessing) {
+      _logger.d('Chat action: send message ignored (empty=${trimmed.isEmpty}, processing=$_isProcessing)');
+      return;
+    }
 
     final thread = await _ensureThread();
+    _logger.d('Chat action: send message (thread=${thread.id}) text="$trimmed"');
 
     // Persist user message
     await _chatService.addUserMessage(thread, trimmed);
@@ -132,7 +144,7 @@ class ChatViewModel extends BaseViewModel {
 
     // Stream the AI response
     final buffer = StringBuffer();
-    List<String> sources = [];
+    List<ChatSourceNote> sources = [];
     bool isError = false;
 
     try {
@@ -141,10 +153,13 @@ class ChatViewModel extends BaseViewModel {
         _updateMessage(aiMessageId, content: buffer.toString());
       }
 
-      sources = await _ragService.getSourceTitles(trimmed, priorTurns: priorTurns);
-      _updateMessage(aiMessageId, content: buffer.toString(), sourceNoteTitles: sources, isLoading: false);
+      final debugNotes = await _ragService.getSourceDebugNotes(trimmed, priorTurns: priorTurns);
+      _logSourceDebug(debugNotes);
+      final sourceNotes = _buildSourceNotes(debugNotes);
+      sources = sourceNotes;
+      _updateMessage(aiMessageId, content: buffer.toString(), sourceNotes: sourceNotes, isLoading: false);
 
-      _logger.i('Chat response complete: ${buffer.length} chars, ${sources.length} sources');
+      _logger.i('Chat response complete: ${buffer.length} chars, ${sourceNotes.length} sources');
     } on RagQueryException catch (e) {
       isError = _shouldMarkRagMessageAsError(e.message);
       buffer.clear();
@@ -165,7 +180,7 @@ class ChatViewModel extends BaseViewModel {
     }
 
     // Persist assistant message (including errors so user sees them in history)
-    await _chatService.addAssistantMessage(thread, buffer.toString(), sourceNoteTitles: sources);
+    await _chatService.addAssistantMessage(thread, buffer.toString(), sourceNotes: sources);
 
     _isProcessing = false;
     notifyListeners();
@@ -178,6 +193,7 @@ class ChatViewModel extends BaseViewModel {
   /// Clear the current conversation and start fresh.
   /// The old thread remains in history (accessible from the drawer).
   void clearConversation() {
+    _logger.d('Chat action: clear conversation (currentThread=${_currentThread?.id})');
     _currentThread = null;
     _messages.clear();
     notifyListeners();
@@ -185,6 +201,7 @@ class ChatViewModel extends BaseViewModel {
 
   /// Delete a thread from history entirely.
   Future<void> deleteThread(int threadId) async {
+    _logger.d('Chat action: delete thread $threadId');
     await _chatService.deleteThread(threadId);
 
     if (_currentThread?.id == threadId) {
@@ -205,15 +222,15 @@ class ChatViewModel extends BaseViewModel {
     content: entity.content,
     isUser: entity.role == 'user',
     timestamp: entity.createdAt,
-    sourceNoteTitles: entity.sourceNoteTitles,
+    sourceNotes: _resolveSourceNotes(entity),
   );
 
-  void _updateMessage(String id, {String? content, List<String>? sourceNoteTitles, bool? isLoading, bool? isError}) {
+  void _updateMessage(String id, {String? content, List<ChatSourceNote>? sourceNotes, bool? isLoading, bool? isError}) {
     final index = _messages.indexWhere((m) => m.id == id);
     if (index != -1) {
       _messages[index] = _messages[index].copyWith(
         content: content,
-        sourceNoteTitles: sourceNoteTitles,
+        sourceNotes: sourceNotes,
         isLoading: isLoading,
         isError: isError,
       );
@@ -222,6 +239,80 @@ class ChatViewModel extends BaseViewModel {
   }
 
   String _generateId() => DateTime.now().microsecondsSinceEpoch.toString();
+
+  void _logSourceDebug(List<Note> notes) {
+    if (notes.isEmpty) {
+      _logger.d('Source debug: no notes resolved');
+      return;
+    }
+
+    for (final note in notes) {
+      _logger.d('Source debug note ${note.id}: ${note.toJson()}');
+    }
+  }
+
+  List<ChatSourceNote> _buildSourceNotes(List<Note> notes) {
+    final seenIds = <int>{};
+    final out = <ChatSourceNote>[];
+    final excludeNoteId = _currentThread?.noteId;
+
+    for (final note in notes) {
+      if (note.isDeleted || note.id == 0 || note.id == excludeNoteId || seenIds.contains(note.id)) continue;
+      seenIds.add(note.id);
+      out.add(ChatSourceNote(id: note.id, title: note.title, label: _bestLabelFor(note)));
+    }
+
+    return out;
+  }
+
+  List<ChatSourceNote> _resolveSourceNotes(ChatMessageEntity entity) {
+    final out = <ChatSourceNote>[];
+    final excludeNoteId = _currentThread?.noteId;
+
+    if (entity.sourceNoteIds.isNotEmpty) {
+      for (int i = 0; i < entity.sourceNoteIds.length; i++) {
+        final id = entity.sourceNoteIds[i];
+        if (id == excludeNoteId) continue;
+        final note = _noteService.getNote(id);
+        if (note == null || note.isDeleted) continue;
+        final title = entity.sourceNoteTitles.length > i && entity.sourceNoteTitles[i].trim().isNotEmpty
+            ? entity.sourceNoteTitles[i]
+            : note.title;
+        final storedLabel = entity.sourceNoteLabels.length > i ? entity.sourceNoteLabels[i] : '';
+        final label = storedLabel.trim().isNotEmpty ? storedLabel : _bestLabelFor(note);
+        out.add(ChatSourceNote(id: note.id, title: title, label: label));
+      }
+      return out;
+    }
+
+    for (final title in entity.sourceNoteTitles) {
+      final resolved = _resolveNoteByTitle(title);
+      if (resolved == null || resolved.id == excludeNoteId) continue;
+      out.add(ChatSourceNote(id: resolved.id, title: resolved.title, label: _bestLabelFor(resolved)));
+    }
+    return out;
+  }
+
+  Note? _resolveNoteByTitle(String title) {
+    if (title.trim().isEmpty) return null;
+    final matches = _noteService.searchNotes(title);
+    if (matches.isEmpty) return null;
+    final exact = matches.firstWhere(
+      (note) => note.title.toLowerCase().trim() == title.toLowerCase().trim(),
+      orElse: () => matches.first,
+    );
+    return exact.isDeleted ? null : exact;
+  }
+
+  String _bestLabelFor(Note note) {
+    if (note.customTagObjects.isNotEmpty) return note.customTagObjects.first.name;
+    if (note.moodTagObjects.isNotEmpty) return note.moodTagObjects.first.label;
+    if (note.activityTagObjects.isNotEmpty) return note.activityTagObjects.first.label;
+    if (note.timeTagObjects.isNotEmpty) return note.timeTagObjects.first.label;
+    if (note.personalGrowthTagObjects.isNotEmpty) return note.personalGrowthTagObjects.first.label;
+    final folder = _noteService.getFolder(note.folderId);
+    return folder?.name ?? '';
+  }
 
   bool _shouldMarkRagMessageAsError(String message) {
     final normalized = message.toLowerCase();

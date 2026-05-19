@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:logger/logger.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:trovara/core/base/view_model_provider.dart';
 import 'package:trovara/core/di/service_locator.dart';
 import 'package:trovara/core/services/chat/chat_service.dart';
 import 'package:trovara/models/chat_message.dart';
+import 'package:trovara/models/chat_source_note.dart';
 import 'package:trovara/models/chat_thread.dart';
 
 import 'chat_view_model.dart';
@@ -14,6 +17,8 @@ part 'widgets/chat_drawer.dart';
 part 'widgets/chat_input_field.dart';
 part 'widgets/source_attribution.dart';
 part 'widgets/suggested_questions.dart';
+
+final Logger _chatUiLogger = Logger();
 
 /// Chat view for asking questions about your notes (RAG Step 6).
 ///

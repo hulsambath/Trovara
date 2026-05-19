@@ -26,10 +26,20 @@ class AppRouter {
         name: 'note',
         pageBuilder: (context, state) {
           final title = state.uri.queryParameters['title'];
+          final noteIdParam = state.uri.queryParameters['noteId'];
+          final noteId = noteIdParam == null ? null : int.tryParse(noteIdParam);
+          final readOnlyParam = state.uri.queryParameters['readOnly'];
+          final extra = state.extra;
+          final readOnlyFromExtra = extra is bool
+              ? extra
+              : extra is Map && extra['readOnly'] == true
+              ? true
+              : false;
+          final readOnly = readOnlyFromExtra || readOnlyParam == '1' || readOnlyParam == 'true';
           return MaterialPage(
             key: state.pageKey,
             restorationId: 'note',
-            child: NoteView(title: title),
+            child: NoteView(title: title, noteId: noteId, readOnly: readOnly),
           );
         },
       ),
@@ -43,11 +53,8 @@ class AppRouter {
       GoRoute(
         path: '/settings/advanced',
         name: 'settings-advanced',
-        pageBuilder: (context, state) => MaterialPage(
-          key: state.pageKey,
-          restorationId: 'settings-advanced',
-          child: const AdvancedSettingView(),
-        ),
+        pageBuilder: (context, state) =>
+            MaterialPage(key: state.pageKey, restorationId: 'settings-advanced', child: const AdvancedSettingView()),
       ),
       GoRoute(
         path: '/search',

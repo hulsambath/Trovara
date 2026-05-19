@@ -5,13 +5,14 @@ part of '../chat_view.dart';
 /// Displays referenced note titles as small tappable chips,
 /// matching the ChatGPT "sources" style.
 class _SourceAttribution extends StatelessWidget {
-  const _SourceAttribution({required this.titles});
+  const _SourceAttribution({required this.sources});
 
-  final List<String> titles;
+  final List<ChatSourceNote> sources;
 
   @override
   Widget build(BuildContext context) {
-    if (titles.isEmpty) return const SizedBox.shrink();
+    final validSources = sources.where((s) => s.title.trim().isNotEmpty && s.id != 0).toList();
+    if (validSources.isEmpty) return const SizedBox.shrink();
 
     final colors = Theme.of(context).colorScheme;
 
@@ -33,29 +34,58 @@ class _SourceAttribution extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 6),
-        Wrap(spacing: 6, runSpacing: 6, children: titles.map((t) => _buildChip(context, colors, t)).toList()),
+        Wrap(spacing: 6, runSpacing: 6, children: validSources.map((s) => _buildChip(context, colors, s)).toList()),
       ],
     );
   }
 
-  Widget _buildChip(BuildContext context, ColorScheme colors, String title) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-    decoration: BoxDecoration(color: colors.surfaceContainerHighest, borderRadius: BorderRadius.circular(12)),
-    child: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(LucideIcons.fileText, size: 12, color: colors.onSurfaceVariant),
-        const SizedBox(width: 4),
-        ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 160),
-          child: Text(
-            title,
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(color: colors.onSurfaceVariant),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
+  Widget _buildChip(BuildContext context, ColorScheme colors, ChatSourceNote source) => Material(
+    color: colors.surfaceContainerHighest,
+    borderRadius: BorderRadius.circular(12),
+    child: InkWell(
+      borderRadius: BorderRadius.circular(12),
+      onTap: () => _openNoteDetails(context, source),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(LucideIcons.fileText, size: 12, color: colors.onSurfaceVariant),
+            const SizedBox(width: 4),
+            Flexible(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    source.title,
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(color: colors.onSurfaceVariant),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (source.hasLabel)
+                    Text(
+                      source.label,
+                      style: Theme.of(
+                        context,
+                      ).textTheme.labelSmall?.copyWith(color: colors.onSurfaceVariant.withValues(alpha: 0.7)),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 4),
+            Icon(LucideIcons.arrowUpRight, size: 12, color: colors.onSurfaceVariant),
+          ],
         ),
-      ],
+      ),
     ),
   );
+
+  void _openNoteDetails(BuildContext context, ChatSourceNote source) {
+    if (source.id == 0) return;
+    _chatUiLogger.d('Chat action: open source note ${source.id} "${source.title}"');
+    context.push('/note?noteId=${source.id}', extra: const {'readOnly': true});
+  }
 }

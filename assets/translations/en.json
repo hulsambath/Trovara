@@ -16,7 +16,8 @@
     "update": {
       "update": "Update",
       "install": "Install"
-    }
+    },
+    "edit": "Edit"
   },
   "hello": "Hello World!"
 }

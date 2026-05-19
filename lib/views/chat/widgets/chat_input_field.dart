@@ -31,12 +31,24 @@ class _ChatInputFieldState extends State<_ChatInputField> {
   }
 
   void _submit() {
-    if (!_hasText || !widget.isEnabled) return;
-
     final text = _controller.text;
+    final trimmed = text.trim();
+    if (trimmed.isEmpty || !widget.isEnabled) {
+      _chatUiLogger.d('Chat action: submit ignored (hasText=${trimmed.isNotEmpty}, enabled=${widget.isEnabled})');
+      return;
+    }
+
+    _chatUiLogger.d('Chat action: submit message len=${trimmed.length} preview="${_preview(trimmed)}"');
     _controller.clear();
     widget.onSubmit(text);
     _focusNode.requestFocus();
+  }
+
+  String _preview(String text) {
+    const max = 80;
+    final normalized = text.replaceAll('\n', ' ');
+    if (normalized.length <= max) return normalized;
+    return '${normalized.substring(0, max)}...';
   }
 
   @override

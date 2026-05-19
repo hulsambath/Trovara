@@ -94,7 +94,7 @@ class NotesViewModel extends BaseViewModel {
   }
 
   void openNote(BuildContext context, Note note) {
-    context.push('/note?title=${Uri.encodeComponent(note.title)}').then((_) {
+    context.push('/note?noteId=${note.id}').then((_) {
       // Refresh notes when returning from editing a note
       _loadNotes();
     });

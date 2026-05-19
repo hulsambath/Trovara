@@ -8,6 +8,7 @@ import 'package:trovara/core/services/ai/query_rewrite_service.dart';
 import 'package:trovara/core/services/ai/rag_chat_memory.dart';
 import 'package:trovara/core/services/ai/rrf_key_score.dart';
 import 'package:trovara/core/services/ai/vector_search_service.dart';
+import 'package:trovara/models/note.dart';
 
 /// Result of a RAG query, containing the answer and source metadata.
 class RagResult {
@@ -453,6 +454,43 @@ class RagService {
       return [];
     } catch (e) {
       _logger.w('Source attribution retrieval failed: $e');
+      return [];
+    }
+  }
+
+  /// Get fully-hydrated note entities for source debugging.
+  ///
+  /// Returns the resolved notes (with all attributes) used as sources.
+  Future<List<Note>> getSourceDebugNotes(
+    String userQuestion, {
+    List<RagChatTurn> priorTurns = const [],
+    int searchTopK = defaultSearchTopK,
+    double minScore = defaultMinScore,
+    int maxNotes = defaultMaxNotes,
+  }) async {
+    final stats = _vectorSearchService.getStats();
+    if (stats.totalChunks == 0) return [];
+
+    final memory = _prepareChatMemory(priorTurns);
+
+    try {
+      final retrieved = await _retrieveTopChunksSingleTurn(
+        userQuestion,
+        fusionPoolSizePerQuery: searchTopK,
+        minScore: minScore,
+        expectedEmbeddingDim: stats.embeddingDimension,
+        conversationContext: memory.rewriteContext.isEmpty ? null : memory.rewriteContext,
+      );
+
+      if (retrieved.fusedChunks.isEmpty) return [];
+
+      final documents = _documentResolverService.resolve(retrieved.fusedChunks, topN: maxNotes);
+      return documents.map((doc) => doc.note).toList();
+    } on RagQueryException catch (e) {
+      _logger.w('Source debug retrieval failed: ${e.message}');
+      return [];
+    } catch (e) {
+      _logger.w('Source debug retrieval failed: $e');
       return [];
     }
   }

@@ -162,8 +162,14 @@ class _ChatDrawer extends StatelessWidget {
     final isActive = currentThreadId == thread.id;
 
     return InkWell(
-      onTap: () => onThreadSelected(thread),
-      onLongPress: () => _showDeleteDialog(context, thread),
+      onTap: () {
+        _chatUiLogger.d('Chat action: tap thread ${thread.id} (${thread.title ?? 'New conversation'})');
+        onThreadSelected(thread);
+      },
+      onLongPress: () {
+        _chatUiLogger.d('Chat action: long-press thread ${thread.id} (${thread.title ?? 'New conversation'})');
+        _showDeleteDialog(context, thread);
+      },
       borderRadius: BorderRadius.circular(10),
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 1),
@@ -174,11 +180,7 @@ class _ChatDrawer extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(
-              isActive ? LucideIcons.messageCircle : LucideIcons.messageSquare,
-              size: 16,
-              color: isActive ? colors.primary : colors.onSurfaceVariant,
-            ),
+            Icon(LucideIcons.messageCircle, size: 16, color: isActive ? colors.primary : colors.onSurfaceVariant),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
@@ -198,15 +200,23 @@ class _ChatDrawer extends StatelessWidget {
   }
 
   void _showDeleteDialog(BuildContext context, ChatThread thread) {
+    _chatUiLogger.d('Chat action: show delete dialog for thread ${thread.id}');
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Delete conversation'),
         content: const Text('This conversation will be permanently deleted.'),
         actions: [
-          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancel')),
           TextButton(
             onPressed: () {
+              _chatUiLogger.d('Chat action: cancel delete thread ${thread.id}');
+              Navigator.of(ctx).pop();
+            },
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              _chatUiLogger.d('Chat action: confirm delete thread ${thread.id}');
               Navigator.of(ctx).pop();
               onDeleteThread(thread.id);
             },

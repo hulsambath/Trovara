@@ -648,52 +648,52 @@ class _SearchResultCard extends StatelessWidget {
         : <TextSpan>[];
 
     return TrovaraCard(
-      onTap: () => context.push('/note?title=${Uri.encodeComponent(note.title)}'),
+      onTap: () => context.push('/note?noteId=${note.id}'),
       padding: const EdgeInsets.all(14),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Title + favourite
+          Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Title + favourite
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: RichText(
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      text: TextSpan(children: titleSpans),
-                    ),
-                  ),
-                  if (note.isFavorite) ...[
-                    const SizedBox(width: 6),
-                    Icon(Icons.favorite_rounded, size: 16, color: Colors.red.withValues(alpha: 0.8)),
-                  ],
-                ],
-              ),
-
-              // Content preview
-              if (previewSpans.isNotEmpty) ...[
-                const SizedBox(height: 4),
-                RichText(
+              Expanded(
+                child: RichText(
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  text: TextSpan(children: previewSpans),
+                  text: TextSpan(children: titleSpans),
                 ),
-              ],
-
-              // Compact tag row
-              if (_hasAnyTag()) ...[const SizedBox(height: 8), _CompactTagRow(note: note)],
-
-              // Date
-              const SizedBox(height: 8),
-              Text(
-                _formatDate(note.updatedAt),
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant.withValues(alpha: 0.7)),
               ),
+              if (note.isFavorite) ...[
+                const SizedBox(width: 6),
+                Icon(Icons.favorite_rounded, size: 16, color: Colors.red.withValues(alpha: 0.8)),
+              ],
             ],
           ),
+
+          // Content preview
+          if (previewSpans.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            RichText(
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              text: TextSpan(children: previewSpans),
+            ),
+          ],
+
+          // Compact tag row
+          if (_hasAnyTag()) ...[const SizedBox(height: 8), _CompactTagRow(note: note)],
+
+          // Date
+          const SizedBox(height: 8),
+          Text(
+            _formatDate(note.updatedAt),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant.withValues(alpha: 0.7)),
+          ),
+        ],
+      ),
     );
   }
 

@@ -2,6 +2,7 @@ import 'package:logger/logger.dart';
 import 'package:trovara/core/repository/interfaces/chat_message_repository.dart';
 import 'package:trovara/core/repository/interfaces/chat_thread_repository.dart';
 import 'package:trovara/models/chat_message.dart';
+import 'package:trovara/models/chat_source_note.dart';
 import 'package:trovara/models/chat_thread.dart';
 
 /// Service layer for chat thread and message operations.
@@ -69,7 +70,7 @@ class ChatService {
   Future<ChatMessageEntity> addAssistantMessage(
     ChatThread thread,
     String content, {
-    List<String> sourceNoteTitles = const [],
+    List<ChatSourceNote> sourceNotes = const [],
     int? promptTokens,
     int? completionTokens,
   }) async {
@@ -77,7 +78,9 @@ class ChatService {
       threadId: thread.id,
       role: 'assistant',
       content: content,
-      sourceNoteTitles: sourceNoteTitles,
+      sourceNoteTitles: sourceNotes.map((s) => s.title).toList(),
+      sourceNoteIds: sourceNotes.map((s) => s.id).toList(),
+      sourceNoteLabels: sourceNotes.map((s) => s.label).toList(),
       promptTokens: promptTokens,
       completionTokens: completionTokens,
     );
@@ -186,6 +189,8 @@ class ChatService {
             ..content = importMsg.content
             ..role = importMsg.role
             ..sourceNoteTitles = importMsg.sourceNoteTitles
+            ..sourceNoteIds = importMsg.sourceNoteIds
+            ..sourceNoteLabels = importMsg.sourceNoteLabels
             ..promptTokens = importMsg.promptTokens
             ..completionTokens = importMsg.completionTokens
             ..updatedAt = importMsg.updatedAt;

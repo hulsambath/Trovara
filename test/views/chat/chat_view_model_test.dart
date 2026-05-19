@@ -16,6 +16,7 @@ import 'package:trovara/core/services/ai/vector_search_service.dart';
 import 'package:trovara/core/services/chat/chat_service.dart';
 import 'package:trovara/core/services/notes/note_service.dart';
 import 'package:trovara/models/chat_message.dart';
+import 'package:trovara/models/chat_source_note.dart';
 import 'package:trovara/models/chat_thread.dart';
 import 'package:trovara/models/folder.dart';
 import 'package:trovara/models/note.dart';
@@ -258,7 +259,7 @@ class _StubChatMessageRepo implements IChatMessageRepository {
 class _FakeRagService extends RagService {
   final bool _available;
   final Stream<String> Function(String)? _onQueryStream;
-  final Future<List<String>> Function(String)? _onGetSourceTitles;
+  final Future<List<Note>> Function(String)? _onGetSourceNotes;
 
   String? lastQuery;
   List<RagChatTurn> lastPriorTurns = const [];
@@ -266,11 +267,11 @@ class _FakeRagService extends RagService {
   _FakeRagService({
     bool available = true,
     Stream<String> Function(String)? onQueryStream,
-    Future<List<String>> Function(String)? onGetSourceTitles,
+    Future<List<Note>> Function(String)? onGetSourceNotes,
   }) : _available = available,
-       _onQueryStream = onQueryStream,
-       _onGetSourceTitles = onGetSourceTitles,
-       super(
+        _onQueryStream = onQueryStream,
+        _onGetSourceNotes = onGetSourceNotes,
+        super(
          embeddingService: EmbeddingService(embeddingRepository: _StubEmbeddingRepo(), apiKey: 'fake'),
          vectorSearchService: VectorSearchService(repository: _StubEmbeddingRepo()),
          documentResolverService: DocumentResolverService(
@@ -304,7 +305,7 @@ class _FakeRagService extends RagService {
   }
 
   @override
-  Future<List<String>> getSourceTitles(
+  Future<List<Note>> getSourceDebugNotes(
     String userQuestion, {
     List<RagChatTurn> priorTurns = const [],
     int searchTopK = 10,
@@ -312,8 +313,11 @@ class _FakeRagService extends RagService {
     int maxNotes = 5,
   }) {
     lastPriorTurns = priorTurns;
-    if (_onGetSourceTitles != null) return _onGetSourceTitles(userQuestion);
-    return Future.value(['Note A', 'Note B']);
+    if (_onGetSourceNotes != null) return _onGetSourceNotes(userQuestion);
+    return Future.value([
+      Note(id: 1, title: 'Note A', contentJson: '[{\"insert\":\"\\n\"}]'),
+      Note(id: 2, title: 'Note B', contentJson: '[{\"insert\":\"\\n\"}]'),
+    ]);
   }
 }
 
@@ -333,7 +337,7 @@ void main() {
         content: 'Hello',
         isUser: true,
         timestamp: ts,
-        sourceNoteTitles: ['Note 1'],
+        sourceNotes: const [ChatSourceNote(id: 1, title: 'Note 1')],
         isLoading: true,
         isError: true,
       );
@@ -342,7 +346,7 @@ void main() {
       expect(msg.content, 'Hello');
       expect(msg.isUser, true);
       expect(msg.timestamp, ts);
-      expect(msg.sourceNoteTitles, ['Note 1']);
+      expect(msg.sourceNotes, const [ChatSourceNote(id: 1, title: 'Note 1')]);
       expect(msg.isLoading, true);
       expect(msg.isError, true);
     });
@@ -356,9 +360,9 @@ void main() {
       expect(msg.timestamp.isBefore(after.add(const Duration(seconds: 1))), true);
     });
 
-    test('defaults sourceNoteTitles to empty', () {
+    test('defaults sourceNotes to empty', () {
       final msg = ChatMessage(id: '1', content: '', isUser: false);
-      expect(msg.sourceNoteTitles, isEmpty);
+      expect(msg.sourceNotes, isEmpty);
     });
 
     test('defaults isLoading and isError to false', () {
@@ -372,7 +376,7 @@ void main() {
         id: '1',
         content: 'original',
         isUser: false,
-        sourceNoteTitles: ['A'],
+        sourceNotes: const [ChatSourceNote(id: 1, title: 'A')],
         isLoading: true,
       );
       final copy = original.copyWith(content: 'updated');
@@ -380,16 +384,21 @@ void main() {
       expect(copy.id, '1');
       expect(copy.content, 'updated');
       expect(copy.isUser, false);
-      expect(copy.sourceNoteTitles, ['A']);
+      expect(copy.sourceNotes, const [ChatSourceNote(id: 1, title: 'A')]);
       expect(copy.isLoading, true);
     });
 
     test('copyWith updates all changeable fields', () {
       final original = ChatMessage(id: '1', content: 'a', isUser: false);
-      final copy = original.copyWith(content: 'b', sourceNoteTitles: ['X'], isLoading: true, isError: true);
+      final copy = original.copyWith(
+        content: 'b',
+        sourceNotes: const [ChatSourceNote(id: 1, title: 'X')],
+        isLoading: true,
+        isError: true,
+      );
 
       expect(copy.content, 'b');
-      expect(copy.sourceNoteTitles, ['X']);
+      expect(copy.sourceNotes, const [ChatSourceNote(id: 1, title: 'X')]);
       expect(copy.isLoading, true);
       expect(copy.isError, true);
     });
@@ -416,12 +425,14 @@ void main() {
   group('ChatViewModel', () {
     late _FakeRagService fakeRag;
     late ChatService chatService;
+    late NoteService noteService;
     late ChatViewModel vm;
 
     setUp(() {
       fakeRag = _FakeRagService();
       chatService = ChatService(threadRepository: _StubChatThreadRepo(), messageRepository: _StubChatMessageRepo());
-      vm = ChatViewModel(ragService: fakeRag, chatService: chatService);
+      noteService = NoteService(noteRepository: _StubNoteRepo(), folderRepository: _StubFolderRepo());
+      vm = ChatViewModel(ragService: fakeRag, chatService: chatService, noteService: noteService);
     });
 
     test('initial state is empty and not processing', () {
@@ -431,10 +442,18 @@ void main() {
     });
 
     test('isAvailable delegates to RagService', () {
-      final available = ChatViewModel(ragService: _FakeRagService(available: true), chatService: chatService);
+      final available = ChatViewModel(
+        ragService: _FakeRagService(available: true),
+        chatService: chatService,
+        noteService: noteService,
+      );
       expect(available.isAvailable, true);
 
-      final unavailable = ChatViewModel(ragService: _FakeRagService(available: false), chatService: chatService);
+      final unavailable = ChatViewModel(
+        ragService: _FakeRagService(available: false),
+        chatService: chatService,
+        noteService: noteService,
+      );
       expect(unavailable.isAvailable, false);
     });
 
@@ -464,11 +483,11 @@ void main() {
       expect(fakeRag.lastPriorTurns[1].content, 'Hello world');
     });
 
-    test('sendMessage populates source titles', () async {
+    test('sendMessage populates source notes', () async {
       await vm.sendMessage('test');
 
       final aiMessage = vm.messages[1];
-      expect(aiMessage.sourceNoteTitles, ['Note A', 'Note B']);
+      expect(aiMessage.sourceNotes.map((s) => s.title).toList(), ['Note A', 'Note B']);
       expect(aiMessage.isLoading, false);
     });
 
@@ -488,7 +507,7 @@ void main() {
 
     test('sendMessage handles stream error', () async {
       final errorRag = _FakeRagService(onQueryStream: (_) => Stream<String>.error(Exception('API failed')));
-      final errorVm = ChatViewModel(ragService: errorRag, chatService: chatService);
+      final errorVm = ChatViewModel(ragService: errorRag, chatService: chatService, noteService: noteService);
 
       await errorVm.sendMessage('test');
 
@@ -503,9 +522,9 @@ void main() {
       final noResultsRag = _FakeRagService(
         onQueryStream: (_) =>
             Stream<String>.error(RagQueryException("I couldn't find any relevant notes for your question.")),
-        onGetSourceTitles: (_) async => [],
+        onGetSourceNotes: (_) async => [],
       );
-      final noResultsVm = ChatViewModel(ragService: noResultsRag, chatService: chatService);
+      final noResultsVm = ChatViewModel(ragService: noResultsRag, chatService: chatService, noteService: noteService);
 
       await noResultsVm.sendMessage('test');
 
@@ -538,9 +557,9 @@ void main() {
     test('multiple messages accumulate in order', () async {
       final rag = _FakeRagService(
         onQueryStream: (q) => Stream.value('Reply to $q'),
-        onGetSourceTitles: (_) async => [],
+        onGetSourceNotes: (_) async => [],
       );
-      final multiVm = ChatViewModel(ragService: rag, chatService: chatService);
+      final multiVm = ChatViewModel(ragService: rag, chatService: chatService, noteService: noteService);
 
       await multiVm.sendMessage('first');
       await multiVm.sendMessage('second');

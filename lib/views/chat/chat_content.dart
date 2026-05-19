@@ -51,14 +51,17 @@ class _ChatContentState extends State<_ChatContent> {
       drawer: _ChatDrawer(
         currentThreadId: viewModel.currentThread?.id,
         onThreadSelected: (thread) {
+          _chatUiLogger.d('Chat action: select thread ${thread.id} (${thread.title ?? 'New conversation'})');
           _scaffoldKey.currentState?.closeDrawer();
           viewModel.loadThread(thread);
         },
         onNewChat: () {
+          _chatUiLogger.d('Chat action: new chat (drawer)');
           _scaffoldKey.currentState?.closeDrawer();
           viewModel.startNewChat();
         },
         onDeleteThread: (threadId) async {
+          _chatUiLogger.d('Chat action: delete thread request $threadId');
           await viewModel.deleteThread(threadId);
         },
       ),
@@ -78,7 +81,10 @@ class _ChatContentState extends State<_ChatContent> {
     backgroundColor: colors.surface,
     leading: IconButton(
       icon: Icon(LucideIcons.menu, color: colors.onSurface),
-      onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+      onPressed: () {
+        _chatUiLogger.d('Chat action: open drawer');
+        _scaffoldKey.currentState?.openDrawer();
+      },
       tooltip: 'Chat history',
     ),
     centerTitle: true,
@@ -93,7 +99,10 @@ class _ChatContentState extends State<_ChatContent> {
     actions: [
       IconButton(
         icon: Icon(LucideIcons.squarePen, size: 22, color: colors.onSurfaceVariant),
-        onPressed: () => viewModel.startNewChat(),
+        onPressed: () {
+          _chatUiLogger.d('Chat action: new chat (app bar)');
+          viewModel.startNewChat();
+        },
         tooltip: 'New chat',
       ),
     ],

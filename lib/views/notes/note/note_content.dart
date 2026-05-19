@@ -11,21 +11,28 @@ class _NoteContent extends StatelessWidget {
       title: Text(viewModel.currentNote?.title ?? 'Untitled'),
       surfaceTintColor: Colors.transparent,
       actions: [
-        UnifiedTagsIconButton(
-          selectedActivityIds: viewModel.currentNote?.activityTags ?? [],
-          selectedMoodIds: viewModel.currentNote?.moodTags ?? [],
-          selectedTimeIds: viewModel.currentNote?.timeTags ?? [],
-          selectedPersonalGrowthIds: viewModel.currentNote?.personalGrowthTags ?? [],
-          selectedCustomTags: viewModel.currentNote?.customTagObjects.map((tag) => tag.name).toList() ?? [],
-          onActivityChanged: viewModel.updateActivityTags,
-          onMoodChanged: viewModel.updateMoodTags,
-          onTimeChanged: viewModel.updateTimeTags,
-          onPersonalGrowthChanged: viewModel.updatePersonalGrowthTags,
-          onCustomTagsChanged: (tags) => viewModel.updateCustomTags(tags, context),
-          creationTime: viewModel.currentNote?.createdAt,
-          showTimeSuggestions: viewModel.isNewNote,
-        ),
-        if (viewModel.hasUnsavedChanges)
+        if (!viewModel.isReadOnly)
+          UnifiedTagsIconButton(
+            selectedActivityIds: viewModel.currentNote?.activityTags ?? [],
+            selectedMoodIds: viewModel.currentNote?.moodTags ?? [],
+            selectedTimeIds: viewModel.currentNote?.timeTags ?? [],
+            selectedPersonalGrowthIds: viewModel.currentNote?.personalGrowthTags ?? [],
+            selectedCustomTags: viewModel.currentNote?.customTagObjects.map((tag) => tag.name).toList() ?? [],
+            onActivityChanged: viewModel.updateActivityTags,
+            onMoodChanged: viewModel.updateMoodTags,
+            onTimeChanged: viewModel.updateTimeTags,
+            onPersonalGrowthChanged: viewModel.updatePersonalGrowthTags,
+            onCustomTagsChanged: (tags) => viewModel.updateCustomTags(tags, context),
+            creationTime: viewModel.currentNote?.createdAt,
+            showTimeSuggestions: viewModel.isNewNote,
+          ),
+        if (viewModel.isReadOnly)
+          IconButton(
+            icon: const Icon(LucideIcons.squarePen),
+            onPressed: viewModel.enableEditing,
+            tooltip: tr('btn.edit'),
+          ),
+        if (!viewModel.isReadOnly && viewModel.hasUnsavedChanges)
           IconButton(icon: const Icon(LucideIcons.save), onPressed: () => viewModel.saveNote(), tooltip: 'Save'),
       ],
     ),
@@ -34,7 +41,7 @@ class _NoteContent extends StatelessWidget {
       child: Column(
         children: [
           Expanded(child: _buildBody(context)),
-          _buildFooter(context),
+          if (!viewModel.isReadOnly) _buildFooter(context),
         ],
       ),
     ),
@@ -54,6 +61,7 @@ class _NoteContent extends StatelessWidget {
         TextFormField(
           controller: viewModel.titleController,
           style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Theme.of(context).colorScheme.onSurface),
+          readOnly: viewModel.isReadOnly,
           decoration: const InputDecoration(
             hintText: 'Title',
             border: InputBorder.none,
