@@ -92,22 +92,19 @@ class _SectionCard extends StatelessWidget {
   final Widget child;
 
   @override
-  Widget build(BuildContext context) => Card(
-    elevation: 0,
-    child: Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title, style: Theme.of(context).textTheme.titleMedium),
-          if (subtitle != null) ...[
-            const SizedBox(height: 2),
-            Text(subtitle!, style: Theme.of(context).textTheme.bodySmall),
-          ],
-          const SizedBox(height: 12),
-          child,
+  Widget build(BuildContext context) => TrovaraCard(
+    padding: const EdgeInsets.all(16),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, style: Theme.of(context).textTheme.titleMedium),
+        if (subtitle != null) ...[
+          const SizedBox(height: 2),
+          Text(subtitle!, style: Theme.of(context).textTheme.bodySmall),
         ],
-      ),
+        const SizedBox(height: 12),
+        child,
+      ],
     ),
   );
 }

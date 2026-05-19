@@ -9,6 +9,7 @@ import 'package:trovara/models/mood_tag.dart';
 import 'package:trovara/models/note.dart';
 import 'package:trovara/models/personal_growth_tag.dart';
 import 'package:trovara/models/time_tag.dart';
+import 'package:trovara/widgets/trovara_card.dart';
 
 import 'search_view_model.dart';
 

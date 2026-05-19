@@ -6,6 +6,7 @@ import 'package:trovara/core/provider/theme_provider.dart';
 import 'package:trovara/core/services/app/app_icon_service.dart';
 import 'package:provider/provider.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:trovara/widgets/trovara_card.dart';
 
 import 'setting_view_model.dart';
 

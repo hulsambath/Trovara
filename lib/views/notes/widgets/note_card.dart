@@ -7,6 +7,7 @@ import 'package:trovara/widgets/tages/custom/custom_tags_widget.dart';
 import 'package:trovara/widgets/tages/mood/mood_chips.dart';
 import 'package:trovara/widgets/tages/personal_growth/personal_growth_chips.dart';
 import 'package:trovara/widgets/tages/time/time_chips.dart';
+import 'package:trovara/widgets/trovara_card.dart';
 
 class NoteCard extends StatefulWidget {
   const NoteCard({
@@ -33,19 +34,14 @@ class _NoteCardState extends State<NoteCard> {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
 
-    return Material(
-      color: const Color.fromRGBO(0, 0, 0, 0),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: widget.onTap,
-        onLongPress: widget.onLongPress,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: BoxDecoration(color: colors.surfaceContainerLow, borderRadius: BorderRadius.circular(12)),
-          child: Column(
-            spacing: 8,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+    return TrovaraCard(
+      onTap: widget.onTap,
+      onLongPress: widget.onLongPress,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: Column(
+        spacing: 8,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
               Row(
                 children: [
                   Expanded(
@@ -162,9 +158,7 @@ class _NoteCardState extends State<NoteCard> {
               ),
             ],
           ),
-        ),
-      ),
-    );
+        );
   }
 
   String _formatDate(DateTime date) => '${date.day}/${date.month}/${date.year}';

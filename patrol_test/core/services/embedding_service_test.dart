@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:trovara/core/repository/interfaces/embedding_repository.dart';
+import 'package:trovara/core/services/ai/embedding_chunker.dart';
 import 'package:trovara/core/services/ai/embedding_service.dart';
 import 'package:trovara/models/note.dart';
 import 'package:trovara/models/note_embedding.dart';
@@ -113,66 +114,66 @@ void main() {
   group('computeContentSignature', () {
     patrolTest('is deterministic — same inputs → same hash', ($) async {
       final inputs = ['Title: A\n\nBody'];
-      final a = EmbeddingService.computeContentSignature(
+      final a = EmbeddingChunker.computeContentSignature(
         inputs,
         modelName: _testModel,
-        maxChunkChars: 2000,
-        overlapChars: 200,
+        maxChunk: 2000,
+        overlap: 200,
       );
-      final b = EmbeddingService.computeContentSignature(
+      final b = EmbeddingChunker.computeContentSignature(
         inputs,
         modelName: _testModel,
-        maxChunkChars: 2000,
-        overlapChars: 200,
+        maxChunk: 2000,
+        overlap: 200,
       );
       expect(a, equals(b));
     });
 
     patrolTest('different content → different hash', ($) async {
-      final a = EmbeddingService.computeContentSignature(
+      final a = EmbeddingChunker.computeContentSignature(
         ['Title: A\n\nBody'],
         modelName: _testModel,
-        maxChunkChars: 2000,
-        overlapChars: 200,
+        maxChunk: 2000,
+        overlap: 200,
       );
-      final b = EmbeddingService.computeContentSignature(
+      final b = EmbeddingChunker.computeContentSignature(
         ['Title: B\n\nBody'],
         modelName: _testModel,
-        maxChunkChars: 2000,
-        overlapChars: 200,
+        maxChunk: 2000,
+        overlap: 200,
       );
       expect(a, isNot(equals(b)));
     });
 
     patrolTest('different model → different hash', ($) async {
       final inputs = ['same content'];
-      final a = EmbeddingService.computeContentSignature(
+      final a = EmbeddingChunker.computeContentSignature(
         inputs,
         modelName: 'model-v1',
-        maxChunkChars: 2000,
-        overlapChars: 200,
+        maxChunk: 2000,
+        overlap: 200,
       );
-      final b = EmbeddingService.computeContentSignature(
+      final b = EmbeddingChunker.computeContentSignature(
         inputs,
         modelName: 'model-v2',
-        maxChunkChars: 2000,
-        overlapChars: 200,
+        maxChunk: 2000,
+        overlap: 200,
       );
       expect(a, isNot(equals(b)));
     });
 
     patrolTest('normalizes \\r\\n to \\n', ($) async {
-      final a = EmbeddingService.computeContentSignature(
+      final a = EmbeddingChunker.computeContentSignature(
         ['line1\r\nline2'],
         modelName: _testModel,
-        maxChunkChars: 2000,
-        overlapChars: 200,
+        maxChunk: 2000,
+        overlap: 200,
       );
-      final b = EmbeddingService.computeContentSignature(
+      final b = EmbeddingChunker.computeContentSignature(
         ['line1\nline2'],
         modelName: _testModel,
-        maxChunkChars: 2000,
-        overlapChars: 200,
+        maxChunk: 2000,
+        overlap: 200,
       );
       expect(a, equals(b));
     });
@@ -193,11 +194,11 @@ void main() {
 
       // Store embedding with a different model version
       final inputs = service.buildEmbeddingInputs(note);
-      final sig = EmbeddingService.computeContentSignature(
+      final sig = EmbeddingChunker.computeContentSignature(
         inputs,
         modelName: 'old-model',
-        maxChunkChars: 2000,
-        overlapChars: 200,
+        maxChunk: 2000,
+        overlap: 200,
       );
       repo.seed([
         NoteEmbedding(
@@ -218,11 +219,11 @@ void main() {
       final note = _makeNote(id: 1, title: 'Stable', contentJson: _quillJson('Same content'));
 
       final inputs = service.buildEmbeddingInputs(note);
-      final sig = EmbeddingService.computeContentSignature(
+      final sig = EmbeddingChunker.computeContentSignature(
         inputs,
         modelName: _testModel,
-        maxChunkChars: 2000,
-        overlapChars: 200,
+        maxChunk: 2000,
+        overlap: 200,
       );
       repo.seed([
         NoteEmbedding(
@@ -248,11 +249,11 @@ void main() {
       );
 
       final inputs = service.buildEmbeddingInputs(note);
-      final sig = EmbeddingService.computeContentSignature(
+      final sig = EmbeddingChunker.computeContentSignature(
         inputs,
         modelName: _testModel,
-        maxChunkChars: 2000,
-        overlapChars: 200,
+        maxChunk: 2000,
+        overlap: 200,
       );
       repo.seed([
         NoteEmbedding(
@@ -275,11 +276,11 @@ void main() {
 
       // Store embedding with a signature from OLD content
       final oldInputs = ['Title: Note\n\nOld content'];
-      final oldSig = EmbeddingService.computeContentSignature(
+      final oldSig = EmbeddingChunker.computeContentSignature(
         oldInputs,
         modelName: _testModel,
-        maxChunkChars: 2000,
-        overlapChars: 200,
+        maxChunk: 2000,
+        overlap: 200,
       );
       repo.seed([
         NoteEmbedding(
@@ -301,11 +302,11 @@ void main() {
 
       // Store embedding with signature from OLD title
       final oldInputs = ['Title: Old Title\n\nBody'];
-      final oldSig = EmbeddingService.computeContentSignature(
+      final oldSig = EmbeddingChunker.computeContentSignature(
         oldInputs,
         modelName: _testModel,
-        maxChunkChars: 2000,
-        overlapChars: 200,
+        maxChunk: 2000,
+        overlap: 200,
       );
       repo.seed([
         NoteEmbedding(

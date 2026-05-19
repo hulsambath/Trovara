@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:crypto/crypto.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:trovara/core/services/ai/embedding_chunker.dart';
 import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
 import 'package:trovara/core/repository/interfaces/embedding_repository.dart';
@@ -24,10 +24,7 @@ class EmbeddingService {
   static const String defaultBaseUrl = 'https://openrouter.ai/api/v1';
   static const String defaultEmbeddingModel = 'openai/text-embedding-3-large';
   static const String defaultGeminiEmbeddingModel = 'gemini-embedding-001';
-  static const int _maxChunkChars = 2000; // ~500 tokens
-  static const int _overlapChars = 200; // overlap between chunks
-
-  final IEmbeddingRepository _embeddingRepository;
+final IEmbeddingRepository _embeddingRepository;
   final EmbeddingProvider _provider;
   final String _apiKey;
   final String _modelName;
@@ -130,12 +127,7 @@ class EmbeddingService {
         return;
       }
 
-      final signature = computeContentSignature(
-        embeddingInputs,
-        modelName: _modelName,
-        maxChunkChars: _maxChunkChars,
-        overlapChars: _overlapChars,
-      );
+      final signature = EmbeddingChunker.computeContentSignature(embeddingInputs, modelName: _modelName);
 
       // Remove old embeddings for this note
       await _embeddingRepository.deleteByNoteId(note.id);
@@ -144,7 +136,7 @@ class EmbeddingService {
       final title = note.title.trim();
       final content = TextParserService.parseQuillContent(note.contentJson).trim();
       final textForChunking = content.isEmpty ? title : content;
-      final chunks = _chunkText(textForChunking);
+      final chunks = EmbeddingChunker.chunkText(textForChunking);
 
       // Generate and save embeddings for each chunk
       for (int i = 0; i < chunks.length; i++) {
@@ -173,11 +165,6 @@ class EmbeddingService {
       _logger.e('Failed to embed note ${note.id}: $e');
       _addToPendingQueue(note);
     }
-  }
-
-  String _buildEmbeddingInput({required String title, required String chunkText}) {
-    if (title.isEmpty) return chunkText;
-    return 'Title: $title\n\n$chunkText';
   }
 
   /// Embed a user query for similarity comparison.
@@ -221,12 +208,7 @@ class EmbeddingService {
     // Signature-based check
     final inputs = buildEmbeddingInputs(note);
     if (inputs.isEmpty) return true;
-    final currentSig = computeContentSignature(
-      inputs,
-      modelName: _modelName,
-      maxChunkChars: _maxChunkChars,
-      overlapChars: _overlapChars,
-    );
+    final currentSig = EmbeddingChunker.computeContentSignature(inputs, modelName: _modelName);
     return stored.contentSignature != currentSig;
   }
 
@@ -278,20 +260,7 @@ class EmbeddingService {
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
-  //  Text chunking
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  /// Split text into overlapping chunks of ~500 tokens.
-  ///
-  /// Chunking rules:
-  /// - Max chunk size: 2000 chars (~500 tokens)
-  /// - Overlap: 200 chars between consecutive chunks
-  /// - Prefers to break at sentence boundaries (". ") or newlines
-  /// - Skips empty chunks
-  List<String> chunkText(String text) => _chunkText(text);
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  //  Content signature
+  //  Content helpers (delegate to EmbeddingChunker)
   // ═══════════════════════════════════════════════════════════════════════════
 
   /// Build the exact embedding-input strings for a note.
@@ -303,73 +272,10 @@ class EmbeddingService {
     final content = TextParserService.parseQuillContent(note.contentJson).trim();
     final textForChunking = content.isEmpty ? title : content;
     if (textForChunking.isEmpty) return [];
-    final chunks = _chunkText(textForChunking);
+    final chunks = EmbeddingChunker.chunkText(textForChunking);
     return chunks
-        .map((chunk) => content.isEmpty ? chunk : _buildEmbeddingInput(title: title, chunkText: chunk))
+        .map((chunk) => content.isEmpty ? chunk : EmbeddingChunker.buildEmbeddingInput(title: title, chunkText: chunk))
         .toList();
-  }
-
-  /// Compute a deterministic SHA-256 content signature from embedding inputs.
-  ///
-  /// The hash includes the model name and chunking parameters so that any
-  /// change to chunking rules naturally invalidates old signatures.
-  static String computeContentSignature(
-    List<String> embeddingInputs, {
-    required String modelName,
-    required int maxChunkChars,
-    required int overlapChars,
-  }) {
-    final buffer = StringBuffer();
-    buffer.writeln('model=$modelName');
-    buffer.writeln('maxChunk=$maxChunkChars');
-    buffer.writeln('overlap=$overlapChars');
-    for (final input in embeddingInputs) {
-      buffer.writeln('---');
-      buffer.writeln(input.replaceAll('\r\n', '\n').trim());
-    }
-    return sha256.convert(utf8.encode(buffer.toString())).toString();
-  }
-
-  List<String> _chunkText(String text) {
-    if (text.length <= _maxChunkChars) return [text];
-
-    final chunks = <String>[];
-    int start = 0;
-
-    while (start < text.length) {
-      int end = start + _maxChunkChars;
-      if (end >= text.length) {
-        chunks.add(text.substring(start).trim());
-        break;
-      }
-
-      // Try to break at a sentence or paragraph boundary
-      final segment = text.substring(start, end);
-      final lastPeriod = segment.lastIndexOf('. ');
-      final lastNewline = segment.lastIndexOf('\n');
-      final halfChunk = _maxChunkChars ~/ 2;
-
-      // Pick the later of the two boundary points, but only if it's
-      // in the second half of the chunk (so chunks aren't too small).
-      int breakPoint = -1;
-      if (lastPeriod > halfChunk) breakPoint = lastPeriod + 1;
-      if (lastNewline > halfChunk && lastNewline > breakPoint) {
-        breakPoint = lastNewline;
-      }
-
-      if (breakPoint > 0) {
-        end = start + breakPoint + 1;
-      }
-
-      final chunk = text.substring(start, end).trim();
-      if (chunk.isNotEmpty) {
-        chunks.add(chunk);
-      }
-
-      start = end - _overlapChars;
-    }
-
-    return chunks.where((c) => c.isNotEmpty).toList();
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
