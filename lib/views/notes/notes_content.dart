@@ -6,7 +6,15 @@ class _NotesContent extends StatelessWidget {
   final NotesViewModel viewModel;
 
   @override
-  Widget build(BuildContext context) => Scaffold(body: _buildBody(context));
+  Widget build(BuildContext context) => Scaffold(
+    body: _buildBody(context),
+    floatingActionButton: FloatingActionButton(
+      key: const ValueKey('notes-create-fab'),
+      child: const Icon(LucideIcons.plus),
+      onPressed: () => viewModel.createNewNote(context),
+      tooltip: 'Create new note',
+    ),
+  );
 
   Widget _buildBody(BuildContext context) {
     if (viewModel.isLoading) {
@@ -40,24 +48,6 @@ class _NotesContent extends StatelessWidget {
         icon: const Icon(LucideIcons.search),
         onPressed: () => context.push('/search'),
         tooltip: 'Search & filter notes',
-      ),
-      IconButton(
-        key: const ValueKey('notes-create-button'),
-        icon: const Icon(LucideIcons.plus),
-        onPressed: () => viewModel.createNewNote(context),
-        tooltip: 'Create new note',
-      ),
-      IconButton(
-        key: const ValueKey('notes-trash-button'),
-        icon: const Icon(LucideIcons.trash2),
-        onPressed: () => _openRecentlyDeleted(context),
-        tooltip: 'Recently Deleted',
-      ),
-      IconButton(
-        key: const ValueKey('notes-sync-button'),
-        icon: const Icon(LucideIcons.refreshCw),
-        onPressed: () => viewModel.syncWithGoogleDrive(context),
-        tooltip: 'Sync with Google Drive',
       ),
     ],
     bottom: PreferredSize(
@@ -116,8 +106,4 @@ class _NotesContent extends StatelessWidget {
       ],
     ),
   );
-
-  void _openRecentlyDeleted(BuildContext context) {
-    Navigator.of(context).push(MaterialPageRoute(builder: (context) => const TrashView()));
-  }
 }
