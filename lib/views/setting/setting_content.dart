@@ -11,10 +11,10 @@ class _SettingContent extends StatelessWidget {
     body: ListView(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       children: [
-        // ── User Profile ───────────────────────────────────────────────────
-        if (viewModel.isSignedIn) ...[
-          _buildSectionLabel(context, 'Account'),
-          const SizedBox(height: 8),
+        // ── Account ───────────────────────────────────────────────────────────
+        _buildSectionLabel(context, 'Account'),
+        const SizedBox(height: 8),
+        if (viewModel.isSignedIn)
           TrovaraCard(
             child: Padding(
               padding: const EdgeInsets.all(12),
@@ -39,9 +39,9 @@ class _SettingContent extends StatelessWidget {
                         const SizedBox(height: 4),
                         Text(
                           viewModel.accountEmail ?? '',
-                          style: Theme.of(
-                            context,
-                          ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
                         ),
                       ],
                     ),
@@ -55,24 +55,19 @@ class _SettingContent extends StatelessWidget {
                 ],
               ),
             ),
-          ),
-          const SizedBox(height: 16),
-        ],
-
-        if (!viewModel.isSignedIn) ...[
-          _buildSectionLabel(context, 'Account'),
-          const SizedBox(height: 8),
+          )
+        else
           TrovaraCard(
             child: ListTile(
               leading: const Icon(LucideIcons.logIn),
-              title: const Text('Sign in to Google'),
+              title: const Text('Sign in with Google'),
+              subtitle: const Text('Sync your notes across devices'),
               onTap: () => viewModel.signInGoogle(context),
             ),
           ),
-          const SizedBox(height: 16),
-        ],
+        const SizedBox(height: 16),
 
-        // ── Appearance ─────────────────────────────────────────────────────
+        // ── Appearance ────────────────────────────────────────────────────────
         _buildSectionLabel(context, 'Appearance'),
         const SizedBox(height: 8),
         Consumer<ThemeProvider>(
@@ -82,8 +77,7 @@ class _SettingContent extends StatelessWidget {
                 themeProvider.isDarkMode() ? LucideIcons.moon : LucideIcons.sun,
                 color: Theme.of(context).colorScheme.primary,
               ),
-              title: const Text('Theme Mode'),
-              subtitle: Text(themeProvider.isDarkMode() ? 'Dark' : 'Light'),
+              title: Text(themeProvider.isDarkMode() ? 'Dark mode' : 'Light mode'),
               trailing: Switch(
                 value: themeProvider.isDarkMode(),
                 onChanged: (v) => context.read<ThemeProvider>().setThemeMode(v ? ThemeMode.dark : ThemeMode.light),
@@ -103,8 +97,8 @@ class _SettingContent extends StatelessWidget {
                 TrovaraCard(
                   child: ListTile(
                     leading: Icon(LucideIcons.palette, color: Theme.of(context).colorScheme.primary),
-                    title: const Text('App Icon'),
-                    subtitle: const Text('Change the app icon on your home screen'),
+                    title: const Text('App icon'),
+                    subtitle: const Text('Change the icon on your home screen'),
                     trailing: const Icon(LucideIcons.chevronRight),
                     onTap: () => _showAppIconPicker(context),
                   ),
@@ -115,121 +109,69 @@ class _SettingContent extends StatelessWidget {
         ),
         const SizedBox(height: 16),
 
-        // ── Google Drive Sync ──────────────────────────────────────────────
-        if (viewModel.isSignedIn) ...[
-          _buildSectionLabel(context, 'Cloud Sync'),
-          const SizedBox(height: 8),
-          TrovaraCard(
-            child: ListTile(
-              leading: SvgPicture.asset('assets/icons/google drive.svg', width: 24, height: 24),
-              title: const Text('Sync with Google Drive'),
-              subtitle: const Text('Backup and restore all notes'),
-              trailing: const Icon(LucideIcons.refreshCw),
-              onTap: () => viewModel.syncWithGoogleDrive(context),
-            ),
+        // ── Backup & Sync ─────────────────────────────────────────────────────
+        _buildSectionLabel(context, 'Backup & Sync'),
+        const SizedBox(height: 8),
+        TrovaraCard(
+          child: Column(
+            children: [
+              if (viewModel.isSignedIn) ...[
+                ListTile(
+                  leading: SvgPicture.asset('assets/icons/google drive.svg', width: 24, height: 24),
+                  title: const Text('Sync with Google Drive'),
+                  subtitle: const Text('Keep your notes safe and up to date'),
+                  trailing: const Icon(LucideIcons.refreshCw),
+                  onTap: () => viewModel.syncWithGoogleDrive(context),
+                ),
+                const Divider(height: 1, indent: 56),
+              ],
+              ListTile(
+                leading: Icon(LucideIcons.hardDriveDownload, color: Theme.of(context).colorScheme.primary),
+                title: const Text('Back up your notes'),
+                subtitle: const Text('Save a copy of all your notes to your device'),
+                trailing: const Icon(LucideIcons.chevronRight),
+                onTap: () => viewModel.exportToFile(context),
+              ),
+              const Divider(height: 1, indent: 56),
+              ListTile(
+                leading: Icon(LucideIcons.hardDriveUpload, color: Theme.of(context).colorScheme.primary),
+                title: const Text('Restore from backup'),
+                subtitle: const Text('Load notes from a previous backup'),
+                trailing: const Icon(LucideIcons.chevronRight),
+                onTap: () => viewModel.importFromFile(context),
+              ),
+            ],
           ),
-          const SizedBox(height: 16),
-        ],
+        ),
+        const SizedBox(height: 16),
 
-        // ── Notes ──────────────────────────────────────────────────────────
+        // ── Notes ─────────────────────────────────────────────────────────────
         _buildSectionLabel(context, 'Notes'),
         const SizedBox(height: 8),
         TrovaraCard(
           child: ListTile(
             leading: const Icon(LucideIcons.trash2),
             title: const Text('Recently Deleted'),
-            subtitle: const Text('Notes here are kept for 30 days before being removed forever'),
+            subtitle: const Text('Notes are kept for 30 days before being removed'),
+            trailing: const Icon(LucideIcons.chevronRight),
             onTap: () => viewModel.openRecentlyDeleted(context),
           ),
         ),
         const SizedBox(height: 16),
 
-        // ── Export ─────────────────────────────────────────────────────────
-        _buildSectionLabel(context, 'Export'),
-        const SizedBox(height: 8),
-        TrovaraCard(
-          child: Column(
-            children: [
-              ListTile(
-                leading: Icon(LucideIcons.database, color: Theme.of(context).colorScheme.primary),
-                title: const Text('Export as JSON'),
-                subtitle: const Text('Full backup — import back into Trovara on any device'),
-                trailing: const Icon(LucideIcons.chevronRight),
-                onTap: () => viewModel.exportToFile(context),
-              ),
-              const Divider(height: 1, indent: 56),
-              ListTile(
-                leading: Icon(LucideIcons.fileText, color: Theme.of(context).colorScheme.primary),
-                title: const Text('Export as Markdown'),
-                subtitle: const Text('Obsidian-compatible .md file with YAML frontmatter'),
-                trailing: const Icon(LucideIcons.chevronRight),
-                onTap: () => viewModel.exportAsMarkdown(context),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-
-        // ── Import ─────────────────────────────────────────────────────────
-        _buildSectionLabel(context, 'Import'),
-        const SizedBox(height: 8),
-        _buildImportInfoBanner(context),
-        const SizedBox(height: 8),
-        TrovaraCard(
-          child: Column(
-            children: [
-              // Trovara JSON
-              ListTile(
-                leading: _buildPlatformIcon(
-                  context,
-                  icon: LucideIcons.database,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                title: const Text('Trovara backup (.json)'),
-                subtitle: const Text('Restore from a previous Trovara export'),
-                trailing: const Icon(LucideIcons.chevronRight),
-                onTap: () => viewModel.importFromFile(context),
-              ),
-              const Divider(height: 1, indent: 56),
-              // Obsidian
-              ListTile(
-                leading: _buildPlatformIcon(context, icon: LucideIcons.diamond, color: const Color(0xFF7E56C2)),
-                title: const Text('Obsidian vault (.md files)'),
-                subtitle: const Text('Select .md files from your vault — preserves [[wikilinks]] & tags'),
-                trailing: const Icon(LucideIcons.chevronRight),
-                onTap: () => viewModel.importFromObsidian(context),
-              ),
-              const Divider(height: 1, indent: 56),
-              // Notion
-              ListTile(
-                leading: _buildPlatformIcon(
-                  context,
-                  icon: LucideIcons.fileText,
-                  color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.black87,
-                ),
-                title: const Text('Notion export (.md / .csv)'),
-                subtitle: const Text('Select exported Markdown files from Notion'),
-                trailing: const Icon(LucideIcons.chevronRight),
-                onTap: () => viewModel.importFromNotion(context),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-
-        // ── Search Index ───────────────────────────────────────────────────
-        _buildSectionLabel(context, 'Search Index'),
-        const SizedBox(height: 8),
+        // ── Advanced ──────────────────────────────────────────────────────────
         TrovaraCard(
           child: ListTile(
-            leading: Icon(LucideIcons.search, color: Theme.of(context).colorScheme.primary),
-            title: const Text('Re-index all notes'),
-            subtitle: const Text('Fixes missing AI search results by re-embedding all notes'),
+            leading: Icon(LucideIcons.settings2, color: Theme.of(context).colorScheme.onSurfaceVariant),
+            title: const Text('Advanced'),
+            subtitle: const Text('Export formats, import from other apps, AI search'),
             trailing: const Icon(LucideIcons.chevronRight),
-            onTap: () => viewModel.reembedAllNotes(context),
+            onTap: () => viewModel.openAdvancedSettings(context),
           ),
         ),
         const SizedBox(height: 32),
+
+        // ── Version ───────────────────────────────────────────────────────────
         FutureBuilder<PackageInfo>(
           future: PackageInfo.fromPlatform(),
           builder: (context, snapshot) {
@@ -238,10 +180,10 @@ class _SettingContent extends StatelessWidget {
             final ver = '${info.version}+${info.buildNumber}';
             return Center(
               child: Text(
-                'Trovara okes $ver',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5)),
+                'Trovara $ver',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                ),
               ),
             );
           },
@@ -250,8 +192,6 @@ class _SettingContent extends StatelessWidget {
       ],
     ),
   );
-
-  // ── Helpers ────────────────────────────────────────────────────────────────
 
   Widget _buildSectionLabel(BuildContext context, String label) => Padding(
     padding: const EdgeInsets.only(left: 4, bottom: 2),
@@ -265,47 +205,8 @@ class _SettingContent extends StatelessWidget {
     ),
   );
 
-  Widget _buildPlatformIcon(BuildContext context, {required IconData icon, required Color color}) => Container(
-    width: 36,
-    height: 36,
-    decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(8)),
-    child: Icon(icon, color: color, size: 20),
-  );
-
-  Widget _buildImportInfoBanner(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: isDark ? 0.35 : 0.55),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.25)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(LucideIcons.info, size: 16, color: Theme.of(context).colorScheme.primary),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              'Imports are non-destructive — existing notes are only updated when '
-              'the imported version is newer. Deleted notes are never re-imported.',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.75),
-                height: 1.5,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ── Dialogs / bottom sheets ────────────────────────────────────────────────
-
   void _showAppIconPicker(BuildContext context) {
     final details = AppIconService.getIconDetails();
-
     showModalBottomSheet<void>(
       context: context,
       builder: (context) => SafeArea(

@@ -4,6 +4,7 @@ import 'package:trovara/views/chat/chat_view.dart';
 import 'package:trovara/views/main/main_view.dart';
 import 'package:trovara/views/notes/note/note_view.dart';
 import 'package:trovara/views/search/search_view.dart';
+import 'package:trovara/views/setting/advanced/advanced_setting_view.dart';
 
 class AppRouter {
   static final GoRouter _router = GoRouter(
@@ -39,6 +40,15 @@ class AppRouter {
             MaterialPage(key: state.pageKey, restorationId: 'chat', child: const ChatView()),
       ),
       // ── Search + Tag Filter (vertical slide; not the default horizontal MaterialPage) ──
+      GoRoute(
+        path: '/settings/advanced',
+        name: 'settings-advanced',
+        pageBuilder: (context, state) => MaterialPage(
+          key: state.pageKey,
+          restorationId: 'settings-advanced',
+          child: const AdvancedSettingView(),
+        ),
+      ),
       GoRoute(
         path: '/search',
         name: 'search',
