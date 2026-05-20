@@ -19,6 +19,20 @@ class ChatSourceService {
   //  Validation
   // ═══════════════════════════════════════════════════════════════════════════
 
+  /// Validates a note is a valid source for chat context.
+  ///
+  /// Returns false if the note is:
+  /// - deleted (isDeleted == true)
+  /// - archived (isArchived == true)
+  /// - has invalid ID (id == 0)
+  /// - not a Note entity (implicit: checked at type level)
+  bool isValidSource(Note note) {
+    if (note.isDeleted) return false;
+    if (note.isArchived) return false;
+    if (note.id == 0) return false;
+    return true;
+  }
+
   // ═══════════════════════════════════════════════════════════════════════════
   //  Building sources (from RAG results)
   // ═══════════════════════════════════════════════════════════════════════════
