@@ -1,4 +1,3 @@
-import 'package:logger/logger.dart';
 import 'package:trovara/core/services/notes/note_service.dart';
 import 'package:trovara/models/chat_message.dart';
 import 'package:trovara/models/chat_source_note.dart';
@@ -11,7 +10,6 @@ import 'package:trovara/models/note.dart';
 /// (not tags/labels, not deleted, not archived).
 class ChatSourceService {
   final NoteService _noteService;
-  final Logger _logger = Logger();
 
   ChatSourceService({required NoteService noteService}) : _noteService = noteService;
 
