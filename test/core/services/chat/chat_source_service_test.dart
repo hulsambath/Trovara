@@ -6,11 +6,11 @@ import 'package:trovara/models/note.dart';
 void main() {
   group('ChatSourceService', () {
     late ChatSourceService service;
-    late _StubNoteService stubNoteService;
+    late _MockNoteService mockNoteService;
 
     setUp(() {
-      stubNoteService = _StubNoteService();
-      service = ChatSourceService(noteService: stubNoteService);
+      mockNoteService = _MockNoteService();
+      service = ChatSourceService(noteService: mockNoteService);
     });
 
     group('isValidSource', () {
@@ -82,11 +82,47 @@ void main() {
         expect(sources[0].id, 1);
       });
     });
+
+    group('resolveNoteByTitle', () {
+      test('returns null for empty title', () {
+        expect(service.resolveNoteByTitle(''), isNull);
+        expect(service.resolveNoteByTitle('   '), isNull);
+      });
+
+      test('returns null when no matches found', () {
+        mockNoteService.searchResults = [];
+        expect(service.resolveNoteByTitle('NonexistentNote'), isNull);
+      });
+
+      test('returns null if matched note is deleted', () {
+        final deletedNote = Note(id: 1, title: 'Deleted', contentJson: '', isDeleted: true);
+        mockNoteService.searchResults = [deletedNote];
+        expect(service.resolveNoteByTitle('Deleted'), isNull);
+      });
+
+      test('returns null if matched note is archived', () {
+        final archivedNote = Note(id: 2, title: 'Archived', contentJson: '', isArchived: true);
+        mockNoteService.searchResults = [archivedNote];
+        expect(service.resolveNoteByTitle('Archived'), isNull);
+      });
+
+      test('is case-insensitive and whitespace-trimmed', () {
+        final note = Note(id: 3, title: 'My Note', contentJson: '');
+        mockNoteService.searchResults = [note];
+        expect(service.resolveNoteByTitle(' MY NOTE '), equals(note));
+        expect(service.resolveNoteByTitle('my note'), equals(note));
+      });
+    });
   });
 }
 
-/// Stub for NoteService - minimal implementation for testing ChatSourceService.
-class _StubNoteService implements NoteService {
+/// Mock for NoteService - supports searchNotes for testing ChatSourceService.
+class _MockNoteService implements NoteService {
+  List<Note> searchResults = [];
+
+  @override
+  List<Note> searchNotes(String query) => searchResults;
+
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

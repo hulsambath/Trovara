@@ -60,4 +60,26 @@ class ChatSourceService {
   // ═══════════════════════════════════════════════════════════════════════════
   //  Resolving sources (from persisted message data)
   // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Searches for a note by title with validation.
+  ///
+  /// Exact match (case-insensitive, whitespace-trimmed) is preferred;
+  /// falls back to first search result if exact not found.
+  /// Returns null if note not found or is deleted/archived.
+  Note? resolveNoteByTitle(String title) {
+    final trimmed = title.trim();
+    if (trimmed.isEmpty) return null;
+
+    final matches = _noteService.searchNotes(trimmed);
+    if (matches.isEmpty) return null;
+
+    final lowerTitle = trimmed.toLowerCase();
+    final exact = matches.firstWhere(
+      (note) => note.title.toLowerCase().trim() == lowerTitle,
+      orElse: () => matches.first,
+    );
+
+    if (!isValidSource(exact)) return null;
+    return exact;
+  }
 }
