@@ -37,6 +37,26 @@ class ChatSourceService {
   //  Building sources (from RAG results)
   // ═══════════════════════════════════════════════════════════════════════════
 
+  /// Converts RAG results (list of notes) into validated ChatSourceNote objects.
+  ///
+  /// Filters and deduplicates sources, excludes [excludeNoteId] if provided.
+  /// Returns sources in input order, skipping invalid ones.
+  List<ChatSourceNote> buildSourceNotes(List<Note> notes, int? excludeNoteId) {
+    final seenIds = <int>{};
+    final out = <ChatSourceNote>[];
+
+    for (final note in notes) {
+      if (!isValidSource(note)) continue;
+      if (note.id == excludeNoteId) continue;
+      if (seenIds.contains(note.id)) continue;
+
+      seenIds.add(note.id);
+      out.add(ChatSourceNote(id: note.id, title: note.title, label: ''));
+    }
+
+    return out;
+  }
+
   // ═══════════════════════════════════════════════════════════════════════════
   //  Resolving sources (from persisted message data)
   // ═══════════════════════════════════════════════════════════════════════════
