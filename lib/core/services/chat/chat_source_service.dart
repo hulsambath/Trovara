@@ -82,4 +82,42 @@ class ChatSourceService {
     if (!isValidSource(exact)) return null;
     return exact;
   }
+
+  /// Loads source notes from persisted chat message data.
+  ///
+  /// Fallback strategy: if [sourceNoteIds] exist, use them; otherwise
+  /// resolve by [sourceNoteTitles]. Validates each note exists and isn't
+  /// deleted/archived. Returns resolved sources, skipping invalid ones.
+  /// Prefers stored title over current note title.
+  List<ChatSourceNote> resolveSourceNotes(ChatMessageEntity entity, int? excludeNoteId) {
+    final out = <ChatSourceNote>[];
+
+    // Fallback 1: resolve by IDs if available
+    if (entity.sourceNoteIds.isNotEmpty) {
+      for (int i = 0; i < entity.sourceNoteIds.length; i++) {
+        final id = entity.sourceNoteIds[i];
+        if (id == excludeNoteId) continue;
+
+        final note = _noteService.getNote(id);
+        if (note == null || !isValidSource(note)) continue;
+
+        final title = entity.sourceNoteTitles.length > i && entity.sourceNoteTitles[i].trim().isNotEmpty
+            ? entity.sourceNoteTitles[i]
+            : note.title;
+        final label = entity.sourceNoteLabels.length > i ? entity.sourceNoteLabels[i] : '';
+
+        out.add(ChatSourceNote(id: note.id, title: title, label: label));
+      }
+      return out;
+    }
+
+    // Fallback 2: resolve by title
+    for (final title in entity.sourceNoteTitles) {
+      final resolved = resolveNoteByTitle(title);
+      if (resolved == null || resolved.id == excludeNoteId) continue;
+      out.add(ChatSourceNote(id: resolved.id, title: resolved.title, label: ''));
+    }
+
+    return out;
+  }
 }

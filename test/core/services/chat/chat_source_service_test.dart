@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:trovara/core/services/chat/chat_source_service.dart';
 import 'package:trovara/core/services/notes/note_service.dart';
+import 'package:trovara/models/chat_message.dart';
 import 'package:trovara/models/note.dart';
 
 void main() {
@@ -113,16 +114,122 @@ void main() {
         expect(service.resolveNoteByTitle('my note'), equals(note));
       });
     });
+
+    group('resolveSourceNotes', () {
+      test('returns empty list when entity has no sources', () {
+        final entity = _MockChatMessageEntity();
+        expect(service.resolveSourceNotes(entity, null), isEmpty);
+      });
+
+      test('resolves by sourceNoteIds if available', () {
+        final note1 = Note(id: 1, title: 'First', contentJson: '');
+        final note2 = Note(id: 2, title: 'Second', contentJson: '');
+        mockNoteService.notesById = {1: note1, 2: note2};
+
+        final entity = _MockChatMessageEntity(
+          sourceNoteIds: [1, 2],
+          sourceNoteTitles: ['', ''],
+          sourceNoteLabels: ['tag1', 'tag2'],
+        );
+
+        final sources = service.resolveSourceNotes(entity, null);
+        expect(sources.length, 2);
+        expect(sources[0].id, 1);
+        expect(sources[0].title, 'First');
+        expect(sources[0].label, 'tag1');
+        expect(sources[1].id, 2);
+        expect(sources[1].title, 'Second');
+        expect(sources[1].label, 'tag2');
+      });
+
+      test('falls back to sourceNoteTitles if sourceNoteIds empty', () {
+        final note = Note(id: 5, title: 'Found Note', contentJson: '');
+        mockNoteService.searchResults = [note];
+
+        final entity = _MockChatMessageEntity(
+          sourceNoteIds: [],
+          sourceNoteTitles: ['Found Note'],
+          sourceNoteLabels: [],
+        );
+
+        final sources = service.resolveSourceNotes(entity, null);
+        expect(sources.length, 1);
+        expect(sources[0].id, 5);
+      });
+
+      test('skips deleted or archived notes during resolution', () {
+        final validNote = Note(id: 1, title: 'Valid', contentJson: '');
+        final deletedNote = Note(id: 2, title: 'Deleted', contentJson: '', isDeleted: true);
+        mockNoteService.notesById = {1: validNote, 2: deletedNote};
+
+        final entity = _MockChatMessageEntity(
+          sourceNoteIds: [1, 2],
+          sourceNoteTitles: ['', ''],
+        );
+
+        final sources = service.resolveSourceNotes(entity, null);
+        expect(sources.length, 1);
+        expect(sources[0].id, 1);
+      });
+
+      test('prefers stored title over current note title', () {
+        final note = Note(id: 3, title: 'Original Title', contentJson: '');
+        mockNoteService.notesById = {3: note};
+
+        final entity = _MockChatMessageEntity(
+          sourceNoteIds: [3],
+          sourceNoteTitles: ['Stored Title'],
+        );
+
+        final sources = service.resolveSourceNotes(entity, null);
+        expect(sources.length, 1);
+        expect(sources[0].title, 'Stored Title');
+      });
+
+      test('excludes the specified excludeNoteId', () {
+        final note1 = Note(id: 1, title: 'First', contentJson: '');
+        final note2 = Note(id: 2, title: 'Second', contentJson: '');
+        mockNoteService.notesById = {1: note1, 2: note2};
+
+        final entity = _MockChatMessageEntity(
+          sourceNoteIds: [1, 2],
+          sourceNoteTitles: ['', ''],
+        );
+
+        final sources = service.resolveSourceNotes(entity, 2);
+        expect(sources.length, 1);
+        expect(sources[0].id, 1);
+      });
+    });
   });
 }
 
-/// Mock for NoteService - supports searchNotes for testing ChatSourceService.
+/// Mock for NoteService - supports searchNotes and getNote for testing ChatSourceService.
 class _MockNoteService implements NoteService {
   List<Note> searchResults = [];
+  Map<int, Note> notesById = {};
 
   @override
   List<Note> searchNotes(String query) => searchResults;
 
+  Note? getNote(int id) => notesById[id];
+
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// Mock ChatMessageEntity for testing resolveSourceNotes.
+class _MockChatMessageEntity extends ChatMessageEntity {
+  _MockChatMessageEntity({
+    List<int> sourceNoteIds = const [],
+    List<String> sourceNoteTitles = const [],
+    List<String> sourceNoteLabels = const [],
+  }) : super(
+    threadId: 1,
+    role: 'assistant',
+    content: 'test',
+    sourceNoteIds: sourceNoteIds,
+    sourceNoteTitles: sourceNoteTitles,
+    sourceNoteLabels: sourceNoteLabels,
+  );
 }
