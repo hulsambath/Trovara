@@ -23,6 +23,7 @@ import 'package:trovara/core/services/ai/vector_search_service.dart';
 import 'package:trovara/core/services/auth/google_drive_service.dart';
 import 'package:trovara/core/services/chat/chat_drive_sync_service.dart';
 import 'package:trovara/core/services/chat/chat_service.dart';
+import 'package:trovara/core/services/chat/chat_source_service.dart';
 import 'package:trovara/core/services/notes/custom_tag_service.dart';
 import 'package:trovara/core/services/notes/note_service.dart';
 import 'package:trovara/core/services/sync/google_drive_sync_service.dart';
@@ -56,6 +57,7 @@ class ServiceLocator {
   IChatMessageRepository? _chatMessageRepository;
   ChatService? _chatService;
   ChatDriveSyncService? _chatDriveSyncService;
+  ChatSourceService? _chatSourceService;
 
   /// Get the note repository instance
   INoteRepository get noteRepository {
@@ -275,6 +277,12 @@ class ServiceLocator {
   ChatDriveSyncService get chatDriveSyncService {
     _chatDriveSyncService ??= ChatDriveSyncService();
     return _chatDriveSyncService!;
+  }
+
+  /// Get the chat source service instance
+  ChatSourceService get chatSourceService {
+    _chatSourceService ??= ChatSourceService(noteService: noteService);
+    return _chatSourceService!;
   }
 
   /// Initialize all services
