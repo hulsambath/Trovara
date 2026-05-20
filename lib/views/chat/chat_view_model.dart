@@ -6,7 +6,7 @@ import 'package:trovara/core/di/service_locator.dart';
 import 'package:trovara/core/services/ai/rag_chat_memory.dart';
 import 'package:trovara/core/services/ai/rag_service.dart';
 import 'package:trovara/core/services/chat/chat_service.dart';
-import 'package:trovara/core/services/notes/note_service.dart';
+import 'package:trovara/core/services/chat/chat_source_service.dart';
 import 'package:trovara/models/chat_message.dart';
 import 'package:trovara/models/chat_source_note.dart';
 import 'package:trovara/models/chat_thread.dart';
@@ -26,13 +26,16 @@ import 'package:trovara/models/note.dart';
 class ChatViewModel extends BaseViewModel {
   final RagService _ragService;
   final ChatService _chatService;
-  final NoteService _noteService;
+  final ChatSourceService _chatSourceService;
   final Logger _logger = Logger();
 
-  ChatViewModel({RagService? ragService, ChatService? chatService, NoteService? noteService})
-    : _ragService = ragService ?? ServiceLocator().ragService,
-      _chatService = chatService ?? ServiceLocator().chatService,
-      _noteService = noteService ?? ServiceLocator().noteService;
+  ChatViewModel({
+    RagService? ragService,
+    ChatService? chatService,
+    ChatSourceService? chatSourceService,
+  }) : _ragService = ragService ?? ServiceLocator().ragService,
+       _chatService = chatService ?? ServiceLocator().chatService,
+       _chatSourceService = chatSourceService ?? ServiceLocator().chatSourceService;
 
   // ═══════════════════════════════════════════════════════════════════════════
   //  State
@@ -155,7 +158,7 @@ class ChatViewModel extends BaseViewModel {
 
       final debugNotes = await _ragService.getSourceDebugNotes(trimmed, priorTurns: priorTurns);
       _logSourceDebug(debugNotes);
-      final sourceNotes = _buildSourceNotes(debugNotes);
+      final sourceNotes = _chatSourceService.buildSourceNotes(debugNotes, _currentThread?.noteId);
       sources = sourceNotes;
       _updateMessage(aiMessageId, content: buffer.toString(), sourceNotes: sourceNotes, isLoading: false);
 
@@ -222,7 +225,7 @@ class ChatViewModel extends BaseViewModel {
     content: entity.content,
     isUser: entity.role == 'user',
     timestamp: entity.createdAt,
-    sourceNotes: _resolveSourceNotes(entity),
+    sourceNotes: _chatSourceService.resolveSourceNotes(entity, _currentThread?.noteId),
   );
 
   void _updateMessage(String id, {String? content, List<ChatSourceNote>? sourceNotes, bool? isLoading, bool? isError}) {
@@ -249,69 +252,6 @@ class ChatViewModel extends BaseViewModel {
     for (final note in notes) {
       _logger.d('Source debug note ${note.id}: ${note.toJson()}');
     }
-  }
-
-  List<ChatSourceNote> _buildSourceNotes(List<Note> notes) {
-    final seenIds = <int>{};
-    final out = <ChatSourceNote>[];
-    final excludeNoteId = _currentThread?.noteId;
-
-    for (final note in notes) {
-      if (note.isDeleted || note.id == 0 || note.id == excludeNoteId || seenIds.contains(note.id)) continue;
-      seenIds.add(note.id);
-      out.add(ChatSourceNote(id: note.id, title: note.title, label: _bestLabelFor(note)));
-    }
-
-    return out;
-  }
-
-  List<ChatSourceNote> _resolveSourceNotes(ChatMessageEntity entity) {
-    final out = <ChatSourceNote>[];
-    final excludeNoteId = _currentThread?.noteId;
-
-    if (entity.sourceNoteIds.isNotEmpty) {
-      for (int i = 0; i < entity.sourceNoteIds.length; i++) {
-        final id = entity.sourceNoteIds[i];
-        if (id == excludeNoteId) continue;
-        final note = _noteService.getNote(id);
-        if (note == null || note.isDeleted) continue;
-        final title = entity.sourceNoteTitles.length > i && entity.sourceNoteTitles[i].trim().isNotEmpty
-            ? entity.sourceNoteTitles[i]
-            : note.title;
-        final storedLabel = entity.sourceNoteLabels.length > i ? entity.sourceNoteLabels[i] : '';
-        final label = storedLabel.trim().isNotEmpty ? storedLabel : _bestLabelFor(note);
-        out.add(ChatSourceNote(id: note.id, title: title, label: label));
-      }
-      return out;
-    }
-
-    for (final title in entity.sourceNoteTitles) {
-      final resolved = _resolveNoteByTitle(title);
-      if (resolved == null || resolved.id == excludeNoteId) continue;
-      out.add(ChatSourceNote(id: resolved.id, title: resolved.title, label: _bestLabelFor(resolved)));
-    }
-    return out;
-  }
-
-  Note? _resolveNoteByTitle(String title) {
-    if (title.trim().isEmpty) return null;
-    final matches = _noteService.searchNotes(title);
-    if (matches.isEmpty) return null;
-    final exact = matches.firstWhere(
-      (note) => note.title.toLowerCase().trim() == title.toLowerCase().trim(),
-      orElse: () => matches.first,
-    );
-    return exact.isDeleted ? null : exact;
-  }
-
-  String _bestLabelFor(Note note) {
-    if (note.customTagObjects.isNotEmpty) return note.customTagObjects.first.name;
-    if (note.moodTagObjects.isNotEmpty) return note.moodTagObjects.first.label;
-    if (note.activityTagObjects.isNotEmpty) return note.activityTagObjects.first.label;
-    if (note.timeTagObjects.isNotEmpty) return note.timeTagObjects.first.label;
-    if (note.personalGrowthTagObjects.isNotEmpty) return note.personalGrowthTagObjects.first.label;
-    final folder = _noteService.getFolder(note.folderId);
-    return folder?.name ?? '';
   }
 
   bool _shouldMarkRagMessageAsError(String message) {

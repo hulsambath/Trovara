@@ -14,6 +14,7 @@ import 'package:trovara/core/services/ai/rag_chat_memory.dart';
 import 'package:trovara/core/services/ai/rag_service.dart';
 import 'package:trovara/core/services/ai/vector_search_service.dart';
 import 'package:trovara/core/services/chat/chat_service.dart';
+import 'package:trovara/core/services/chat/chat_source_service.dart';
 import 'package:trovara/core/services/notes/note_service.dart';
 import 'package:trovara/models/chat_message.dart';
 import 'package:trovara/models/chat_source_note.dart';
@@ -426,13 +427,15 @@ void main() {
     late _FakeRagService fakeRag;
     late ChatService chatService;
     late NoteService noteService;
+    late ChatSourceService chatSourceService;
     late ChatViewModel vm;
 
     setUp(() {
       fakeRag = _FakeRagService();
       chatService = ChatService(threadRepository: _StubChatThreadRepo(), messageRepository: _StubChatMessageRepo());
       noteService = NoteService(noteRepository: _StubNoteRepo(), folderRepository: _StubFolderRepo());
-      vm = ChatViewModel(ragService: fakeRag, chatService: chatService, noteService: noteService);
+      chatSourceService = ChatSourceService(noteService: noteService);
+      vm = ChatViewModel(ragService: fakeRag, chatService: chatService, chatSourceService: chatSourceService);
     });
 
     test('initial state is empty and not processing', () {
@@ -445,14 +448,14 @@ void main() {
       final available = ChatViewModel(
         ragService: _FakeRagService(available: true),
         chatService: chatService,
-        noteService: noteService,
+        chatSourceService: chatSourceService,
       );
       expect(available.isAvailable, true);
 
       final unavailable = ChatViewModel(
         ragService: _FakeRagService(available: false),
         chatService: chatService,
-        noteService: noteService,
+        chatSourceService: chatSourceService,
       );
       expect(unavailable.isAvailable, false);
     });
@@ -507,7 +510,7 @@ void main() {
 
     test('sendMessage handles stream error', () async {
       final errorRag = _FakeRagService(onQueryStream: (_) => Stream<String>.error(Exception('API failed')));
-      final errorVm = ChatViewModel(ragService: errorRag, chatService: chatService, noteService: noteService);
+      final errorVm = ChatViewModel(ragService: errorRag, chatService: chatService, chatSourceService: chatSourceService);
 
       await errorVm.sendMessage('test');
 
@@ -524,7 +527,7 @@ void main() {
             Stream<String>.error(RagQueryException("I couldn't find any relevant notes for your question.")),
         onGetSourceNotes: (_) async => [],
       );
-      final noResultsVm = ChatViewModel(ragService: noResultsRag, chatService: chatService, noteService: noteService);
+      final noResultsVm = ChatViewModel(ragService: noResultsRag, chatService: chatService, chatSourceService: chatSourceService);
 
       await noResultsVm.sendMessage('test');
 
@@ -559,7 +562,7 @@ void main() {
         onQueryStream: (q) => Stream.value('Reply to $q'),
         onGetSourceNotes: (_) async => [],
       );
-      final multiVm = ChatViewModel(ragService: rag, chatService: chatService, noteService: noteService);
+      final multiVm = ChatViewModel(ragService: rag, chatService: chatService, chatSourceService: chatSourceService);
 
       await multiVm.sendMessage('first');
       await multiVm.sendMessage('second');
