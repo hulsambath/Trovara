@@ -135,7 +135,7 @@ After the one-shot pass, four agents graduate to slash commands. The other four 
 `.claude/commands/audit.md` (currently a stub in the repo) is rewritten:
 
 - **Default mode** — runs the 4 promoted commands in parallel, aggregates into a fresh dated folder under `docs/superpowers/audits/YYYY-MM-DD/`.
-- **`--full` flag** — also dispatches the 4 one-shot agents (bugs, fraud, bias, neg-correlation). Use quarterly or pre-release.
+- **`--full` flag** — also dispatches the 5 one-shot agents (bugs, fraud, bias, neg-correlation, and the **perf half** of perf-deps-auditor). Use quarterly or pre-release.
 - **`--only <name>` flag** — runs a single sub-command (e.g., `/audit --only security`).
 
 All four promoted commands write to the same dated folder, append-only. Re-running `/audit-security` weekly produces a history (`2026-05-22/01_security.md`, `2026-05-29/01_security.md`) for trend tracking.
@@ -172,10 +172,10 @@ docs/superpowers/audits/2026-05-22/
   ├─ security-auditor.md
   ├─ test-gaps-auditor.md
   ├─ architecture-auditor.md
-  └─ deps-auditor.md
+  └─ deps-auditor.md       ← deps-only derivative of perf-deps-auditor
 ```
 
-The 4 non-promoted agents (bugs, fraud, bias, neg-correlation) are defined as inline prompts inside `audit.md` — not as standalone `.claude/agents/` files, since they aren't meant to be invoked individually.
+The non-promoted agent prompts (bugs, fraud, bias, neg-correlation, plus the **perf half** of perf-deps-auditor) live as inline prompts inside `audit.md` — not as standalone `.claude/agents/` files, since they aren't meant to be invoked individually outside the orchestrator.
 
 ## 5. Workflow
 
