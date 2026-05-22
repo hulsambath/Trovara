@@ -1,8 +1,13 @@
+import 'package:logger/logger.dart';
 import 'package:trovara/core/repository/base/base_repository.dart';
 import 'package:trovara/core/repository/base/objectbox_store_manager.dart';
 import 'package:trovara/core/repository/interfaces/note_repository.dart';
+import 'package:trovara/core/services/graph/knowledge_graph_service.dart';
 import 'package:trovara/models/note.dart';
 import 'package:trovara/objectbox.g.dart';
+
+// Import ServiceLocator for deferred graph analysis
+import 'package:trovara/core/di/service_locator.dart';
 
 /// ObjectBox implementation of the note repository.
 ///
@@ -15,6 +20,7 @@ import 'package:trovara/objectbox.g.dart';
 class ObjectBoxNoteRepository extends BaseRepository implements INoteRepository {
   late Box<Note> _noteBox;
   bool _isInitialized = false;
+  static final _logger = Logger();
 
   @override
   Future<void> initialize() async {
@@ -205,12 +211,18 @@ class ObjectBoxNoteRepository extends BaseRepository implements INoteRepository 
     }
     _noteBox.put(note);
     notifyListeners();
+
+    // Trigger graph analysis asynchronously (don't block)
+    _triggerGraphAnalysis(note);
   }
 
   @override
   Future<void> deleteNote(int id) async {
     _noteBox.remove(id);
     notifyListeners();
+
+    // Clean up graph
+    _cleanupGraph(id);
   }
 
   // ───────────────────── Statistics (active notes only) ─────────────────────
@@ -223,6 +235,27 @@ class ObjectBoxNoteRepository extends BaseRepository implements INoteRepository 
 
   @override
   int get totalCharacters => getActiveNotes().fold(0, (sum, note) => sum + note.characterCount);
+
+  // ───────────────────── Graph Integration ─────────────────────
+
+  void _triggerGraphAnalysis(Note note) {
+    // Fire and forget
+    try {
+      final knowledgeGraphService = ServiceLocator().knowledgeGraphService;
+      knowledgeGraphService.analyzeNote(note.id!, note.contentJson);
+    } catch (e) {
+      _logger.w('Failed to queue graph analysis for note ${note.id}', error: e);
+    }
+  }
+
+  void _cleanupGraph(int noteId) {
+    try {
+      final knowledgeGraphService = ServiceLocator().knowledgeGraphService;
+      knowledgeGraphService.deleteNodeForNote(noteId);
+    } catch (e) {
+      _logger.w('Failed to cleanup graph for note $noteId', error: e);
+    }
+  }
 
   // ───────────────────── Lifecycle ─────────────────────
 
