@@ -13,7 +13,6 @@ import 'package:trovara/core/services/auth/google_drive_service.dart';
 import 'package:trovara/core/services/notes/note_service.dart';
 import 'package:trovara/core/services/sync/google_drive_sync_service.dart';
 import 'package:trovara/core/storage/google_drive_auth_storage.dart';
-import 'package:trovara/views/trash/trash_view.dart';
 import 'package:trovara/widgets/nm_loading_overlay.dart';
 import 'package:trovara/widgets/nm_toast.dart';
 
@@ -219,7 +218,7 @@ class SettingViewModel extends BaseViewModel {
   // ═══════════════════════════════════════════════════════════════════════════
 
   void openRecentlyDeleted(BuildContext context) {
-    Navigator.of(context).push(MaterialPageRoute(builder: (_) => const TrashView()));
+    context.push('/trash');
   }
 
   void openAdvancedSettings(BuildContext context) {
