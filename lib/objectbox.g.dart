@@ -16,10 +16,14 @@ import 'package:objectbox_flutter_libs/objectbox_flutter_libs.dart';
 
 import 'models/chat_message.dart';
 import 'models/chat_thread.dart';
+import 'models/citation.dart';
 import 'models/custom_tag.dart';
 import 'models/folder.dart';
+import 'models/graph_edge.dart';
+import 'models/graph_node.dart';
 import 'models/note.dart';
 import 'models/note_embedding.dart';
+import 'models/project_bundle.dart';
 
 export 'package:objectbox/objectbox.dart'; // so that callers only have to import this file
 
@@ -463,6 +467,215 @@ final _entities = <obx_int.ModelEntity>[
     relations: <obx_int.ModelRelation>[],
     backlinks: <obx_int.ModelBacklink>[],
   ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(8, 5709959096852415333),
+    name: 'Citation',
+    lastPropertyId: const obx_int.IdUid(8, 8816777330532463104),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 8726996402601169186),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 2728113083062317047),
+        name: 'source',
+        type: 9,
+        flags: 2048,
+        indexId: const obx_int.IdUid(2, 5288373866607098568),
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 1960567827691013867),
+        name: 'title',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 2280606806633553984),
+        name: 'author',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 3679857946346250713),
+        name: 'datePublished',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(6, 1009336173689414354),
+        name: 'format',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(7, 1539764592110244306),
+        name: 'isConfirmed',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(8, 8816777330532463104),
+        name: 'createdAt',
+        type: 10,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(9, 3025167358609824348),
+    name: 'GraphEdge',
+    lastPropertyId: const obx_int.IdUid(7, 620103352033137206),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 5181443166324221737),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 1215805358783055886),
+        name: 'sourceNodeId',
+        type: 11,
+        flags: 520,
+        indexId: const obx_int.IdUid(3, 7229036075141683777),
+        relationTarget: 'GraphNode',
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 1880992037304301720),
+        name: 'targetNodeId',
+        type: 11,
+        flags: 520,
+        indexId: const obx_int.IdUid(4, 5610017606945714236),
+        relationTarget: 'GraphNode',
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 955594570233565806),
+        name: 'edgeType',
+        type: 9,
+        flags: 2048,
+        indexId: const obx_int.IdUid(5, 9020239440545389481),
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 4511599774491301067),
+        name: 'strength',
+        type: 8,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(6, 7946848798250249889),
+        name: 'metadata',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(7, 620103352033137206),
+        name: 'createdAt',
+        type: 10,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(10, 3754243837226640741),
+    name: 'GraphNode',
+    lastPropertyId: const obx_int.IdUid(4, 3570568643557550610),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 507443485222907683),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 4471437250296757259),
+        name: 'noteId',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 7696023414546814410),
+        name: 'createdAt',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 3570568643557550610),
+        name: 'updatedAt',
+        type: 10,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(11, 7825118342947283899),
+    name: 'ProjectBundle',
+    lastPropertyId: const obx_int.IdUid(8, 3889307149717087859),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 716888063953218203),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 1617324642808912969),
+        name: 'name',
+        type: 9,
+        flags: 2048,
+        indexId: const obx_int.IdUid(6, 4408600726787451958),
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 2272120696665125528),
+        name: 'description',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 2254887593005320630),
+        name: 'noteIdsJson',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 424417690204698754),
+        name: 'isShared',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(6, 354193050245337798),
+        name: 'shareToken',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(7, 6956938918089357894),
+        name: 'createdAt',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(8, 3889307149717087859),
+        name: 'updatedAt',
+        type: 10,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
 ];
 
 /// Shortcut for [obx.Store.new] that passes [getObjectBoxModel] and for Flutter
@@ -503,8 +716,8 @@ Future<obx.Store> openStore({
 obx_int.ModelDefinition getObjectBoxModel() {
   final model = obx_int.ModelInfo(
     entities: _entities,
-    lastEntityId: const obx_int.IdUid(7, 4384572733254933868),
-    lastIndexId: const obx_int.IdUid(1, 3825348798809574444),
+    lastEntityId: const obx_int.IdUid(11, 7825118342947283899),
+    lastIndexId: const obx_int.IdUid(6, 4408600726787451958),
     lastRelationId: const obx_int.IdUid(0, 0),
     lastSequenceId: const obx_int.IdUid(0, 0),
     retiredEntityUids: const [7373197808855322801],
@@ -1104,6 +1317,252 @@ obx_int.ModelDefinition getObjectBoxModel() {
         return object;
       },
     ),
+    Citation: obx_int.EntityDefinition<Citation>(
+      model: _entities[6],
+      toOneRelations: (Citation object) => [],
+      toManyRelations: (Citation object) => {},
+      getId: (Citation object) => object.id,
+      setId: (Citation object, int id) {
+        object.id = id;
+      },
+      objectToFB: (Citation object, fb.Builder fbb) {
+        final sourceOffset = fbb.writeString(object.source);
+        final titleOffset = fbb.writeString(object.title);
+        final authorOffset = object.author == null
+            ? null
+            : fbb.writeString(object.author!);
+        final datePublishedOffset = object.datePublished == null
+            ? null
+            : fbb.writeString(object.datePublished!);
+        final formatOffset = fbb.writeString(object.format);
+        fbb.startTable(9);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, sourceOffset);
+        fbb.addOffset(2, titleOffset);
+        fbb.addOffset(3, authorOffset);
+        fbb.addOffset(4, datePublishedOffset);
+        fbb.addOffset(5, formatOffset);
+        fbb.addBool(6, object.isConfirmed);
+        fbb.addInt64(7, object.createdAt.millisecondsSinceEpoch);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final sourceParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 6, '');
+        final titleParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 8, '');
+        final authorParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 10);
+        final datePublishedParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 12);
+        final formatParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 14, '');
+        final isConfirmedParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          16,
+          false,
+        );
+        final object =
+            Citation(
+                source: sourceParam,
+                title: titleParam,
+                author: authorParam,
+                datePublished: datePublishedParam,
+                format: formatParam,
+                isConfirmed: isConfirmedParam,
+              )
+              ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0)
+              ..createdAt = DateTime.fromMillisecondsSinceEpoch(
+                const fb.Int64Reader().vTableGet(buffer, rootOffset, 18, 0),
+              );
+
+        return object;
+      },
+    ),
+    GraphEdge: obx_int.EntityDefinition<GraphEdge>(
+      model: _entities[7],
+      toOneRelations: (GraphEdge object) => [
+        object.sourceNode,
+        object.targetNode,
+      ],
+      toManyRelations: (GraphEdge object) => {},
+      getId: (GraphEdge object) => object.id,
+      setId: (GraphEdge object, int id) {
+        object.id = id;
+      },
+      objectToFB: (GraphEdge object, fb.Builder fbb) {
+        final edgeTypeOffset = fbb.writeString(object.edgeType);
+        final metadataOffset = object.metadata == null
+            ? null
+            : fbb.writeString(object.metadata!);
+        fbb.startTable(8);
+        fbb.addInt64(0, object.id);
+        fbb.addInt64(1, object.sourceNode.targetId);
+        fbb.addInt64(2, object.targetNode.targetId);
+        fbb.addOffset(3, edgeTypeOffset);
+        fbb.addFloat64(4, object.strength);
+        fbb.addOffset(5, metadataOffset);
+        fbb.addInt64(6, object.createdAt.millisecondsSinceEpoch);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final edgeTypeParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 10, '');
+        final strengthParam = const fb.Float64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          12,
+          0,
+        );
+        final metadataParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 14);
+        final object =
+            GraphEdge(
+                edgeType: edgeTypeParam,
+                strength: strengthParam,
+                metadata: metadataParam,
+              )
+              ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0)
+              ..createdAt = DateTime.fromMillisecondsSinceEpoch(
+                const fb.Int64Reader().vTableGet(buffer, rootOffset, 16, 0),
+              );
+        object.sourceNode.targetId = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          6,
+          0,
+        );
+        object.sourceNode.attach(store);
+        object.targetNode.targetId = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          8,
+          0,
+        );
+        object.targetNode.attach(store);
+        return object;
+      },
+    ),
+    GraphNode: obx_int.EntityDefinition<GraphNode>(
+      model: _entities[8],
+      toOneRelations: (GraphNode object) => [],
+      toManyRelations: (GraphNode object) => {},
+      getId: (GraphNode object) => object.id,
+      setId: (GraphNode object, int id) {
+        object.id = id;
+      },
+      objectToFB: (GraphNode object, fb.Builder fbb) {
+        fbb.startTable(5);
+        fbb.addInt64(0, object.id);
+        fbb.addInt64(1, object.noteId);
+        fbb.addInt64(2, object.createdAt.millisecondsSinceEpoch);
+        fbb.addInt64(3, object.updatedAt.millisecondsSinceEpoch);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final noteIdParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          6,
+          0,
+        );
+        final object = GraphNode(noteId: noteIdParam)
+          ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0)
+          ..createdAt = DateTime.fromMillisecondsSinceEpoch(
+            const fb.Int64Reader().vTableGet(buffer, rootOffset, 8, 0),
+          )
+          ..updatedAt = DateTime.fromMillisecondsSinceEpoch(
+            const fb.Int64Reader().vTableGet(buffer, rootOffset, 10, 0),
+          );
+
+        return object;
+      },
+    ),
+    ProjectBundle: obx_int.EntityDefinition<ProjectBundle>(
+      model: _entities[9],
+      toOneRelations: (ProjectBundle object) => [],
+      toManyRelations: (ProjectBundle object) => {},
+      getId: (ProjectBundle object) => object.id,
+      setId: (ProjectBundle object, int id) {
+        object.id = id;
+      },
+      objectToFB: (ProjectBundle object, fb.Builder fbb) {
+        final nameOffset = fbb.writeString(object.name);
+        final descriptionOffset = object.description == null
+            ? null
+            : fbb.writeString(object.description!);
+        final noteIdsJsonOffset = fbb.writeString(object.noteIdsJson);
+        final shareTokenOffset = object.shareToken == null
+            ? null
+            : fbb.writeString(object.shareToken!);
+        fbb.startTable(9);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, nameOffset);
+        fbb.addOffset(2, descriptionOffset);
+        fbb.addOffset(3, noteIdsJsonOffset);
+        fbb.addBool(4, object.isShared);
+        fbb.addOffset(5, shareTokenOffset);
+        fbb.addInt64(6, object.createdAt.millisecondsSinceEpoch);
+        fbb.addInt64(7, object.updatedAt.millisecondsSinceEpoch);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final nameParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 6, '');
+        final descriptionParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 8);
+        final noteIdsJsonParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 10, '');
+        final isSharedParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          12,
+          false,
+        );
+        final object =
+            ProjectBundle(
+                name: nameParam,
+                description: descriptionParam,
+                noteIdsJson: noteIdsJsonParam,
+                isShared: isSharedParam,
+              )
+              ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0)
+              ..shareToken = const fb.StringReader(
+                asciiOptimization: true,
+              ).vTableGetNullable(buffer, rootOffset, 14)
+              ..createdAt = DateTime.fromMillisecondsSinceEpoch(
+                const fb.Int64Reader().vTableGet(buffer, rootOffset, 16, 0),
+              )
+              ..updatedAt = DateTime.fromMillisecondsSinceEpoch(
+                const fb.Int64Reader().vTableGet(buffer, rootOffset, 18, 0),
+              );
+
+        return object;
+      },
+    ),
   };
 
   return obx_int.ModelDefinition(model, bindings);
@@ -1440,5 +1899,152 @@ class ChatThread_ {
   /// See [ChatThread.deletedAt].
   static final deletedAt = obx.QueryDateProperty<ChatThread>(
     _entities[5].properties[7],
+  );
+}
+
+/// [Citation] entity fields to define ObjectBox queries.
+class Citation_ {
+  /// See [Citation.id].
+  static final id = obx.QueryIntegerProperty<Citation>(
+    _entities[6].properties[0],
+  );
+
+  /// See [Citation.source].
+  static final source = obx.QueryStringProperty<Citation>(
+    _entities[6].properties[1],
+  );
+
+  /// See [Citation.title].
+  static final title = obx.QueryStringProperty<Citation>(
+    _entities[6].properties[2],
+  );
+
+  /// See [Citation.author].
+  static final author = obx.QueryStringProperty<Citation>(
+    _entities[6].properties[3],
+  );
+
+  /// See [Citation.datePublished].
+  static final datePublished = obx.QueryStringProperty<Citation>(
+    _entities[6].properties[4],
+  );
+
+  /// See [Citation.format].
+  static final format = obx.QueryStringProperty<Citation>(
+    _entities[6].properties[5],
+  );
+
+  /// See [Citation.isConfirmed].
+  static final isConfirmed = obx.QueryBooleanProperty<Citation>(
+    _entities[6].properties[6],
+  );
+
+  /// See [Citation.createdAt].
+  static final createdAt = obx.QueryDateProperty<Citation>(
+    _entities[6].properties[7],
+  );
+}
+
+/// [GraphEdge] entity fields to define ObjectBox queries.
+class GraphEdge_ {
+  /// See [GraphEdge.id].
+  static final id = obx.QueryIntegerProperty<GraphEdge>(
+    _entities[7].properties[0],
+  );
+
+  /// See [GraphEdge.sourceNode].
+  static final sourceNode = obx.QueryRelationToOne<GraphEdge, GraphNode>(
+    _entities[7].properties[1],
+  );
+
+  /// See [GraphEdge.targetNode].
+  static final targetNode = obx.QueryRelationToOne<GraphEdge, GraphNode>(
+    _entities[7].properties[2],
+  );
+
+  /// See [GraphEdge.edgeType].
+  static final edgeType = obx.QueryStringProperty<GraphEdge>(
+    _entities[7].properties[3],
+  );
+
+  /// See [GraphEdge.strength].
+  static final strength = obx.QueryDoubleProperty<GraphEdge>(
+    _entities[7].properties[4],
+  );
+
+  /// See [GraphEdge.metadata].
+  static final metadata = obx.QueryStringProperty<GraphEdge>(
+    _entities[7].properties[5],
+  );
+
+  /// See [GraphEdge.createdAt].
+  static final createdAt = obx.QueryDateProperty<GraphEdge>(
+    _entities[7].properties[6],
+  );
+}
+
+/// [GraphNode] entity fields to define ObjectBox queries.
+class GraphNode_ {
+  /// See [GraphNode.id].
+  static final id = obx.QueryIntegerProperty<GraphNode>(
+    _entities[8].properties[0],
+  );
+
+  /// See [GraphNode.noteId].
+  static final noteId = obx.QueryIntegerProperty<GraphNode>(
+    _entities[8].properties[1],
+  );
+
+  /// See [GraphNode.createdAt].
+  static final createdAt = obx.QueryDateProperty<GraphNode>(
+    _entities[8].properties[2],
+  );
+
+  /// See [GraphNode.updatedAt].
+  static final updatedAt = obx.QueryDateProperty<GraphNode>(
+    _entities[8].properties[3],
+  );
+}
+
+/// [ProjectBundle] entity fields to define ObjectBox queries.
+class ProjectBundle_ {
+  /// See [ProjectBundle.id].
+  static final id = obx.QueryIntegerProperty<ProjectBundle>(
+    _entities[9].properties[0],
+  );
+
+  /// See [ProjectBundle.name].
+  static final name = obx.QueryStringProperty<ProjectBundle>(
+    _entities[9].properties[1],
+  );
+
+  /// See [ProjectBundle.description].
+  static final description = obx.QueryStringProperty<ProjectBundle>(
+    _entities[9].properties[2],
+  );
+
+  /// See [ProjectBundle.noteIdsJson].
+  static final noteIdsJson = obx.QueryStringProperty<ProjectBundle>(
+    _entities[9].properties[3],
+  );
+
+  /// See [ProjectBundle.isShared].
+  static final isShared = obx.QueryBooleanProperty<ProjectBundle>(
+    _entities[9].properties[4],
+  );
+
+  /// See [ProjectBundle.shareToken].
+  static final shareToken = obx.QueryStringProperty<ProjectBundle>(
+    _entities[9].properties[5],
+  );
+
+  /// See [ProjectBundle.createdAt].
+  static final createdAt = obx.QueryDateProperty<ProjectBundle>(
+    _entities[9].properties[6],
+  );
+
+  /// See [ProjectBundle.updatedAt].
+  static final updatedAt = obx.QueryDateProperty<ProjectBundle>(
+    _entities[9].properties[7],
   );
 }
