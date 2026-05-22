@@ -7,7 +7,6 @@ import 'package:trovara/models/graph_node.dart';
 import 'package:trovara/models/graph_edge.dart';
 import 'package:trovara/models/citation.dart';
 import 'package:trovara/models/note_embedding.dart';
-import '../../test_support.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 //  Stub implementations for testing
