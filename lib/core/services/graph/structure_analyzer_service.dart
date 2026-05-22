@@ -28,7 +28,7 @@ class StructureAnalyzerService {
     for (final node in nodes) {
       final incomingEdges = await graphRepository.getIncomingEdges(node.id);
       final edgesInCluster = incomingEdges
-          .where((e) => noteIds.contains(e.sourceNodeId))
+          .where((e) => noteIds.contains(e.sourceNode.target?.noteId ?? -1))
           .length;
 
       if (edgesInCluster > maxInDegree) {
@@ -46,11 +46,10 @@ class StructureAnalyzerService {
   }
 
   /// Detect if a graph has cycles
-  Future<bool> hasCycles(List<GraphNode> nodes) async {
+  Future<bool> hasCycles(List<GraphNode> nodes) async =>
     // TODO: implement DFS cycle detection if needed
     // For MVP, assume no cycles (user-created hierarchies are typically DAGs)
-    return false;
-  }
+    false;
 
   /// Suggest natural groupings from semantic edges
   /// Used for "these notes form a cluster, make a project?" suggestion
@@ -75,11 +74,12 @@ class StructureAnalyzerService {
         // Outgoing edges
         final outgoing = await graphRepository.getOutgoingEdges(node.id);
         for (final edge in outgoing) {
-          if (edge.edgeType == 'semantic' && edge.strength >= threshold) {
-            if (!visited.contains(edge.targetNodeId)) {
-              visited.add(edge.targetNodeId);
-              cluster.add(edge.targetNodeId);
-              queue.add(edge.targetNodeId);
+          final targetNodeId = edge.targetNode.target?.noteId;
+          if (edge.edgeType == 'semantic' && edge.strength >= threshold && targetNodeId != null) {
+            if (!visited.contains(targetNodeId)) {
+              visited.add(targetNodeId);
+              cluster.add(targetNodeId);
+              queue.add(targetNodeId);
             }
           }
         }
@@ -87,11 +87,12 @@ class StructureAnalyzerService {
         // Incoming edges
         final incoming = await graphRepository.getIncomingEdges(node.id);
         for (final edge in incoming) {
-          if (edge.edgeType == 'semantic' && edge.strength >= threshold) {
-            if (!visited.contains(edge.sourceNodeId)) {
-              visited.add(edge.sourceNodeId);
-              cluster.add(edge.sourceNodeId);
-              queue.add(edge.sourceNodeId);
+          final sourceNodeId = edge.sourceNode.target?.noteId;
+          if (edge.edgeType == 'semantic' && edge.strength >= threshold && sourceNodeId != null) {
+            if (!visited.contains(sourceNodeId)) {
+              visited.add(sourceNodeId);
+              cluster.add(sourceNodeId);
+              queue.add(sourceNodeId);
             }
           }
         }

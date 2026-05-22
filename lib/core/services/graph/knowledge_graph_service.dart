@@ -1,5 +1,6 @@
 import 'package:logger/logger.dart';
 import 'package:trovara/core/repository/interfaces/igraph_repository.dart';
+import 'package:trovara/core/repository/interfaces/embedding_repository.dart';
 import 'package:trovara/core/services/ai/embedding_service.dart';
 import 'package:trovara/core/services/graph/citation_extractor_service.dart';
 import 'package:trovara/core/services/graph/similarity_matcher_service.dart';
@@ -8,6 +9,7 @@ import 'package:trovara/models/graph_node.dart';
 class KnowledgeGraphService {
   final IGraphRepository graphRepository;
   final EmbeddingService embeddingService;
+  final IEmbeddingRepository? embeddingRepository;
   final CitationExtractorService citationExtractor = CitationExtractorService();
   final SimilarityMatcherService similarityMatcher = SimilarityMatcherService();
 
@@ -16,6 +18,7 @@ class KnowledgeGraphService {
   KnowledgeGraphService({
     required this.graphRepository,
     required this.embeddingService,
+    this.embeddingRepository,
   });
 
   /// Analyze a note and build/update its graph representation
@@ -40,7 +43,13 @@ class KnowledgeGraphService {
       // Step 3: Find semantically similar notes (deferred to query-time for MVP)
       List<double>? embedding;
       try {
-        embedding = await embeddingService.getEmbedding(noteId);
+        if (embeddingRepository != null) {
+          final embeddings = embeddingRepository!.getEmbeddingsByNoteId(noteId);
+          if (embeddings.isNotEmpty) {
+            // Use the first chunk's embedding for MVP
+            embedding = embeddings.first.embedding;
+          }
+        }
       } catch (e) {
         _logger.w('Failed to get embedding for note $noteId: $e');
         // Continue without embedding; graph still works with citations/hierarchical edges

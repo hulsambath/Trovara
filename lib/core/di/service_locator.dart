@@ -27,6 +27,16 @@ import 'package:trovara/core/services/chat/chat_source_service.dart';
 import 'package:trovara/core/services/notes/custom_tag_service.dart';
 import 'package:trovara/core/services/notes/note_service.dart';
 import 'package:trovara/core/services/sync/google_drive_sync_service.dart';
+import 'package:trovara/core/services/graph/knowledge_graph_service.dart';
+import 'package:trovara/core/services/graph/citation_extractor_service.dart';
+import 'package:trovara/core/services/graph/similarity_matcher_service.dart';
+import 'package:trovara/core/services/graph/structure_analyzer_service.dart';
+import 'package:trovara/core/services/export/export_service.dart';
+import 'package:trovara/core/services/pro/pro_access_service.dart';
+import 'package:trovara/core/repository/interfaces/igraph_repository.dart';
+import 'package:trovara/core/repository/implementations/objectbox_graph_repository.dart';
+import 'package:trovara/core/repository/interfaces/iproject_bundle_repository.dart';
+import 'package:trovara/core/repository/implementations/objectbox_project_bundle_repository.dart';
 
 /// Service Locator for dependency injection
 /// Follows Dependency Inversion Principle - provides abstractions, not concrete implementations
@@ -58,6 +68,14 @@ class ServiceLocator {
   ChatService? _chatService;
   ChatDriveSyncService? _chatDriveSyncService;
   ChatSourceService? _chatSourceService;
+  IGraphRepository? _graphRepository;
+  KnowledgeGraphService? _knowledgeGraphService;
+  CitationExtractorService? _citationExtractorService;
+  SimilarityMatcherService? _similarityMatcherService;
+  StructureAnalyzerService? _structureAnalyzerService;
+  ExportService? _exportService;
+  IProjectBundleRepository? _projectBundleRepository;
+  ProAccessService? _proAccessService;
 
   /// Get the note repository instance
   INoteRepository get noteRepository {
@@ -285,6 +303,58 @@ class ServiceLocator {
     return _chatSourceService!;
   }
 
+  /// Get the graph repository instance
+  IGraphRepository get graphRepository {
+    _graphRepository ??= ObjectBoxGraphRepository(ObjectBoxStoreManager());
+    return _graphRepository!;
+  }
+
+  /// Get the knowledge graph service instance
+  KnowledgeGraphService get knowledgeGraphService {
+    _knowledgeGraphService ??= KnowledgeGraphService(
+      graphRepository: graphRepository,
+      embeddingService: embeddingService,
+      embeddingRepository: embeddingRepository,
+    );
+    return _knowledgeGraphService!;
+  }
+
+  /// Get the citation extractor service instance
+  CitationExtractorService get citationExtractorService {
+    _citationExtractorService ??= CitationExtractorService();
+    return _citationExtractorService!;
+  }
+
+  /// Get the similarity matcher service instance
+  SimilarityMatcherService get similarityMatcherService {
+    _similarityMatcherService ??= SimilarityMatcherService();
+    return _similarityMatcherService!;
+  }
+
+  /// Get the structure analyzer service instance
+  StructureAnalyzerService get structureAnalyzerService {
+    _structureAnalyzerService ??= StructureAnalyzerService(graphRepository);
+    return _structureAnalyzerService!;
+  }
+
+  /// Get the export service instance
+  ExportService get exportService {
+    _exportService ??= ExportService();
+    return _exportService!;
+  }
+
+  /// Get the project bundle repository instance
+  IProjectBundleRepository get projectBundleRepository {
+    _projectBundleRepository ??= ObjectBoxProjectBundleRepository(ObjectBoxStoreManager());
+    return _projectBundleRepository!;
+  }
+
+  /// Get the Pro access service instance
+  ProAccessService get proAccessService {
+    _proAccessService ??= ProAccessService();
+    return _proAccessService!;
+  }
+
   /// Initialize all services
   Future<void> initialize() async {
     await noteService.initialize();
@@ -293,6 +363,7 @@ class ServiceLocator {
     await llmClient.initialize();
     await rewriteLlmClient.initialize();
     await chatService.initialize();
+    await proAccessService.initialize();
   }
 
   /// Dispose all services
