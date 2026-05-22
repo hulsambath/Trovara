@@ -2,10 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:trovara/core/services/quiz/quiz_generator_service.dart';
 import 'package:trovara/core/services/ai/rag_service.dart';
 import 'package:trovara/core/services/ai/rag_chat_memory.dart';
-import 'package:trovara/core/services/ai/rrf_key_score.dart';
 import 'package:trovara/core/services/ai/llm_client.dart';
 import 'package:trovara/models/quiz.dart';
-import '../../test_support.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 //  Stubs

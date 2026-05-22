@@ -1,13 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:trovara/models/note.dart';
-import 'package:trovara/core/services/graph/citation_extractor_service.dart';
 
 void main() {
   group('Graph Building Lifecycle', () {
-    late CitationExtractorService citationExtractorService;
-
     setUp(() {
-      citationExtractorService = CitationExtractorService();
+      // No additional setup needed for these tests
     });
 
     test('note creation recognizes citation markers', () {
