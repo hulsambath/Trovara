@@ -263,6 +263,31 @@ class SearchViewModel extends BaseViewModel {
     return notes;
   }
 
+  /// Build a single-line preview snippet for a search result card.
+  ///
+  /// When the query is empty, returns the first 120 characters of plain text.
+  /// When the query matches, centres a 100-character window around the first
+  /// match so the highlighted text is visible. Returns an empty string for
+  /// notes with no plain-text content.
+  String previewFor(Note note) {
+    final full = TextParserService.parseQuillContent(note.contentJson);
+    final q = _query.trim();
+
+    if (q.isEmpty) return _truncate(full, 120);
+
+    final idx = full.toLowerCase().indexOf(q.toLowerCase());
+    if (idx == -1) return _truncate(full, 120);
+
+    const window = 100;
+    final start = (idx - window ~/ 2).clamp(0, full.length).toInt();
+    final end = (start + window).clamp(0, full.length).toInt();
+    final prefix = start > 0 ? '…' : '';
+    final suffix = end < full.length ? '…' : '';
+    return '$prefix${full.substring(start, end)}$suffix';
+  }
+
+  String _truncate(String text, int max) => text.length <= max ? text : '${text.substring(0, max)}…';
+
   /// Highlight occurrences of the search query within [text].
   ///
   /// Returns a list of [TextSpan]s suitable for use in a [RichText].
