@@ -33,6 +33,7 @@ import 'package:trovara/core/services/graph/similarity_matcher_service.dart';
 import 'package:trovara/core/services/graph/structure_analyzer_service.dart';
 import 'package:trovara/core/services/export/export_service.dart';
 import 'package:trovara/core/services/pro/pro_access_service.dart';
+import 'package:trovara/core/services/quiz/quiz_generator_service.dart';
 import 'package:trovara/core/repository/interfaces/igraph_repository.dart';
 import 'package:trovara/core/repository/implementations/objectbox_graph_repository.dart';
 import 'package:trovara/core/repository/interfaces/iproject_bundle_repository.dart';
@@ -76,6 +77,7 @@ class ServiceLocator {
   ExportService? _exportService;
   IProjectBundleRepository? _projectBundleRepository;
   ProAccessService? _proAccessService;
+  QuizGeneratorService? _quizGeneratorService;
 
   /// Get the note repository instance
   INoteRepository get noteRepository {
@@ -353,6 +355,15 @@ class ServiceLocator {
   ProAccessService get proAccessService {
     _proAccessService ??= ProAccessService();
     return _proAccessService!;
+  }
+
+  /// Get the quiz generator service instance
+  QuizGeneratorService get quizGeneratorService {
+    _quizGeneratorService ??= QuizGeneratorService(
+      ragService: ragService,
+      llmClient: llmClient,
+    );
+    return _quizGeneratorService!;
   }
 
   /// Initialize all services
