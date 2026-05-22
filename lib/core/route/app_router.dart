@@ -5,6 +5,7 @@ import 'package:trovara/views/main/main_view.dart';
 import 'package:trovara/views/notes/note/note_view.dart';
 import 'package:trovara/views/search/search_view.dart';
 import 'package:trovara/views/setting/advanced/advanced_setting_view.dart';
+import 'package:trovara/views/trash/trash_view.dart';
 
 class AppRouter {
   static final GoRouter _router = GoRouter(
@@ -55,6 +56,12 @@ class AppRouter {
         name: 'settings-advanced',
         pageBuilder: (context, state) =>
             MaterialPage(key: state.pageKey, restorationId: 'settings-advanced', child: const AdvancedSettingView()),
+      ),
+      GoRoute(
+        path: '/trash',
+        name: 'trash',
+        pageBuilder: (context, state) =>
+            MaterialPage(key: state.pageKey, restorationId: 'trash', child: const TrashView()),
       ),
       GoRoute(
         path: '/search',

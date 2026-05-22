@@ -641,7 +641,7 @@ class _SearchResultCard extends StatelessWidget {
     final titleStyle = Theme.of(context).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.w600);
     final subtitleStyle = Theme.of(context).textTheme.bodyMedium!.copyWith(color: colors.onSurfaceVariant);
 
-    final previewText = _buildPreview();
+    final previewText = vm.previewFor(note);
     final titleSpans = vm.buildHighlightSpans(note.title, titleStyle, highlightStyle);
     final previewSpans = previewText.isNotEmpty
         ? vm.buildHighlightSpans(previewText, subtitleStyle, highlightStyle)
@@ -703,26 +703,6 @@ class _SearchResultCard extends StatelessWidget {
       note.timeTags.isNotEmpty ||
       note.personalGrowthTags.isNotEmpty ||
       note.customTagIds.isNotEmpty;
-
-  String _buildPreview() {
-    final full = TextParserService.parseQuillContent(note.contentJson);
-    final q = vm.query.trim();
-
-    if (q.isEmpty) return _truncate(full, 120);
-
-    final idx = full.toLowerCase().indexOf(q.toLowerCase());
-    if (idx == -1) return _truncate(full, 120);
-
-    // Centre a window around the match so the highlighted text is visible.
-    const window = 100;
-    final start = (idx - window ~/ 2).clamp(0, full.length).toInt();
-    final end = (start + window).clamp(0, full.length).toInt();
-    final prefix = start > 0 ? '…' : '';
-    final suffix = end < full.length ? '…' : '';
-    return '$prefix${full.substring(start, end)}$suffix';
-  }
-
-  String _truncate(String text, int max) => text.length <= max ? text : '${text.substring(0, max)}…';
 
   String _formatDate(DateTime dt) {
     final diff = DateTime.now().difference(dt);
