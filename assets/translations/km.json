@@ -19,5 +19,23 @@
     },
     "edit": "កែសម្រួល"
   },
-  "hello": "សួស្តីពិភពលោក!"
+  "hello": "សួស្តីពិភពលោក!",
+  "pro": {
+    "paywall": {
+      "title": "ដោះសោ Trovara Pro",
+      "subtitle": "ការទិញតែម្ដង។ មិនមានការជាវ។",
+      "feature_researcher": "Semantic Explorer និង Connection Inspector",
+      "feature_writer": "នាំចេញទៅ PDF, Word, Markdown និង HTML",
+      "feature_student": "សំណួរ AI និងការសិក្សាបន្ត",
+      "feature_collab": "មតិយោបល់ និង version snapshots",
+      "cta_purchase": "ដោះសោ Pro — $24.99",
+      "cta_restore": "ស្ដារការទិញ",
+      "banner_unlock": "ដោះសោ Pro"
+    },
+    "billing": {
+      "error_cancelled": "ការទិញត្រូវបានបោះបង់។",
+      "error_unavailable": "មិនអាចទិញនៅលើឧបករណ៍នេះ។",
+      "error_generic": "មានបញ្ហា៖ {message}"
+    }
+  }
 }

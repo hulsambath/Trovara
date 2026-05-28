@@ -19,5 +19,23 @@
     },
     "edit": "Edit"
   },
-  "hello": "Hello World!"
+  "hello": "Hello World!",
+  "pro": {
+    "paywall": {
+      "title": "Unlock Trovara Pro",
+      "subtitle": "One-time purchase. No subscription.",
+      "feature_researcher": "Semantic Explorer & Connection Inspector",
+      "feature_writer": "Export to PDF, Word, Markdown & HTML",
+      "feature_student": "AI-generated quizzes & spaced repetition",
+      "feature_collab": "Inline comments & version snapshots",
+      "cta_purchase": "Unlock Pro — $24.99",
+      "cta_restore": "Restore Purchase",
+      "banner_unlock": "Unlock Pro features"
+    },
+    "billing": {
+      "error_cancelled": "Purchase cancelled.",
+      "error_unavailable": "Purchase unavailable on this device.",
+      "error_generic": "Something went wrong: {message}"
+    }
+  }
 }
