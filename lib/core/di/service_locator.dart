@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:trovara/constants/config_constants.dart';
 import 'package:trovara/core/repository/base/objectbox_store_manager.dart';
 import 'package:trovara/core/repository/implementations/objectbox_chat_message_repository.dart';
@@ -5,12 +7,16 @@ import 'package:trovara/core/repository/implementations/objectbox_chat_thread_re
 import 'package:trovara/core/repository/implementations/objectbox_custom_tag_repository.dart';
 import 'package:trovara/core/repository/implementations/objectbox_embedding_repository.dart';
 import 'package:trovara/core/repository/implementations/objectbox_folder_repository.dart';
+import 'package:trovara/core/repository/implementations/objectbox_graph_repository.dart';
 import 'package:trovara/core/repository/implementations/objectbox_note_repository.dart';
+import 'package:trovara/core/repository/implementations/objectbox_project_bundle_repository.dart';
 import 'package:trovara/core/repository/interfaces/chat_message_repository.dart';
 import 'package:trovara/core/repository/interfaces/chat_thread_repository.dart';
 import 'package:trovara/core/repository/interfaces/custom_tag_repository.dart';
 import 'package:trovara/core/repository/interfaces/embedding_repository.dart';
 import 'package:trovara/core/repository/interfaces/folder_repository.dart';
+import 'package:trovara/core/repository/interfaces/igraph_repository.dart';
+import 'package:trovara/core/repository/interfaces/iproject_bundle_repository.dart';
 import 'package:trovara/core/repository/interfaces/note_repository.dart';
 import 'package:trovara/core/services/ai/document_resolver_service.dart';
 import 'package:trovara/core/services/ai/embedding_service.dart';
@@ -21,23 +27,22 @@ import 'package:trovara/core/services/ai/query_rewrite_service.dart';
 import 'package:trovara/core/services/ai/rag_service.dart';
 import 'package:trovara/core/services/ai/vector_search_service.dart';
 import 'package:trovara/core/services/auth/google_drive_service.dart';
+import 'package:trovara/core/services/billing/android_play_billing_service.dart';
+import 'package:trovara/core/services/billing/i_billing_service.dart';
+import 'package:trovara/core/services/billing/stub_billing_service.dart';
 import 'package:trovara/core/services/chat/chat_drive_sync_service.dart';
 import 'package:trovara/core/services/chat/chat_service.dart';
 import 'package:trovara/core/services/chat/chat_source_service.dart';
-import 'package:trovara/core/services/notes/custom_tag_service.dart';
-import 'package:trovara/core/services/notes/note_service.dart';
-import 'package:trovara/core/services/sync/google_drive_sync_service.dart';
-import 'package:trovara/core/services/graph/knowledge_graph_service.dart';
+import 'package:trovara/core/services/export/export_service.dart';
 import 'package:trovara/core/services/graph/citation_extractor_service.dart';
+import 'package:trovara/core/services/graph/knowledge_graph_service.dart';
 import 'package:trovara/core/services/graph/similarity_matcher_service.dart';
 import 'package:trovara/core/services/graph/structure_analyzer_service.dart';
-import 'package:trovara/core/services/export/export_service.dart';
+import 'package:trovara/core/services/notes/custom_tag_service.dart';
+import 'package:trovara/core/services/notes/note_service.dart';
 import 'package:trovara/core/services/pro/pro_access_service.dart';
 import 'package:trovara/core/services/quiz/quiz_generator_service.dart';
-import 'package:trovara/core/repository/interfaces/igraph_repository.dart';
-import 'package:trovara/core/repository/implementations/objectbox_graph_repository.dart';
-import 'package:trovara/core/repository/interfaces/iproject_bundle_repository.dart';
-import 'package:trovara/core/repository/implementations/objectbox_project_bundle_repository.dart';
+import 'package:trovara/core/services/sync/google_drive_sync_service.dart';
 
 /// Service Locator for dependency injection
 /// Follows Dependency Inversion Principle - provides abstractions, not concrete implementations
@@ -78,6 +83,7 @@ class ServiceLocator {
   IProjectBundleRepository? _projectBundleRepository;
   ProAccessService? _proAccessService;
   QuizGeneratorService? _quizGeneratorService;
+  IBillingService? _billingService;
 
   /// Get the note repository instance
   INoteRepository get noteRepository {
@@ -357,12 +363,17 @@ class ServiceLocator {
     return _proAccessService!;
   }
 
+  /// Get the billing service instance
+  IBillingService get billingService {
+    _billingService ??= Platform.isAndroid
+        ? AndroidPlayBillingService()
+        : const StubBillingService();
+    return _billingService!;
+  }
+
   /// Get the quiz generator service instance
   QuizGeneratorService get quizGeneratorService {
-    _quizGeneratorService ??= QuizGeneratorService(
-      ragService: ragService,
-      llmClient: llmClient,
-    );
+    _quizGeneratorService ??= QuizGeneratorService(ragService: ragService, llmClient: llmClient);
     return _quizGeneratorService!;
   }
 
