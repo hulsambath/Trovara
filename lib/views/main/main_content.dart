@@ -97,10 +97,20 @@ class _MainContentState extends State<_MainContent> with SingleTickerProviderSta
   }
 
   Widget _buildAndroid(BuildContext context) => Scaffold(
-    body: Stack(
+    body: Column(
       children: [
-        PageView(controller: _pageController, onPageChanged: _onPageChanged, children: _pages),
-        const Positioned(bottom: 0, left: 0, right: 0, child: ConnectivityStatus()),
+        _UnlockProBanner(
+          isProUnlocked: widget.viewModel.isProUnlocked,
+          onTap: () => context.push('/pro/paywall'),
+        ),
+        Expanded(
+          child: Stack(
+            children: [
+              PageView(controller: _pageController, onPageChanged: _onPageChanged, children: _pages),
+              const Positioned(bottom: 0, left: 0, right: 0, child: ConnectivityStatus()),
+            ],
+          ),
+        ),
       ],
     ),
     bottomNavigationBar: BottomNavigationBar(
@@ -136,9 +146,21 @@ class _MainContentState extends State<_MainContent> with SingleTickerProviderSta
 
     return CupertinoPageScaffold(
       resizeToAvoidBottomInset: false,
-      child: Stack(
+      child: Column(
         children: [
-          AnimatedPositioned(
+          _UnlockProBanner(
+            isProUnlocked: widget.viewModel.isProUnlocked,
+            onTap: () => context.push('/pro/paywall'),
+          ),
+          Expanded(child: _buildIOSStack(isKeyboardVisible: isKeyboardVisible)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildIOSStack({required bool isKeyboardVisible}) => Stack(
+      children: [
+        AnimatedPositioned(
             duration: const Duration(milliseconds: 220),
             curve: Curves.easeOutCubic,
             top: 0,
@@ -169,7 +191,5 @@ class _MainContentState extends State<_MainContent> with SingleTickerProviderSta
             ),
           ),
         ],
-      ),
-    );
-  }
+      );
 }
