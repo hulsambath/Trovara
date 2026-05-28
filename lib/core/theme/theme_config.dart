@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:trovara/constants/config_constants.dart';
-import 'package:trovara/core/theme/typo_graphy.dart';
+import 'package:trovara/core/theme/app_typography.dart';
 
 class ThemeConfig {
   static Color brandColor = Color(int.parse(ConfigConstants.brandColor.replaceFirst('#', 'FF'), radix: 16));
