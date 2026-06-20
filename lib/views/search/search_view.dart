@@ -14,6 +14,11 @@ import 'package:trovara/widgets/trovara_card.dart';
 import 'search_view_model.dart';
 
 part 'search_content.dart';
+part 'widgets/search_bar.dart';
+part 'widgets/filter_panel.dart';
+part 'widgets/filter_chips.dart';
+part 'widgets/result_card.dart';
+part 'widgets/search_states.dart';
 
 class SearchView extends StatelessWidget {
   const SearchView({super.key});
