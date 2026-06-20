@@ -29,6 +29,7 @@ import 'package:trovara/core/services/ai/vector_search_service.dart';
 import 'package:trovara/core/services/auth/google_drive_service.dart';
 import 'package:trovara/core/services/billing/android_play_billing_service.dart';
 import 'package:trovara/core/services/billing/i_billing_service.dart';
+import 'package:trovara/core/services/billing/ios_storekit_billing_service.dart';
 import 'package:trovara/core/services/billing/stub_billing_service.dart';
 import 'package:trovara/core/services/chat/chat_drive_sync_service.dart';
 import 'package:trovara/core/services/chat/chat_service.dart';
@@ -367,7 +368,9 @@ class ServiceLocator {
   IBillingService get billingService {
     _billingService ??= Platform.isAndroid
         ? AndroidPlayBillingService()
-        : const StubBillingService();
+        : Platform.isIOS
+            ? IosStorekitBillingService()
+            : const StubBillingService();
     return _billingService!;
   }
 
