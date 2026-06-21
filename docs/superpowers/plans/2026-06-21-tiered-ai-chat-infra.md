@@ -47,10 +47,10 @@ import 'package:trovara/core/services/ai/chat_tier.dart';
 import 'package:trovara/core/services/ai/chat_tier_resolver.dart';
 import 'package:trovara/core/services/pro/pro_access_service.dart';
 
-import '../../../test_support.dart';
+import '../../test_support.dart';
 
 void main() {
-  patrolTest('free + no BYOK key resolves to free/onDevice', (\$) async {
+  patrolTest('free + no BYOK key resolves to free/onDevice', ($) async {
     final pro = ProAccessService();
     final resolver = ChatTierResolver(proAccess: pro, hasByokKey: () => false);
 
@@ -58,7 +58,7 @@ void main() {
     expect(resolver.resolveEngine(), ChatEngine.onDevice);
   });
 
-  patrolTest('free + BYOK key resolves to free/byokCloud', (\$) async {
+  patrolTest('free + BYOK key resolves to free/byokCloud', ($) async {
     final pro = ProAccessService();
     final resolver = ChatTierResolver(proAccess: pro, hasByokKey: () => true);
 
@@ -66,7 +66,7 @@ void main() {
     expect(resolver.resolveEngine(), ChatEngine.byokCloud);
   });
 
-  patrolTest('pro resolves to pro/premiumCloud regardless of BYOK', (\$) async {
+  patrolTest('pro resolves to pro/premiumCloud regardless of BYOK', ($) async {
     final pro = ProAccessService();
     await pro.unlockPro();
     final resolver = ChatTierResolver(proAccess: pro, hasByokKey: () => false);
@@ -165,24 +165,24 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 import 'package:trovara/core/services/ai/chat_tier.dart';
 import 'package:trovara/core/services/ai/retrieval_depth.dart';
 
-import '../../../test_support.dart';
+import '../../test_support.dart';
 
 void main() {
-  patrolTest('free preset is shallow', (\$) async {
+  patrolTest('free preset is shallow', ($) async {
     const d = RetrievalDepth.free;
     expect(d.fusionPoolSizePerQuery, 5);
     expect(d.topKChunks, 3);
     expect(d.expansionCount, 1);
   });
 
-  patrolTest('pro preset is deeper', (\$) async {
+  patrolTest('pro preset is deeper', ($) async {
     const d = RetrievalDepth.pro;
     expect(d.fusionPoolSizePerQuery, 8);
     expect(d.topKChunks, 5);
     expect(d.expansionCount, 3);
   });
 
-  patrolTest('forTier maps tier to preset', (\$) async {
+  patrolTest('forTier maps tier to preset', ($) async {
     expect(RetrievalDepth.forTier(ChatTier.free), same(RetrievalDepth.free));
     expect(RetrievalDepth.forTier(ChatTier.pro), same(RetrievalDepth.pro));
   });
@@ -340,16 +340,16 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 // patrol_test/core/services/ai/on_device_llm_provider_test.dart
 import 'package:trovara/core/services/ai/_providers/on_device_llm_provider.dart';
 
-import '../../../test_support.dart';
+import '../../test_support.dart';
 
 void main() {
-  patrolTest('generate returns the coming-soon sentinel', (\$) async {
+  patrolTest('generate returns the coming-soon sentinel', ($) async {
     final provider = OnDeviceLlmProvider();
     final answer = await provider.generate(systemPrompt: 's', history: const [], userMessage: 'hi');
     expect(answer, OnDeviceLlmProvider.comingSoonAnswer);
   });
 
-  patrolTest('generateStream yields the sentinel as one chunk', (\$) async {
+  patrolTest('generateStream yields the sentinel as one chunk', ($) async {
     final provider = OnDeviceLlmProvider();
     final chunks = await provider
         .generateStream(systemPrompt: 's', history: const [], userMessage: 'hi')
@@ -490,10 +490,10 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovara/core/services/ai/byok_key_store.dart';
 
-import '../../../test_support.dart';
+import '../../test_support.dart';
 
 void main() {
-  patrolTest('starts empty, stores and reports a key', (\$) async {
+  patrolTest('starts empty, stores and reports a key', ($) async {
     SharedPreferences.setMockInitialValues({});
     final store = ByokKeyStore();
     await store.load();
@@ -504,7 +504,7 @@ void main() {
     expect(store.key, 'my-key');
   });
 
-  patrolTest('clear removes the key', (\$) async {
+  patrolTest('clear removes the key', ($) async {
     SharedPreferences.setMockInitialValues({ByokKeyStore.prefsKey: 'k'});
     final store = ByokKeyStore();
     await store.load();
@@ -515,7 +515,7 @@ void main() {
     expect(store.key, isNull);
   });
 
-  patrolTest('setting an empty value clears the key', (\$) async {
+  patrolTest('setting an empty value clears the key', ($) async {
     SharedPreferences.setMockInitialValues({});
     final store = ByokKeyStore();
     await store.load();
@@ -620,10 +620,10 @@ import 'package:trovara/core/services/ai/chat_tier.dart';
 import 'package:trovara/core/services/ai/llm_client.dart';
 import 'package:trovara/core/services/ai/retrieval_depth.dart';
 
-import '../../test_support.dart';
+import '../test_support.dart';
 
 void main() {
-  patrolTest('free + no key → onDevice engine, free depth', (\$) async {
+  patrolTest('free + no key → onDevice engine, free depth', ($) async {
     SharedPreferences.setMockInitialValues({});
     final locator = ServiceLocator();
     await locator.byokKeyStore.load();
@@ -635,7 +635,7 @@ void main() {
     expect(locator.activeRetrievalDepth, same(RetrievalDepth.free));
   });
 
-  patrolTest('pro → premiumCloud engine, pro depth', (\$) async {
+  patrolTest('pro → premiumCloud engine, pro depth', ($) async {
     SharedPreferences.setMockInitialValues({});
     final locator = ServiceLocator();
     await locator.byokKeyStore.load();
@@ -791,10 +791,10 @@ In `lib/views/chat/chat_view_model.dart`, add a field from the locator and a get
 import 'package:flutter/material.dart';
 import 'package:trovara/core/services/ai/chat_tier.dart';
 
-import '../../test_support.dart';
+import '../../core/test_support.dart';
 
 void main() {
-  patrolTest('free tier shows on-device badge label key', (\$) async {
+  patrolTest('free tier shows on-device badge label key', ($) async {
     // Badge maps ChatTier.free → 'chat.tier.free_badge'.
     expect(badgeKeyForTier(ChatTier.free), 'chat.tier.free_badge');
     expect(badgeKeyForTier(ChatTier.pro), 'chat.tier.pro_badge');
@@ -885,10 +885,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovara/core/di/service_locator.dart';
 import 'package:trovara/core/services/ai/retrieval_depth.dart';
 
-import '../../test_support.dart';
+import '../../core/test_support.dart';
 
 void main() {
-  patrolTest('active depth follows pro entitlement', (\$) async {
+  patrolTest('active depth follows pro entitlement', ($) async {
     SharedPreferences.setMockInitialValues({});
     final locator = ServiceLocator();
     await locator.byokKeyStore.load();
