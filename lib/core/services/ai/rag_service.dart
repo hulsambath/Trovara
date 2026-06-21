@@ -9,6 +9,7 @@ import 'package:trovara/core/services/ai/rag_attribution.dart';
 import 'package:trovara/core/services/ai/rag_chat_memory.dart';
 import 'package:trovara/core/services/ai/rag_result.dart';
 import 'package:trovara/core/services/ai/rag_retriever.dart';
+import 'package:trovara/core/services/ai/retrieval_depth.dart';
 import 'package:trovara/core/services/ai/rag_support.dart';
 import 'package:trovara/core/services/ai/rrf_key_score.dart';
 import 'package:trovara/core/services/ai/vector_search_service.dart';
@@ -121,6 +122,7 @@ class RagService {
     double minScore = defaultMinScore,
     // ignore: unused_parameter
     int maxNotes = defaultMaxNotes, // ignored (single-turn chunk-centric mode)
+    RetrievalDepth depth = RetrievalDepth.free,
   }) async {
     final stats = _vectorSearchService.getStats();
     if (stats.totalChunks == 0) {
@@ -133,10 +135,12 @@ class RagService {
     try {
       retrieved = await _retriever.retrieve(
         userQuestion,
-        fusionPoolSizePerQuery: searchTopK,
+        fusionPoolSizePerQuery: depth.fusionPoolSizePerQuery,
         minScore: minScore,
         expectedEmbeddingDim: stats.embeddingDimension,
         conversationContext: memory.rewriteContext.isEmpty ? null : memory.rewriteContext,
+        topKChunks: depth.topKChunks,
+        expansionCount: depth.expansionCount,
       );
     } on RagQueryException catch (e) {
       return RagSupport.emptyResult(e.message);
@@ -214,6 +218,7 @@ class RagService {
     double minScore = defaultMinScore,
     // ignore: unused_parameter
     int maxNotes = defaultMaxNotes, // ignored (single-turn chunk-centric mode)
+    RetrievalDepth depth = RetrievalDepth.free,
   }) async* {
     try {
       final stats = _vectorSearchService.getStats();
@@ -226,10 +231,12 @@ class RagService {
 
       final retrieved = await _retriever.retrieve(
         userQuestion,
-        fusionPoolSizePerQuery: searchTopK,
+        fusionPoolSizePerQuery: depth.fusionPoolSizePerQuery,
         minScore: minScore,
         expectedEmbeddingDim: stats.embeddingDimension,
         conversationContext: memory.rewriteContext.isEmpty ? null : memory.rewriteContext,
+        topKChunks: depth.topKChunks,
+        expansionCount: depth.expansionCount,
       );
 
       final userPayload = _promptBuilderService.buildSingleTurnUserPayload(

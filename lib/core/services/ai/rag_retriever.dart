@@ -101,6 +101,7 @@ class RagRetriever {
     required int expectedEmbeddingDim,
     String? conversationContext,
     int topKChunks = 3,
+    int expansionCount = 3,
   }) async {
     final trimmed = userQuestion.trim();
     if (trimmed.isEmpty) {
@@ -110,9 +111,14 @@ class RagRetriever {
     // 1) Rewrite
     final rewritten = await _queryRewriteService.rewrite(trimmed, conversationContext: conversationContext);
 
-    // 2) Expand (3 variations)
-    final expanded = await _multiQueryExpansionService.expand(rewritten, count: 3);
-    final queries = expanded.isEmpty ? [rewritten] : expanded;
+    // 2) Expand (expansionCount variations; 1 disables expansion)
+    List<String> queries;
+    if (expansionCount <= 1) {
+      queries = [rewritten];
+    } else {
+      final expanded = await _multiQueryExpansionService.expand(rewritten, count: expansionCount);
+      queries = expanded.isEmpty ? [rewritten] : expanded;
+    }
 
     // Avoid logging raw user query text (can contain sensitive data). If you
     // need deeper troubleshooting locally, use debug builds and add explicit

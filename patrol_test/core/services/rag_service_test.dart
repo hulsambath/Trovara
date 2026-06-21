@@ -10,6 +10,7 @@ import 'package:trovara/core/services/ai/prompt_builder_service.dart';
 import 'package:trovara/core/services/ai/query_rewrite_service.dart';
 import 'package:trovara/core/services/ai/rag_chat_memory.dart';
 import 'package:trovara/core/services/ai/rag_service.dart';
+import 'package:trovara/core/services/ai/retrieval_depth.dart';
 import 'package:trovara/core/services/ai/vector_search_service.dart';
 import 'package:trovara/core/services/notes/note_service.dart';
 import 'package:trovara/models/folder.dart';
@@ -610,7 +611,7 @@ void main() {
         queryVector: [0.5, 0.5, 0.5],
       );
 
-      await service.query('meditation?');
+      await service.query('meditation?', depth: RetrievalDepth.pro);
 
       expect(rewrite.calls, equals(1));
       expect(expand.calls, equals(1));

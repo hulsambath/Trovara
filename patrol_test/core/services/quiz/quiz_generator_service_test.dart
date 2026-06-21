@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:trovara/core/services/quiz/quiz_generator_service.dart';
 import 'package:trovara/core/services/ai/rag_service.dart';
+import 'package:trovara/core/services/ai/retrieval_depth.dart';
 import 'package:trovara/core/services/ai/rag_chat_memory.dart';
 import 'package:trovara/core/services/ai/llm_client.dart';
 import 'package:trovara/models/quiz.dart';
@@ -18,7 +19,8 @@ class StubRagService implements RagService {
       {List<RagChatTurn> priorTurns = const [],
       int searchTopK = RagService.defaultSearchTopK,
       double minScore = RagService.defaultMinScore,
-      int maxNotes = RagService.defaultMaxNotes}) async {
+      int maxNotes = RagService.defaultMaxNotes,
+      RetrievalDepth depth = RetrievalDepth.free}) async {
     return RagResult(
       answer: nextAnswer ?? 'Test context',
       sourceNoteTitles: nextSourceTitles,
@@ -32,7 +34,8 @@ class StubRagService implements RagService {
       {List<RagChatTurn> priorTurns = const [],
       int searchTopK = RagService.defaultSearchTopK,
       double minScore = RagService.defaultMinScore,
-      int maxNotes = RagService.defaultMaxNotes}) async* {
+      int maxNotes = RagService.defaultMaxNotes,
+      RetrievalDepth depth = RetrievalDepth.free}) async* {
     yield nextAnswer ?? 'Test context';
   }
 
