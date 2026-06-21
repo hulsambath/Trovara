@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:trovara/views/chat/chat_view.dart';
 import 'package:trovara/views/main/main_view.dart';
 import 'package:trovara/views/notes/note/note_view.dart';
+import 'package:trovara/views/pro/paywall_view.dart';
 import 'package:trovara/views/search/search_view.dart';
 import 'package:trovara/views/setting/advanced/advanced_setting_view.dart';
 
@@ -55,6 +56,12 @@ class AppRouter {
         name: 'settings-advanced',
         pageBuilder: (context, state) =>
             MaterialPage(key: state.pageKey, restorationId: 'settings-advanced', child: const AdvancedSettingView()),
+      ),
+      GoRoute(
+        path: '/pro/paywall',
+        name: 'paywall',
+        pageBuilder: (context, state) =>
+            MaterialPage(key: state.pageKey, restorationId: 'paywall', child: const PaywallView()),
       ),
       GoRoute(
         path: '/search',

@@ -27,16 +27,17 @@ All features are unified by the graph, creating a cohesive experience where anal
 
 The Knowledge Graph is a directed, weighted graph where nodes represent notes and edges represent three types of relationships:
 
-| Edge Type | Definition | How Detected | Used By |
-|-----------|-----------|-------------|---------|
-| **Semantic** | Notes discuss related concepts | Cosine similarity of embeddings (threshold: 0.7) | Researchers (explorer), students (quiz clustering) |
-| **Source** | Note A cites/references note B or external source | Regex extraction of URLs + internal note links | Researchers (citation tracker), writers (bibliography) |
-| **Hierarchical** | Parent-child relationship (outline structure) | Manual (user drag/drop in Structure View) or auto-suggested | Writers (outline organization) |
+| Edge Type        | Definition                                        | How Detected                                                | Used By                                                |
+| ---------------- | ------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------ |
+| **Semantic**     | Notes discuss related concepts                    | Cosine similarity of embeddings (threshold: 0.7)            | Researchers (explorer), students (quiz clustering)     |
+| **Source**       | Note A cites/references note B or external source | Regex extraction of URLs + internal note links              | Researchers (citation tracker), writers (bibliography) |
+| **Hierarchical** | Parent-child relationship (outline structure)     | Manual (user drag/drop in Structure View) or auto-suggested | Writers (outline organization)                         |
 
 ### Automatic Graph Building
 
 **Trigger:** Note creation or edit
 **Process:**
+
 1. User saves a note
 2. EmbeddingService (existing) computes embeddings
 3. KnowledgeGraphService analyzes the note:
@@ -51,6 +52,7 @@ The Knowledge Graph is a directed, weighted graph where nodes represent notes an
 ### Data Storage
 
 **New ObjectBox entities:**
+
 - `GraphNode` — wraps a Note with metadata (creation time, last updated, in-graph timestamp)
 - `GraphEdge` — relationship between two nodes
   - `sourceNodeId`, `targetNodeId` (note IDs)
@@ -74,17 +76,20 @@ The Knowledge Graph is a directed, weighted graph where nodes represent notes an
 #### Bulk Analysis Suite
 
 **Semantic Explorer**
+
 - Search across all notes for patterns: "show me all arguments about AI risk"
 - Results ranked by relevance (cosine similarity to query embedding)
 - Filter by date, tag, or project
 - Drill down: click a concept to see all connected notes
 
 **Connection Inspector**
+
 - Click any note to see its in-degree and out-degree (what connects to it, what it connects to)
 - View sorted by strength (most relevant first)
 - See relationship type: semantic, citation, or hierarchical
 
 **Statistics Dashboard**
+
 - Top 20 most-connected concepts (by in-degree)
 - Topic frequency (concept mentions across corpus)
 - Citation patterns (which sources appear most often)
@@ -96,21 +101,25 @@ The Knowledge Graph is a directed, weighted graph where nodes represent notes an
 #### Citation & Source Tracker
 
 **Inline Citation System**
+
 - While editing a note, researchers tag sources using syntax: `[citation: https://example.com]` or `[citation: Note Title]`
 - Inline annotations show source metadata on hover
 - Auto-completion suggests previously cited sources
 
 **Bibliography Generator**
+
 - Select a note or project → generate formatted bibliography (APA, MLA, Chicago)
 - Copy to clipboard or export as .bib file
 - Deduplication: same source cited multiple times appears once
 
 **Source Integrity View**
+
 - "Which of my notes cite this source?"
 - Backlinks sorted by date and frequency
 - Identifies over-reliance (single source cited 10+ times)
 
 **Backlink View**
+
 - "What cites this source?" — research dependency map
 
 ---
@@ -120,6 +129,7 @@ The Knowledge Graph is a directed, weighted graph where nodes represent notes an
 #### Export Engine
 
 **Supported formats:**
+
 - Markdown (with embedded links, code blocks, emphasis preserved)
 - PDF (formatted, table of contents, page breaks between chapters)
 - HTML (standalone, styled for readability)
@@ -127,12 +137,14 @@ The Knowledge Graph is a directed, weighted graph where nodes represent notes an
 - **Future:** Medium, Substack, LinkedIn (with platform metadata)
 
 **Smart formatting:**
+
 - Internal note links become hyperlinks or footnote references (configurable)
 - Citations auto-convert to footnotes
 - Generates table of contents from note structure
 - Images/attachments embedded or linked (configurable)
 
 **Batch export:**
+
 - Select multiple notes or a project → export as a single document
 - Custom chapter ordering (drag-and-drop)
 - Custom styling templates (default, book, article, thesis)
@@ -141,23 +153,27 @@ The Knowledge Graph is a directed, weighted graph where nodes represent notes an
 #### Organization & Collaborative Drafting
 
 **Structure View**
+
 - Outline view of notes showing hierarchical relationships (tree)
 - Drag-and-drop to reorganize
 - Collapse/expand clusters
 - Flatten (all notes in one view) or nest (hierarchical)
 
 **Project Bundles**
+
 - Group related notes: "Novel Draft A", "Research for Article X"
 - Read-only shared links for collaborators
 - Notes appear in reading order within project
 
 **Composition Workspace**
+
 - View project as linear document (all notes concatenated)
 - Edit inline, changes sync back to individual notes
 - Word count and reading time estimates
 - "Decompose back" to restore individual note editing
 
 **Collaborative Features**
+
 - **Share links:** Generate read-only shareable URL to a project (collaborators see notes in order)
 - **Inline comments:** Collaborators comment on specific sections; visible in context to author
 - **Version snapshots:** Save draft versions ("v1 original", "v2 post-editor-feedback")
@@ -165,6 +181,7 @@ The Knowledge Graph is a directed, weighted graph where nodes represent notes an
 - **Export with track changes:** Show additions/deletions since last snapshot
 
 **Knowledge Graph integration:**
+
 - System automatically suggests logical groupings from the graph
 - "These 12 notes form a cluster. Make a project?" (user can accept/ignore)
 - Project outline inferred from hierarchical edges in graph
@@ -176,6 +193,7 @@ The Knowledge Graph is a directed, weighted graph where nodes represent notes an
 #### Intelligent Quiz Generator
 
 **Auto-generation:**
+
 - Select a note or project → system generates 5–50 multiple-choice questions
 - Question types:
   - Comprehension: "What is X?" (direct from text)
@@ -184,6 +202,7 @@ The Knowledge Graph is a directed, weighted graph where nodes represent notes an
 - Difficulty varied (easy, medium, hard)
 
 **Quiz Features**
+
 - **Self-test mode:** Take quiz, review answers after completion
 - **Timed mode:** Practice under exam conditions (configurable duration)
 - **Flashcard mode:** Convert questions into flashcard decks with spaced repetition
@@ -193,11 +212,13 @@ The Knowledge Graph is a directed, weighted graph where nodes represent notes an
 #### Knowledge Graph Integration
 
 **Smart question selection:**
+
 - Prioritize **highly-connected concepts** (concepts appearing in many notes = likely exam-relevant)
 - Questions link back to source notes: if user gets answer wrong, immediately review relevant section
 - Cross-project quizzes: generate from multiple projects to ensure comprehensive coverage
 
 **Study recommendations:**
+
 - System suggests "study this cluster next" based on weak areas
 - Graph shows prerequisites: "master these concepts first before tackling advanced topics"
 - Spaced repetition schedule built-in (harder questions resurface more often)
@@ -210,16 +231,17 @@ The Knowledge Graph is a directed, weighted graph where nodes represent notes an
 
 **New services (all implement existing Trovara patterns):**
 
-| Service | Responsibility | Dependencies |
-|---------|----------------|--------------|
-| `KnowledgeGraphService` | Build/query graph, manage edges | EmbeddingService, ObjectBox |
-| `CitationExtractorService` | Parse citations from note text | (none) |
-| `SimilarityMatcherService` | Find semantically related notes | EmbeddingService |
-| `QuizGeneratorService` | Generate quiz questions | RagService, LlmClient |
-| `ExportService` | Multi-format export | (none) |
-| `StructureAnalyzerService` | Infer hierarchical relationships | KnowledgeGraphService |
+| Service                    | Responsibility                   | Dependencies                |
+| -------------------------- | -------------------------------- | --------------------------- |
+| `KnowledgeGraphService`    | Build/query graph, manage edges  | EmbeddingService, ObjectBox |
+| `CitationExtractorService` | Parse citations from note text   | (none)                      |
+| `SimilarityMatcherService` | Find semantically related notes  | EmbeddingService            |
+| `QuizGeneratorService`     | Generate quiz questions          | RagService, LlmClient       |
+| `ExportService`            | Multi-format export              | (none)                      |
+| `StructureAnalyzerService` | Infer hierarchical relationships | KnowledgeGraphService       |
 
 **Integration points:**
+
 - All services registered in `ServiceLocator` (existing DI pattern)
 - Graph building triggered by `NoteRepository` change events
 - Quiz generation uses existing `RagService` + `LlmClient` (no new LLM calls needed; reuse RAG infrastructure)
@@ -228,6 +250,7 @@ The Knowledge Graph is a directed, weighted graph where nodes represent notes an
 ### 3.2 Data Flow
 
 **Graph Building (on note save):**
+
 ```
 NoteRepository.save(note)
   ↓
@@ -243,6 +266,7 @@ KnowledgeGraphService.analyzeNote(note)
 ```
 
 **Quiz Generation (on user request):**
+
 ```
 User selects notes/project in Quiz Generator
   ↓
@@ -258,48 +282,52 @@ QuizGeneratorService.generate(selectedNotes, questionCount)
 
 ### 3.3 Error Handling
 
-| Failure Mode | Handling |
-|--------------|----------|
-| Embedding timeout | Skip note, log warning, retry on next sync |
+| Failure Mode                 | Handling                                            |
+| ---------------------------- | --------------------------------------------------- |
+| Embedding timeout            | Skip note, log warning, retry on next sync          |
 | Malformed citation (bad URL) | Extract but mark as "unconfirmed"; shown in tracker |
-| Too many connections (>100) | Filter to top 20 by strength; full list on demand |
-| Circular graph (A→B→C→A) | Detect and mark in UI; doesn't break graph |
-| Storage quota exceeded | Warn user, suggest archiving old notes |
-| Quiz generation fails | Prompt user to select larger corpus or retry |
-| Export fails | Show error dialog, suggest reducing project size |
+| Too many connections (>100)  | Filter to top 20 by strength; full list on demand   |
+| Circular graph (A→B→C→A)     | Detect and mark in UI; doesn't break graph          |
+| Storage quota exceeded       | Warn user, suggest archiving old notes              |
+| Quiz generation fails        | Prompt user to select larger corpus or retry        |
+| Export fails                 | Show error dialog, suggest reducing project size    |
 
 ### 3.4 Performance Targets
 
-| Operation | Target Latency |
-|-----------|-----------------|
-| Graph analysis (note save) | <2 seconds |
-| Similarity search (1K notes) | <200ms |
-| Graph query (in-degree, out-degree) | <100ms |
-| Quiz generation (10 questions) | <5 seconds |
-| Export to PDF (50-note project) | <3 seconds |
+| Operation                           | Target Latency |
+| ----------------------------------- | -------------- |
+| Graph analysis (note save)          | <2 seconds     |
+| Similarity search (1K notes)        | <200ms         |
+| Graph query (in-degree, out-degree) | <100ms         |
+| Quiz generation (10 questions)      | <5 seconds     |
+| Export to PDF (50-note project)     | <3 seconds     |
 
 ---
 
 ## Part 4: Testing Strategy
 
 ### Unit Tests
+
 - `KnowledgeGraphService`: graph construction, edge updates, cycle detection
 - `CitationExtractorService`: URL/link regex, malformed input handling
 - `SimilarityMatcherService`: embedding retrieval, threshold filtering
 - `QuizGeneratorService`: question variety, de-duplication, difficulty assignment
 
 ### Integration Tests
+
 - Full note-to-graph lifecycle (create → analyze → query)
 - Cross-service workflows (export with citations, quiz from multi-note project)
 - ObjectBox entity persistence and querying
 - Graph sync to Drive (backup/restore)
 
 ### Performance Tests
+
 - Graph query latency with 1K, 10K, 100K notes
 - Memory usage (graph size vs note corpus size)
 - Background analysis impact on editor responsiveness
 
 ### User Testing
+
 - Researchers: bulk analysis workflow, citation tracking, semantic explorer
 - Writers: export quality, collaborative feedback, composition workspace
 - Students: quiz quality (relevance of generated questions), study flow
@@ -309,12 +337,14 @@ QuizGeneratorService.generate(selectedNotes, questionCount)
 ## Part 5: Monetization & Launch
 
 ### Pricing Model
+
 - **Pro Tier:** $24.99 one-time purchase
 - No subscription, no free trial
 - One-time unlock; all features available immediately
 - Cross-device sync (iOS, Android, web) included
 
 ### In-App Purchase Flow
+
 - "Unlock Pro" button appears in app menu
 - Purchase flow explains features per segment (researchers, writers, students)
 - After purchase: badge shown next to user settings; Pro features enabled
@@ -323,6 +353,7 @@ QuizGeneratorService.generate(selectedNotes, questionCount)
 ### Launch Phases
 
 **Phase 1: MVP (Public Launch)**
+
 - Core graph infrastructure
 - Bulk analysis (explorer, connection inspector, stats)
 - Citation tracking (inline, bibliography, backlinks)
@@ -331,17 +362,20 @@ QuizGeneratorService.generate(selectedNotes, questionCount)
 - Graph local + Drive sync
 
 **Phase 2: Post-Launch (Weeks 4–8)**
+
 - Collaborative features (comments, version tracking)
 - Additional export formats (Medium, Substack native)
 - Graph visualization UI polish
 - Cross-device graph sync (mobile)
 
 **Phase 3: Extended (Months 2–3)**
+
 - Study groups & peer comparison
 - Advanced analytics (research network visualization)
 - Custom quiz templates
 
 ### Marketing Strategy
+
 - **Researchers:** Blog posts on "bulk analysis for researchers", semantic search tips; post on research-focused subreddits/forums
 - **Writers:** Case studies on "organized writing with Trovara", export samples; promote on Medium, writing communities
 - **Students:** Study guides, testimonials from student beta users; promote on student Discord/subreddits
