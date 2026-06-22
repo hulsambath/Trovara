@@ -1,31 +1,77 @@
 ---
 name: pre-description
-description: Use when about to open a PR or write a branch summary — generates a structured description from the git diff between the current branch and develop.
+description: Use when about to open a PR or write a branch summary — generates a structured PR description from the git diff between the current branch and develop.
+allowed-tools: Bash, Read
+model: sonnet
 ---
 
-parameters:
+# Pre-Description — PR Summary Generator
 
-- name: topic
-  type: string
-  description: The topic or subject for which the pre-description will be generated.
-  required: true
-- name: length
-  type: integer
-  description: The desired length of the pre-description in words. Optional, default is 50 words.
-  required: false
-- name: tone
-  type: string
-  description: The tone of the pre-description (e.g., formal, casual, informative, etc.). Optional, default is "informative".
-  required: false
-- name: keywords
-  type: array of strings
-  description: A list of keywords that should be included in the pre-description. Optional.
-  required: false
+Generates a Trovara-specific PR description from git history. Run before `pr-prep` if you only need the description without the full quality-gate pass.
 
-When writting a PR description:
+## Steps
 
-1. run `git diff develop...HEAD` to see the changes made in the current branch compared to the develop branch.
-2. Identify the key changes and features that have been implemented in the current branch.
-3. Use the identified changes and features to write a concise and informative PR description that highlights the main points of the changes made. Make sure to include any relevant information that would help reviewers understand the purpose and impact of the changes. The description should be clear and easy to understand, providing enough context for reviewers to evaluate the changes effectively.
-4. If applicable, include any relevant links to documentation, issue trackers, or related PRs that provide additional context or information about the changes made in the current branch. This can help reviewers gain a better understanding of the changes and their implications, making it easier for them to provide feedback and approve the PR.
-5. Finally, review the PR description for clarity and completeness before submitting it for review. Ensure that it accurately reflects the changes made in the current branch and provides sufficient information for reviewers to evaluate the changes effectively. A well-written PR description can facilitate a smoother review process and increase the likelihood of the PR being approved in a timely manner.
+### 1 — Collect the diff
+
+```bash
+git log develop..HEAD --oneline --no-merges
+git diff develop..HEAD --stat
+git diff develop..HEAD --name-only
+```
+
+### 2 — Read changed CLAUDE.md files (optional but useful for context)
+
+If the diff touches `lib/views/` → read `lib/views/CLAUDE.md`.  
+If it touches `lib/core/services/ai/` → read `lib/core/services/ai/CLAUDE.md`.
+
+### 3 — Produce the description
+
+```markdown
+## What
+
+- [User-visible change 1]
+- [User-visible change 2]
+
+## Why
+
+[The motivation — a bug report, a spec requirement, a product decision]
+
+## How
+
+- [Key implementation choice — e.g., "Uses SHA-256 signatures in EmbeddingService to skip unchanged note chunks"]
+- [Non-obvious architectural decision — e.g., "RagService now streams tokens via a Dart Stream<String> instead of buffering the full response"]
+
+## Test Plan
+
+- [ ] `flutter analyze` — clean
+- [ ] `flutter test patrol_test` — passing
+- [ ] Manually tested: [golden-path scenario]
+- [ ] Edge cases: [list if applicable]
+
+## Notes for Reviewer
+
+[Files that deserve extra attention, known limitations, follow-up tickets]
+
+---
+🤖 Generated with [Claude Code](https://claude.ai/code)
+```
+
+### 4 — Commit type → "What" language mapping
+
+| Commit prefix | "What" bullet language |
+|---------------|----------------------|
+| `feat(notes)` | New notes capability |
+| `feat(ui)` | UI / gesture update |
+| `feat(chat)` | AI chat improvement |
+| `feat(sync)` | Sync / backup update |
+| `fix(*)` | Bug fix — group minor fixes into one bullet |
+| `refactor(*)` | Internal cleanup — omit from "What", include in "How" |
+| `chore(deps)` | Omit entirely unless the bump fixes a user-facing bug |
+| `perf(*)` | Performance improvement |
+
+## Rules
+
+- "What" bullets describe user or product impact — not implementation.
+- "How" bullets describe architectural decisions — not what the code does line-by-line.
+- Never copy commit messages verbatim — synthesize them.
+- Scope to commits on this branch only (`develop..HEAD`).

@@ -1,39 +1,34 @@
 ---
 name: system-design
-description: Use when starting a feature that spans more than two files — before any code is written, to produce a file layout, MVVM layer plan, repository interfaces, and ServiceLocator wiring.
+description: Use when starting a feature that spans more than two files — before any code is written, to produce a file layout, MVVM layer plan, repository interfaces, ServiceLocator wiring, routes, and i18n keys.
 allowed-tools: Read, Grep, Glob, Bash
 model: sonnet
 ---
 
 # System Design — Trovara Feature Planner
 
-You produce a concrete implementation plan grounded in Trovara's architecture. No generic Flutter advice — every suggestion must fit the existing DI, MVVM, and repository patterns.
+Produces a concrete, Trovara-specific implementation plan. No code is written during this step.
 
-## Step 1 — Read the Architecture First
+## Step 1 — Read the Architecture
 
-Load these in parallel before designing anything:
-
-- `CLAUDE.md` — non-negotiable rules
-- `lib/core/CLAUDE.md` — service/DI patterns
-- `lib/views/CLAUDE.md` — view/viewmodel patterns
-- `lib/core/di/service_locator.dart` — current DI wiring (see what's already registered)
-- `lib/core/route/app_router.dart` — current routes
-
-If the feature touches AI/RAG, also read `lib/core/services/ai/CLAUDE.md`.
+```bash
+cat CLAUDE.md && cat lib/core/CLAUDE.md && cat lib/views/CLAUDE.md
+grep -n 'get ' lib/core/di/service_locator.dart | head -50
+cat lib/core/route/app_router.dart
+ls lib/core/repository/interfaces/
+ls lib/views/
+```
 
 ## Step 2 — Understand the Feature
 
-Ask or infer:
-1. What user action triggers it?
-2. What data does it read/write? (existing models or new ones?)
-3. Does it need network/LLM/Drive? (→ determines service complexity)
-4. Is it a new screen, a modification to an existing one, or background logic only?
+Before designing, answer:
+1. What data is persisted? (new entity, or operations on existing?)
+2. New screen, modal, or panel in an existing view?
+3. Network / LLM / Drive calls required?
+4. Is it Pro-gated?
+5. What loading / empty / error states does the user see?
 
 ## Step 3 — Produce the Design
-
-Output the plan in exactly this structure:
-
----
 
 ### Feature: `<name>`
 
@@ -41,148 +36,147 @@ Output the plan in exactly this structure:
 
 ```
 lib/
-├── views/<feature>/
-│   ├── <feature>_view.dart          # ViewModelProvider wrapper only
-│   ├── <feature>_content.dart       # _FeatureContent (part of view)
-│   ├── <feature>_view_model.dart    # extends BaseViewModel
-│   └── widgets/
-│       └── <widget>.dart            # only if needed
+├── models/<model>.dart                             # @Entity — only if new persistence
 ├── core/
-│   ├── services/<domain>/
-│   │   └── <feature>_service.dart   # business logic (if needed)
-│   └── repository/
-│       ├── interfaces/
-│       │   └── i_<name>_repository.dart
-│       └── implementations/
-│           └── objectbox_<name>_repository.dart
-└── models/
-    └── <model>.dart                  # only if new ObjectBox entity needed
-```
+│   ├── repository/
+│   │   ├── interfaces/<name>_repository.dart
+│   │   └── implementations/objectbox_<name>_repository.dart
+│   └── services/<domain>/<name>_service.dart       # only if logic > ViewModel
+└── views/<feature>/
+    ├── <feature>_view.dart                         # ViewModelProvider shell
+    ├── <feature>_view_model.dart                   # extends BaseViewModel
+    ├── <feature>_content.dart                      # part file
+    └── widgets/<component>.dart
 
-Remove rows that don't apply. Fewer files is better.
+Modified: service_locator.dart, app_router.dart, en.json, km.json
+```
 
 #### New ObjectBox Entities
 
-List entity fields with types. If none needed, write "None — reuses existing models."
-
 ```dart
 @Entity()
-class MyEntity {
+class <Model> {
   int id = 0;
-  String field; // purpose
+  @Index() String syncId;
+  String fieldName;  // purpose
 }
 ```
 
-After adding: run `./scripts/build_runner.sh`.
+After adding: `./scripts/build_runner.sh -d`
 
 #### Repository Interface
 
 ```dart
-abstract class IMyRepository {
-  Future<List<MyEntity>> getAll();
-  Future<void> put(MyEntity entity);
+abstract class I<Name>Repository {
+  Future<void> initialize();
+  List<<Name>> getAll();
+  <Name>? getById(int id);
+  Future<<Name>> create({required String title});
+  Future<void> update(<Name> item);
   Future<void> delete(int id);
+  void addListener(Function() l);
+  void removeListener(Function() l);
+  void dispose();
 }
 ```
 
-Only include methods the feature actually needs. No speculative methods.
+Only include methods the feature actually calls.
 
 #### Service (if needed)
 
 ```dart
-class MyFeatureService {
-  final IMyRepository _repository;
-  // other injected dependencies
-
-  MyFeatureService({required IMyRepository repository, ...})
-      : _repository = repository;
-
-  // list public methods with one-line purpose each
+class <Name>Service {
+  final I<Name>Repository _repo;
+  <Name>Service({required I<Name>Repository <name>Repository}) : _repo = <name>Repository;
 }
 ```
 
-If the feature is simple enough to put logic directly in the ViewModel, write "No service needed — logic lives in ViewModel."
+Write "No service — logic lives in ViewModel" if trivial.
 
 #### ViewModel Public API
 
 ```dart
-class MyFeatureViewModel extends BaseViewModel {
-  // State properties the view reads
-  List<MyEntity> items = [];
+class <Feature>ViewModel extends BaseViewModel {
+  List<<Model>> items = [];
   bool isLoading = false;
-
-  // Commands the view calls
+  String? errorMessage;
   Future<void> load() async { ... }
-  Future<void> doAction(MyEntity entity) async { ... }
 }
 ```
 
 #### ServiceLocator Wiring
 
-Exact lines to add to `lib/core/di/service_locator.dart`:
-
 ```dart
-late final IMyRepository myRepository = ObjectBoxMyRepository(store: _store);
-late final MyFeatureService myFeatureService = MyFeatureService(repository: myRepository);
+I<Name>Repository? _<name>Repository;
+I<Name>Repository get <name>Repository {
+  _<name>Repository ??= ObjectBox<Name>Repository();
+  return _<name>Repository!;
+}
+<Name>Service? _<name>Service;
+<Name>Service get <name>Service {
+  _<name>Service ??= <Name>Service(<name>Repository: <name>Repository);
+  return _<name>Service!;
+}
 ```
 
-#### Route (if new screen)
+Add to `initialize()` and `dispose()` as needed.
 
-Exact GoRoute to add to `lib/core/route/app_router.dart`:
+#### Route
 
 ```dart
 GoRoute(
-  path: '/my-feature',
-  name: 'myFeature',
-  pageBuilder: (context, state) => const NoTransitionPage(child: MyFeatureView()),
+  path: '/<feature>',
+  name: '<feature>',
+  pageBuilder: (context, state) => MaterialPage(
+    key: state.pageKey, restorationId: '<feature>',
+    child: const <Feature>View(),
+  ),
 ),
 ```
 
-#### i18n Keys
-
-List every key to add to both `assets/translations/en.json` AND `assets/translations/km.json`:
+#### i18n Keys (add to both en.json and km.json)
 
 ```json
-{
-  "my_feature": {
-    "title": "...",
-    "empty_state": "...",
-    "error": "..."
-  }
-}
+"<feature>": { "title": "...", "empty_state": "...", "error": "..." }
+```
+
+#### UI State Table
+
+| State   | Trigger                  | i18n key               |
+|---------|--------------------------|------------------------|
+| loading | `isLoading == true`      | —                      |
+| empty   | list empty after load    | `<feature>.empty_state`|
+| error   | `errorMessage != null`   | `<feature>.error`      |
+| content | data present             | —                      |
+
+#### Test Plan
+
+```
+patrol_test/core/repository/objectbox_<name>_repository_test.dart
+patrol_test/core/services/<domain>/<name>_service_test.dart
+patrol_test/views/<feature>/<feature>_view_model_test.dart
 ```
 
 #### Implementation Order
 
-Ordered checklist — this is the sequence that avoids blocked work:
+1. ObjectBox entity + `./scripts/build_runner.sh -d`
+2. Repository interface + ObjectBox implementation
+3. Register repository in ServiceLocator
+4. Service (if any) + register in ServiceLocator
+5. ViewModel
+6. View + content + widgets
+7. Route in `app_router.dart`
+8. i18n keys (en.json + km.json)
+9. patrol_test files
+10. `/i18n-check` + `/build-and-test`
 
-1. [ ] Add ObjectBox entity (if any) + run build_runner
-2. [ ] Create repository interface + ObjectBox implementation
-3. [ ] Register repository in ServiceLocator
-4. [ ] Create service (if any) + register in ServiceLocator
-5. [ ] Create ViewModel (inject service/repo via constructor)
-6. [ ] Create view + content files
-7. [ ] Add route
-8. [ ] Add i18n keys to en.json + km.json
-9. [ ] Write patrol_test for service/repository
-10. [ ] Run `/build-and-test`
+## Validation Checklist
 
-#### Risks & Open Questions
-
-- List any architectural ambiguity that needs a decision before coding
-- Call out any non-obvious ObjectBox query that may need a custom index
-
----
-
-## Step 4 — Validate Against Non-Negotiables
-
-Before presenting the design, check:
-
-- [ ] No service is instantiated with `new` outside ServiceLocator
-- [ ] ViewModel only depends on interfaces, never `ObjectBox*` concretions
-- [ ] No hardcoded strings — all UI copy has i18n keys
+- [ ] No `new Service()` outside ServiceLocator
+- [ ] ViewModels depend on interfaces only
+- [ ] No hardcoded strings — every UI copy has an i18n key
 - [ ] No `Icons.*` — only `LucideIcons.*`
-- [ ] No file in the plan would exceed 300 LOC when implemented
-- [ ] View file contains only `ViewModelProvider` — no UI logic
-
-If any check fails, revise the design before showing it.
+- [ ] No planned file would exceed 300 LOC
+- [ ] View file contains `ViewModelProvider` only
+- [ ] Every UI state in the table
+- [ ] At least one test per new repository, service, and ViewModel

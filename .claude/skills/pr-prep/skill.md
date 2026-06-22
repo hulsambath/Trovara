@@ -7,23 +7,17 @@ model: sonnet
 
 # PR Prep — Pre-Flight Checklist
 
-Systematically verify a branch is PR-ready, then generate the PR description. This replaces the mental overhead of remembering every pre-PR step.
+Verifies a branch is PR-ready and generates the PR description. Do not open the PR until all blocking gates pass.
 
 ## Step 1 — Understand the Branch
 
-Run in parallel:
-
 ```bash
-git log develop..HEAD --oneline          # commits on this branch
-git diff develop..HEAD --stat            # files changed
-git diff develop..HEAD --name-only       # file list for targeted review
+git log develop..HEAD --oneline
+git diff develop..HEAD --stat
+git diff develop..HEAD --name-only
 ```
 
-Identify:
-- What feature/fix this branch delivers
-- Which CLAUDE.md areas are touched (views, core, ai, etc.)
-
-## Step 2 — Run Build & Test
+## Step 2 — Run Quality Gates
 
 Run in parallel:
 
@@ -32,96 +26,83 @@ flutter analyze
 flutter test patrol_test
 ```
 
-**If either fails**: stop. Fix the failures before continuing. A PR with red gates is not ready.
+**If either fails: stop. Fix first, then resume.**
 
-Report:
-```
-✅ flutter analyze — clean
-✅ flutter test patrol_test — N tests passed
-```
+## Step 3 — Check i18n Parity
 
-or block with specific errors.
-
-## Step 3 — Style Review
-
-Invoke the `style-reviewer` subagent on the changed files:
-
-```
-Agent(subagent_type: "style-reviewer", prompt: "Review files changed on this branch vs develop: <file list from Step 1>")
+```bash
+diff <(jq -r '[paths(scalars)|join(".")]|sort|.[]' assets/translations/en.json) \
+     <(jq -r '[paths(scalars)|join(".")]|sort|.[]' assets/translations/km.json)
 ```
 
-Report the punch list. **Blocking violations must be fixed before the PR is opened.** Warnings can be noted in the PR description as known items.
+Output must be empty. If not: add missing keys to whichever file is behind.
 
-## Step 4 — Definition of Done Checklist
+## Step 4 — Check File Sizes
 
-Check each item against the branch diff:
+```bash
+git diff develop..HEAD --name-only | grep '\.dart$' | grep -v '\.g\.dart$' | while read f; do
+  [ -f "$f" ] && echo "$(wc -l < "$f") $f"
+done | awk '$1 > 250 {print}'
+```
 
-- [ ] `flutter analyze` passes (Step 2)
-- [ ] `flutter test patrol_test` passes (Step 2)
-- [ ] All new user-visible strings exist in **both** `en.json` AND `km.json`
-  ```bash
-  # Verify parity
-  diff <(jq -r '[paths(scalars) | join(".")] | sort | .[]' assets/translations/en.json) \
-       <(jq -r '[paths(scalars) | join(".")] | sort | .[]' assets/translations/km.json)
-  ```
-- [ ] New ObjectBox entities have had `./scripts/build_runner.sh` run (check no `*.g.dart` is stale)
-- [ ] No new file exceeds 300 LOC
-  ```bash
-  git diff develop..HEAD --name-only | grep '\.dart$' | grep -v '\.g\.dart$' | while read f; do
-    [ -f "$f" ] && loc=$(wc -l < "$f") && [ "$loc" -gt 300 ] && echo "$loc $f"
-  done
-  ```
-- [ ] No blocking style violations (Step 3)
-- [ ] No hardcoded secrets (API keys, tokens, passwords)
+Flag anything over 250. Anything over 300 is a blocker.
 
-If any item fails, report it and stop. Do not generate the PR description until all blocking items are resolved.
+## Step 5 — Secrets Scan
 
-## Step 5 — Generate PR Description
+```bash
+git diff develop..HEAD | grep -E '(api_key|apiKey|password|secret|token)\s*=\s*["'"'"'][^$]'
+```
 
-Once all checks pass, generate the description using this template:
+Must be empty. API keys must use `String.fromEnvironment(...)` from `config_constants.dart`.
+
+## Step 6 — Definition of Done Checklist
+
+- [ ] `flutter analyze` — clean
+- [ ] `flutter test patrol_test` — all passing
+- [ ] i18n parity — diff empty
+- [ ] No file over 300 LOC
+- [ ] No secrets in diff
+- [ ] `*.g.dart` not manually edited (check via `git diff develop..HEAD -- '*.g.dart'`)
+- [ ] Tested the golden path manually
+
+## Step 7 — Generate PR Description
 
 ```markdown
 ## What
 
-<!-- 2-3 bullet points: what changed at the user/product level -->
-- 
+- [What changed at the user/product level — 2–3 bullets]
 
 ## Why
 
-<!-- The motivation — a bug report, a spec requirement, a performance issue -->
+[Motivation — bug report, spec requirement, performance issue]
 
 ## How
 
-<!-- Key architectural decisions, non-obvious implementation choices -->
-- 
+- [Key architectural decisions or non-obvious implementation choices]
 
 ## Test Plan
 
 - [ ] `flutter analyze` — clean
 - [ ] `flutter test patrol_test` — all passing
-- [ ] Manually tested: <describe the golden path you tested>
-- [ ] Edge cases covered: <list any non-obvious edge cases>
+- [ ] Manually tested: [describe golden path]
+- [ ] Edge cases: [list non-obvious edge cases]
 
 ## Notes for Reviewer
 
-<!-- Anything the reviewer should pay special attention to, or known limitations -->
+[Anything needing special attention, or known limitations]
 
 ---
 🤖 Generated with [Claude Code](https://claude.ai/code)
 ```
 
-Fill each section from the git diff and commit history. Be specific — "add SHA-256 signature check to EmbeddingService to skip unchanged chunks" not "improve performance".
+Fill from git diff + commit history. Be specific — "add SHA-256 signature check to skip unchanged note chunks" not "improve performance".
 
-## Step 6 — Create the PR
-
-Ask: "Ready to open the PR? (y to create via gh, or n to review description first)"
-
-On confirmation:
+## Step 8 — Create the PR
 
 ```bash
 gh pr create \
   --base develop \
-  --title "<type(scope): subject from commits>" \
+  --title "type(scope): subject" \
   --body "$(cat <<'EOF'
 <generated description>
 EOF
@@ -133,21 +114,18 @@ Return the PR URL.
 ## Summary Report Format
 
 ```
-# PR Prep — feat/my-branch
+## PR Prep — <branch>
 
-## Gates
+### Gates
 ✅ flutter analyze — clean
-✅ flutter test patrol_test — 47 passed
-✅ i18n parity — en.json and km.json in sync
+✅ flutter test patrol_test — N passed
+✅ i18n parity — in sync
 ✅ File sizes — no violations
-⚠️  Style review — 1 warning (noted in PR description)
+✅ No secrets found
 
-## Definition of Done
-✅ All items passed
+### Blockers
+(none) — ready to open PR
 
-## PR Description
-<generated description>
-
-## Next Step
-Run `gh pr create` or confirm above to open the PR.
+### PR Description
+<description>
 ```

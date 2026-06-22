@@ -48,10 +48,12 @@ When a task touches a specific area, **read the matching CLAUDE.md before editin
 | `lib/views/**` | `lib/views/CLAUDE.md` + `docs/style_guide/Views_Style_Guide.md` |
 | `lib/core/**` | `lib/core/CLAUDE.md` |
 | `lib/core/services/ai/**` | `lib/core/services/ai/CLAUDE.md` |
+| `lib/core/theme/**` | This file → "Theming" section. Tokens live here; views still consume via `Theme.of(context)`. |
 | Any file growing past ~250 lines | `docs/style_guide/File_Organization_Rules.md` (pick a refactor recipe before crossing 300) |
 | `lib/models/**` | This file → "Data Layer" section. Run build_runner after edits. |
 | `patrol_test/**` or `integration_test/**` | `patrol_test/CLAUDE.md` + `docs/PATROL_UNIT_TESTING.md` |
 | `assets/translations/*.json` | Run `/i18n-check` after edits. |
+| Starting a new feature | Check `docs/superpowers/specs/` for an existing design and `docs/superpowers/plans/` for an executable plan. |
 
 The subdirectory `CLAUDE.md` files are auto-loaded when files in their directory are read, so you usually don't need to open them manually — but they govern what you write.
 
@@ -101,7 +103,7 @@ dart pub global activate patrol_cli   # one-time install
 ## Architecture
 
 ### Entry Points & Flavors
-The app has two flavors: **staging** (`lib/main_staging.dart`) and **prod** (`lib/main_prod.dart`). Each loads the matching `firebase_options/{staging,prod}.dart` before delegating to `lib/main.dart`. API keys and feature config are injected at build time via `--dart-define` and read from `lib/constants/config_constants.dart` (using `String.fromEnvironment`).
+The app has two flavors: **staging** (`lib/main_staging.dart`) and **prod** (`lib/main_prod.dart`). Each loads the matching `firebase_options/{staging,prod}.dart` before delegating to `lib/main.dart`. API keys and feature config are injected at build time via `--dart-define` and read from `lib/constants/config_constants.dart` (using `String.fromEnvironment`). See that file for the full list of recognized keys (flavor cosmetics, LLM provider keys, embedding/model overrides).
 
 Startup sequence in `lib/initializer.dart`:
 1. `EasyLocalization.ensureInitialized()`
@@ -133,6 +135,15 @@ Global providers (theme, in-app updates) live in `lib/provider_scope.dart` and a
 - **ObjectBox** for all local persistence. Generated code is in `lib/objectbox.g.dart` — regenerate with `./scripts/build_runner.sh` after changing entity models.
 - `ObjectBoxStoreManager` is a shared singleton Store; all repositories use it.
 - Repository interfaces live in `lib/core/repository/interfaces/`; ObjectBox implementations in `lib/core/repository/implementations/`.
+
+### Theming
+Design tokens and `ThemeData` factories live under `lib/core/theme/`:
+- `app_color.dart` — color tokens consumed by `theme_config.dart`
+- `app_typography.dart` — text style tokens
+- `theme_config.dart` — builds the `ThemeData` registered above the router
+- `theme_provider.dart` — global `ChangeNotifier` for theme mode (light/dark)
+
+Views never import these directly — always go through `Theme.of(context).colorScheme.*` / `textTheme.*`. Add or modify tokens here when a new color or text style is needed.
 
 ### AI / RAG Pipeline
 Located in `lib/core/services/ai/`. The full pipeline:

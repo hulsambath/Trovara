@@ -1,39 +1,34 @@
 ---
 name: doc-helper
-description: Use when a new service, repository, or subsystem needs documentation — CLAUDE.md for new directories, dartdoc for public APIs, or updating an existing architecture doc after a structural change.
-allowed-tools: Read, Grep, Glob, Bash
+description: Use when a new service, repository, or subsystem needs documentation — CLAUDE.md for new directories, dartdoc for public APIs, or updating existing architecture docs after a structural change.
+allowed-tools: Read, Grep, Glob, Bash, Edit, Write
 model: sonnet
 ---
 
-# Doc Helper — Trovara Documentation Generator
+# Doc Helper — Trovara Documentation
 
-You generate accurate, terse documentation grounded in the actual code. Read the code first, then write. Never fabricate API details.
+Generates accurate, concise documentation grounded in the actual code. Read the code first, then write. Never fabricate API details.
 
-## Step 1 — Identify What Needs Documenting
-
-Determine the target from context:
+## Step 1 — Identify the Target
 
 | Request | What to produce |
-|---|---|
-| New `lib/core/services/<name>/` | `CLAUDE.md` for that directory |
+|---------|----------------|
+| New `lib/core/services/<name>/` | `CLAUDE.md` in that directory |
 | New `lib/views/<feature>/` | No CLAUDE.md needed — covered by `lib/views/CLAUDE.md` |
-| New public service/repository class | dartdoc on the class + public methods |
-| New `lib/core/` subsystem | Update `lib/core/CLAUDE.md` with the new section |
-| PR description | Run `/pre-description` instead (dedicated skill) |
+| New public service / repository class | Dartdoc on the class and its public methods |
+| New subsystem added to `lib/core/` | Add a section to `lib/core/CLAUDE.md` |
+| PR ready to open | Use `pr-prep` skill instead |
 
 ## Step 2 — Read Before Writing
 
-Always read these before generating any docs:
-
+Always read:
 1. The target file(s) with the Read tool
-2. The nearest existing `CLAUDE.md` — match its tone and structure
-3. `CLAUDE.md` at project root — non-negotiable rules to reference
+2. The nearest existing `CLAUDE.md` — match tone and structure
+3. Root `CLAUDE.md` — non-negotiable rules to reference where relevant
 
-Never document what the code already makes obvious from naming alone.
+## Step 3 — CLAUDE.md for a New Service Directory
 
-## Step 3 — CLAUDE.md for a New Directory
-
-Use this template for `lib/core/services/<name>/CLAUDE.md`:
+Use for `lib/core/services/<name>/CLAUDE.md`:
 
 ```markdown
 # <Name> Service
@@ -47,34 +42,33 @@ One paragraph. What problem does this service solve? What does it own? What does
 ### `<ClassName>`
 
 Constructor params and what each one does (one line each).
-
-Key public methods — name, return type, one-line purpose. Skip getters that mirror a property name.
+Key public methods — name, return type, one-line purpose.
+Skip getters that mirror a property name.
 
 ## Invariants & Constraints
 
-Bullet list of non-obvious rules:
-- Threading model (main thread? background isolate?)
-- Caching strategy (SHA-256 signatures, TTL, etc.)
-- Error contract (throws vs returns null vs returns Result)
-- Dependencies on other services (and why)
+- Threading model (main thread / background isolate)
+- Caching strategy (e.g., SHA-256 signatures for change detection)
+- Error contract (throws / returns null / returns Result type)
+- Dependencies on other services and why
 
 ## What NOT to Put Here
 
-List things that belong elsewhere (e.g., "UI state → ViewModel", "persistence → ObjectBox repository").
+List things that belong elsewhere (e.g., "UI state → ViewModel").
 
 ## Common Mistakes
 
-1-3 bullets of mistakes you've already seen or that are easy to make given this service's shape.
+1–3 bullets of easy-to-make mistakes given this service's shape.
 ```
 
 ## Step 4 — Dartdoc for Public Classes
 
 Rules:
-- Document the **why** and **invariants**, not the **what** (the signature already says what)
+- Document the **why** and **invariants** — the signature already says what
 - One-sentence summary on the class line
-- Only document public methods that have non-obvious behavior
+- Only document public methods with non-obvious behavior
 - Skip trivial getters, `copyWith`, `toString`
-- Never multi-paragraph docstrings — one short paragraph max
+- One short paragraph max — never multi-paragraph docstrings
 
 ```dart
 /// Orchestrates RAG query flow: rewrite → embed → search → rank → prompt → stream.
@@ -91,15 +85,16 @@ class RagService {
 
 ## Step 5 — Updating lib/core/CLAUDE.md
 
-When a new service or subsystem is added to `lib/core/`, add a row to the "Services" table and a short paragraph under "Key Subsystems". Read the current file first to find the right insertion point.
+When a new service or subsystem is added:
+1. Read the current `lib/core/CLAUDE.md`
+2. Add a row to the Services table and a short paragraph under Key Subsystems
+3. Find the right insertion point — don't append to the end
 
-## Step 6 — Quality Check
-
-Before returning the docs:
+## Quality Checklist
 
 - [ ] Nothing documented that the name + type already conveys
 - [ ] No fabricated method signatures — verified against actual file
 - [ ] Invariants section covers error contract and threading model
-- [ ] "Common Mistakes" section warns about the top 1-2 footguns in this code
+- [ ] Common Mistakes covers the top 1–2 footguns in this code
 - [ ] Follows 120-char line width (same as Dart code)
 - [ ] Single quotes in any Dart examples

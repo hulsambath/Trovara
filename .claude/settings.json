@@ -30,6 +30,16 @@
             "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/stop-checks.sh"
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/reindex-context.sh",
+            "async": true,
+            "statusMessage": "Re-Indexing project context..."
+          }
+        ]
       }
     ]
   },
