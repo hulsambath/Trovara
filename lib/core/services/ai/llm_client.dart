@@ -1,11 +1,12 @@
 import 'package:logger/logger.dart';
 import 'package:trovara/core/services/ai/_providers/gemini_api_llm_provider.dart';
 import 'package:trovara/core/services/ai/_providers/llm_chat_backend.dart';
+import 'package:trovara/core/services/ai/_providers/on_device_llm_provider.dart';
 import 'package:trovara/core/services/ai/_providers/openai_compatible_llm_provider.dart';
 
 export 'package:trovara/core/services/ai/llm_api_exception.dart';
 
-enum LlmProvider { openAiCompatible, gemini }
+enum LlmProvider { openAiCompatible, gemini, onDevice }
 
 /// One prior turn for [LlmClient.generateWithMessages] / [generateStreamWithMessages].
 ///
@@ -75,7 +76,7 @@ class LlmClient {
        _maxOutputTokens = maxOutputTokens;
 
   /// Whether the client has been successfully initialized with a valid API key.
-  bool get isAvailable => _isInitialized && _apiKey.isNotEmpty;
+  bool get isAvailable => _isInitialized && (_provider == LlmProvider.onDevice || _apiKey.isNotEmpty);
 
   LlmProvider get provider => _provider;
 
@@ -89,12 +90,13 @@ class LlmClient {
   Future<void> initialize() async {
     if (_isInitialized) return;
 
-    if (_apiKey.isEmpty) {
+    if (_provider != LlmProvider.onDevice && _apiKey.isEmpty) {
       _logger.w('LlmClient: No API key provided — generation disabled');
       return;
     }
 
     _backend = switch (_provider) {
+      LlmProvider.onDevice => OnDeviceLlmProvider(),
       LlmProvider.gemini => GeminiApiLlmProvider(
         apiKey: _apiKey,
         modelName: _modelName,
