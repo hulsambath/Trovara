@@ -1,7 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
-import 'package:trovara/core/provider/theme_provider.dart';
+import 'package:trovara/core/theme/theme_provider.dart';
 import 'package:trovara/core/route/app_router.dart';
 import 'package:provider/provider.dart';
 

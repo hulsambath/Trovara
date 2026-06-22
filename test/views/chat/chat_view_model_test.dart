@@ -12,6 +12,7 @@ import 'package:trovara/core/services/ai/prompt_builder_service.dart';
 import 'package:trovara/core/services/ai/query_rewrite_service.dart';
 import 'package:trovara/core/services/ai/rag_chat_memory.dart';
 import 'package:trovara/core/services/ai/rag_service.dart';
+import 'package:trovara/core/services/ai/retrieval_depth.dart';
 import 'package:trovara/core/services/ai/vector_search_service.dart';
 import 'package:trovara/core/services/chat/chat_service.dart';
 import 'package:trovara/core/services/chat/chat_source_service.dart';
@@ -298,6 +299,7 @@ class _FakeRagService extends RagService {
     int searchTopK = 10,
     double minScore = 0.3,
     int maxNotes = 5,
+    RetrievalDepth depth = RetrievalDepth.free,
   }) {
     lastQuery = userQuestion;
     lastPriorTurns = priorTurns;

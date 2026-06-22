@@ -1,4 +1,5 @@
 import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:trovara/core/services/ai/_providers/gemini_model_resolver.dart';
 import 'package:trovara/core/services/ai/_providers/llm_chat_backend.dart';
 
 /// LLM provider backed by the Gemini Developer API (`google_generative_ai`).
@@ -11,6 +12,10 @@ import 'package:trovara/core/services/ai/_providers/llm_chat_backend.dart';
 /// and the API-key path are kept as separate providers so `ServiceLocator`
 /// can select between them. The model id must be the API identifier
 /// (`gemini-2.5-flash`), not the human-readable display name.
+///
+/// If the configured model is unavailable for the key, the provider resolves a
+/// supported model once via [GeminiModelResolver] and retries — and falls back
+/// to non-streaming when the resolved model lacks `streamGenerateContent`.
 class GeminiApiLlmProvider implements LlmChatBackend {
   static const String defaultModel = 'gemini-2.5-flash-lite';
 
@@ -20,39 +25,87 @@ class GeminiApiLlmProvider implements LlmChatBackend {
   final double topP;
   final int maxOutputTokens;
 
+  String _activeModel;
+  bool? _supportsStream;
+
   GeminiApiLlmProvider({
     required this.apiKey,
     this.modelName = defaultModel,
     required this.temperature,
     required this.topP,
     required this.maxOutputTokens,
-  });
+  }) : _activeModel = modelName;
 
-  /// Non-streaming chat completion. Returns the model's text or empty string.
   @override
   Future<String> generate({
     required String systemPrompt,
     required List<ChatTurn> history,
     required String userMessage,
   }) async {
-    final model = _buildModel(systemPrompt);
-    final res = await model.generateContent(_buildContents(history, userMessage));
-    return res.text ?? '';
+    final contents = _buildContents(history, userMessage);
+    try {
+      return (await _buildModel(systemPrompt).generateContent(contents)).text ?? '';
+    } catch (e) {
+      if (!GeminiModelResolver.isModelNotFound(e)) throw GeminiModelResolver.wrap(e);
+      await _resolve();
+      try {
+        return (await _buildModel(systemPrompt).generateContent(contents)).text ?? '';
+      } catch (e2) {
+        throw GeminiModelResolver.wrap(e2);
+      }
+    }
   }
 
-  /// Streaming chat completion. Yields non-empty text deltas.
   @override
   Stream<String> generateStream({
     required String systemPrompt,
     required List<ChatTurn> history,
     required String userMessage,
   }) async* {
-    final model = _buildModel(systemPrompt);
-    final stream = model.generateContentStream(_buildContents(history, userMessage));
-    await for (final res in stream) {
-      final text = res.text ?? '';
-      if (text.isNotEmpty) yield text;
+    if (_supportsStream == false) {
+      yield await generate(systemPrompt: systemPrompt, history: history, userMessage: userMessage);
+      return;
     }
+
+    final contents = _buildContents(history, userMessage);
+    var yieldedAny = false;
+    try {
+      await for (final res in _buildModel(systemPrompt).generateContentStream(contents)) {
+        final text = res.text ?? '';
+        if (text.isNotEmpty) {
+          yieldedAny = true;
+          yield text;
+        }
+      }
+    } catch (e) {
+      if (yieldedAny || !(GeminiModelResolver.isStreamingNotSupported(e) || GeminiModelResolver.isModelNotFound(e))) {
+        throw GeminiModelResolver.wrap(e);
+      }
+      await _resolve();
+      if (_supportsStream == false) {
+        yield await generate(systemPrompt: systemPrompt, history: history, userMessage: userMessage);
+        return;
+      }
+      try {
+        await for (final res in _buildModel(systemPrompt).generateContentStream(contents)) {
+          final text = res.text ?? '';
+          if (text.isNotEmpty) yield text;
+        }
+      } catch (e2) {
+        if (GeminiModelResolver.isStreamingNotSupported(e2)) {
+          _supportsStream = false;
+          yield await generate(systemPrompt: systemPrompt, history: history, userMessage: userMessage);
+          return;
+        }
+        throw GeminiModelResolver.wrap(e2);
+      }
+    }
+  }
+
+  Future<void> _resolve() async {
+    final choice = await GeminiModelResolver.resolveBest(apiKey: apiKey);
+    _activeModel = choice.model;
+    _supportsStream = choice.supportsStream;
   }
 
   // The model is rebuilt per request because `systemInstruction` is baked in
@@ -61,7 +114,7 @@ class GeminiApiLlmProvider implements LlmChatBackend {
   GenerativeModel _buildModel(String systemPrompt) {
     final sys = systemPrompt.trim();
     return GenerativeModel(
-      model: modelName,
+      model: _activeModel,
       apiKey: apiKey,
       generationConfig: GenerationConfig(temperature: temperature, topP: topP, maxOutputTokens: maxOutputTokens),
       systemInstruction: sys.isEmpty ? null : Content.system(sys),

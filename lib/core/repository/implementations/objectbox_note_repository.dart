@@ -1,12 +1,11 @@
 import 'package:logger/logger.dart';
+// Import ServiceLocator for deferred graph analysis
+import 'package:trovara/core/di/service_locator.dart';
 import 'package:trovara/core/repository/base/base_repository.dart';
 import 'package:trovara/core/repository/base/objectbox_store_manager.dart';
 import 'package:trovara/core/repository/interfaces/note_repository.dart';
 import 'package:trovara/models/note.dart';
 import 'package:trovara/objectbox.g.dart';
-
-// Import ServiceLocator for deferred graph analysis
-import 'package:trovara/core/di/service_locator.dart';
 
 /// ObjectBox implementation of the note repository.
 ///
@@ -241,7 +240,7 @@ class ObjectBoxNoteRepository extends BaseRepository implements INoteRepository 
     // Fire and forget
     try {
       final knowledgeGraphService = ServiceLocator().knowledgeGraphService;
-      knowledgeGraphService.analyzeNote(note.id as int, note.contentJson);
+      knowledgeGraphService.analyzeNote(note.id, note.contentJson);
     } catch (e) {
       _logger.w('Failed to queue graph analysis for note ${note.id}', error: e);
     }

@@ -106,6 +106,13 @@ class _ChatContentState extends State<_ChatContent> {
         tooltip: 'New chat',
       ),
     ],
+    bottom: PreferredSize(
+      preferredSize: const Size.fromHeight(32),
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 6),
+        child: _ChatTierBadge(tier: viewModel.chatTier),
+      ),
+    ),
   );
 
   Widget _buildMessageArea(BuildContext context, ColorScheme colors) {

@@ -2,21 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:trovara/models/custom_tag.dart';
 
-/// Widget for managing custom tags with text input and removable chips
-/// Supports both string-based tags (for backward compatibility) and CustomTag objects
+export 'compact_custom_tags_widget.dart';
+
+part 'widgets/custom_tag_chips.dart';
+
+/// Widget for managing custom tags with text input and removable chips.
+/// Supports both string-based tags (for backward compatibility) and CustomTag objects.
 class CustomTagsWidget extends StatefulWidget {
-  // For backward compatibility - use either selectedTags OR selectedCustomTags
   final List<String>? selectedTags;
   final Function(List<String>)? onTagsChanged;
-
-  // New CustomTag-based approach
   final List<CustomTag>? selectedCustomTags;
   final Function(List<CustomTag>)? onCustomTagsChanged;
-
   final String? hintText;
   final int maxTags;
   final bool enabled;
-  final List<CustomTag>? availableTags; // For suggestions
+  final List<CustomTag>? availableTags;
 
   const CustomTagsWidget({
     super.key,
@@ -53,147 +53,81 @@ class _CustomTagsWidgetState extends State<CustomTagsWidget> {
   }
 
   void _addTag(String tagText) {
-    final trimmedTag = tagText.trim();
-    if (trimmedTag.isEmpty) return;
-
-    if (_isCustomTagMode) {
-      _addCustomTag(trimmedTag);
-    } else {
-      _addStringTag(trimmedTag);
-    }
+    final trimmed = tagText.trim();
+    if (trimmed.isEmpty) return;
+    _isCustomTagMode ? _addCustomTag(trimmed) : _addStringTag(trimmed);
   }
 
-  void _addStringTag(String trimmedTag) {
-    final selectedTags = widget.selectedTags!;
-
-    // Check if tag already exists
-    if (selectedTags.contains(trimmedTag)) {
-      _showDuplicateTagSnackBar();
-      return;
-    }
-
-    // Check max tags limit
-    if (selectedTags.length >= widget.maxTags) {
-      _showMaxTagsSnackBar();
-      return;
-    }
-
-    // Add the tag
-    final newTags = List<String>.from(selectedTags)..add(trimmedTag);
-    widget.onTagsChanged!(newTags);
+  void _addStringTag(String trimmed) {
+    final tags = widget.selectedTags!;
+    if (tags.contains(trimmed)) { _showDuplicateSnackBar(); return; }
+    if (tags.length >= widget.maxTags) { _showMaxTagsSnackBar(); return; }
+    widget.onTagsChanged!(List<String>.from(tags)..add(trimmed));
     _textController.clear();
   }
 
-  void _addCustomTag(String trimmedTag) {
-    final selectedCustomTags = widget.selectedCustomTags!;
-
-    // Check if tag already exists in selected tags
-    if (selectedCustomTags.any((tag) => tag.name.toLowerCase() == trimmedTag.toLowerCase())) {
-      _showDuplicateTagSnackBar();
-      return;
-    }
-
-    // Check max tags limit
-    if (selectedCustomTags.length >= widget.maxTags) {
-      _showMaxTagsSnackBar();
-      return;
-    }
-
-    // Create new tag or find existing one
-    final existingTag =
-        widget.availableTags?.firstWhere(
-          (tag) => tag.name.toLowerCase() == trimmedTag.toLowerCase(),
-          orElse: () => CustomTag.create(trimmedTag),
+  void _addCustomTag(String trimmed) {
+    final tags = widget.selectedCustomTags!;
+    if (tags.any((t) => t.name.toLowerCase() == trimmed.toLowerCase())) { _showDuplicateSnackBar(); return; }
+    if (tags.length >= widget.maxTags) { _showMaxTagsSnackBar(); return; }
+    final tag = widget.availableTags?.firstWhere(
+          (t) => t.name.toLowerCase() == trimmed.toLowerCase(),
+          orElse: () => CustomTag.create(trimmed),
         ) ??
-        CustomTag.create(trimmedTag);
-
-    // Add the tag
-    final newTags = List<CustomTag>.from(selectedCustomTags)..add(existingTag);
-    widget.onCustomTagsChanged!(newTags);
+        CustomTag.create(trimmed);
+    widget.onCustomTagsChanged!(List<CustomTag>.from(tags)..add(tag));
     _textController.clear();
     _hideSuggestions();
   }
 
   void _removeTag(dynamic tag) {
     if (_isCustomTagMode) {
-      final newTags = List<CustomTag>.from(widget.selectedCustomTags!)..remove(tag);
-      widget.onCustomTagsChanged!(newTags);
+      widget.onCustomTagsChanged!(List<CustomTag>.from(widget.selectedCustomTags!)..remove(tag));
     } else {
-      final newTags = List<String>.from(widget.selectedTags!)..remove(tag);
-      widget.onTagsChanged!(newTags);
+      widget.onTagsChanged!(List<String>.from(widget.selectedTags!)..remove(tag));
     }
   }
 
   void _selectSuggestion(CustomTag tag) {
     if (!_isCustomTagMode) return;
-
-    final selectedCustomTags = widget.selectedCustomTags!;
-
-    if (selectedCustomTags.any((selectedTag) => selectedTag.id == tag.id)) {
-      _showDuplicateTagSnackBar();
-      return;
-    }
-
-    if (selectedCustomTags.length >= widget.maxTags) {
-      _showMaxTagsSnackBar();
-      return;
-    }
-
-    final newTags = List<CustomTag>.from(selectedCustomTags)..add(tag);
-    widget.onCustomTagsChanged!(newTags);
+    final tags = widget.selectedCustomTags!;
+    if (tags.any((t) => t.id == tag.id)) { _showDuplicateSnackBar(); return; }
+    if (tags.length >= widget.maxTags) { _showMaxTagsSnackBar(); return; }
+    widget.onCustomTagsChanged!(List<CustomTag>.from(tags)..add(tag));
     _textController.clear();
     _hideSuggestions();
   }
 
   void _updateSuggestions(String query) {
-    if (!_isCustomTagMode || query.isEmpty) {
-      _hideSuggestions();
-      return;
-    }
-
-    final availableTags = widget.availableTags ?? [];
-    final filteredSuggestions = availableTags
-        .where(
-          (tag) =>
-              tag.name.toLowerCase().contains(query.toLowerCase()) &&
-              !widget.selectedCustomTags!.any((selectedTag) => selectedTag.id == tag.id),
-        )
+    if (!_isCustomTagMode || query.isEmpty) { _hideSuggestions(); return; }
+    final filtered = (widget.availableTags ?? [])
+        .where((t) =>
+            t.name.toLowerCase().contains(query.toLowerCase()) &&
+            !widget.selectedCustomTags!.any((s) => s.id == t.id))
+        .take(5)
         .toList();
-
     setState(() {
-      _suggestions = filteredSuggestions.take(5).toList();
-      _showSuggestions = _suggestions.isNotEmpty;
+      _suggestions = filtered;
+      _showSuggestions = filtered.isNotEmpty;
     });
   }
 
-  void _hideSuggestions() {
-    setState(() {
-      _showSuggestions = false;
-      _suggestions.clear();
-    });
-  }
+  void _hideSuggestions() => setState(() { _showSuggestions = false; _suggestions.clear(); });
 
-  void _showDuplicateTagSnackBar() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Tag already exists'),
-        duration: Duration(seconds: 2),
-        behavior: SnackBarBehavior.floating,
-        margin: EdgeInsets.all(16),
-      ),
-    );
-  }
+  void _showDuplicateSnackBar() => ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(content: Text('Tag already exists'), duration: Duration(seconds: 2),
+      behavior: SnackBarBehavior.floating, margin: EdgeInsets.all(16)),
+  );
 
-  void _showMaxTagsSnackBar() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Maximum ${widget.maxTags} tags allowed'),
-        duration: const Duration(seconds: 2),
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(16),
-      ),
-    );
-  }
+  void _showMaxTagsSnackBar() => ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text('Maximum ${widget.maxTags} tags allowed'), duration: const Duration(seconds: 2),
+      behavior: SnackBarBehavior.floating, margin: const EdgeInsets.all(16)),
+  );
+
+  bool get _hasSelectedTags =>
+      _isCustomTagMode ? widget.selectedCustomTags!.isNotEmpty : widget.selectedTags!.isNotEmpty;
+
+  bool get _hasAvailableTags => widget.availableTags != null && widget.availableTags!.isNotEmpty;
 
   @override
   Widget build(BuildContext context) => Column(
@@ -201,76 +135,10 @@ class _CustomTagsWidgetState extends State<CustomTagsWidget> {
     mainAxisSize: MainAxisSize.min,
     children: [
       if (_hasAvailableTags) ...[_buildExistingTagsSection(context), const SizedBox(height: 16)],
-
-      if (widget.enabled) ...[
-        TextField(
-          controller: _textController,
-          focusNode: _focusNode,
-          enabled: widget.enabled,
-          decoration: InputDecoration(
-            hintText: widget.hintText ?? 'Add custom tag...',
-            contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-            suffixIcon: IconButton(
-              icon: const Icon(LucideIcons.plus),
-              onPressed: () => _addTag(_textController.text),
-
-              tooltip: 'Add tag',
-            ),
-            border: const OutlineInputBorder(),
-          ),
-          onTapUpOutside: (event) => _focusNode.unfocus(),
-          onSubmitted: _addTag,
-          onChanged: _updateSuggestions,
-          onTap: () {
-            if (_textController.text.isNotEmpty) {
-              _updateSuggestions(_textController.text);
-            }
-          },
-
-          textInputAction: TextInputAction.done,
-          maxLength: 50,
-          buildCounter: (context, {required currentLength, maxLength, required isFocused}) => Text(
-            '$currentLength/$maxLength',
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
-          ),
-        ),
-
-        if (_isCustomTagMode && _showSuggestions && _suggestions.isNotEmpty) ...[
-          const SizedBox(height: 4),
-          Container(
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Column(
-              children: _suggestions
-                  .map(
-                    (tag) => ListTile(
-                      leading: Container(
-                        width: 12,
-                        height: 12,
-                        decoration: BoxDecoration(color: tag.displayColor, shape: BoxShape.circle),
-                      ),
-                      title: Text(tag.name),
-                      subtitle: tag.usageCount > 0 ? Text('Used ${tag.usageCount} times') : null,
-                      onTap: () => _selectSuggestion(tag),
-                      dense: true,
-                    ),
-                  )
-                  .toList(),
-            ),
-          ),
-        ],
-
-        const SizedBox(height: 8),
-      ],
-
-      if (_hasSelectedTags) ...[
-        _buildSelectedTagsSection(context),
-      ] else if (widget.enabled) ...[
+      if (widget.enabled) ...[_buildInput(context), const SizedBox(height: 8)],
+      if (_hasSelectedTags)
+        _buildSelectedTagsSection(context)
+      else if (widget.enabled)
         Text(
           'No custom tags added yet',
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -278,39 +146,72 @@ class _CustomTagsWidgetState extends State<CustomTagsWidget> {
             fontStyle: FontStyle.italic,
           ),
         ),
+    ],
+  );
+
+  Widget _buildInput(BuildContext context) => Column(
+    children: [
+      TextField(
+        controller: _textController,
+        focusNode: _focusNode,
+        enabled: widget.enabled,
+        decoration: InputDecoration(
+          hintText: widget.hintText ?? 'Add custom tag...',
+          contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          suffixIcon: IconButton(
+            icon: const Icon(LucideIcons.plus),
+            onPressed: () => _addTag(_textController.text),
+            tooltip: 'Add tag',
+          ),
+          border: const OutlineInputBorder(),
+        ),
+        onTapUpOutside: (event) => _focusNode.unfocus(),
+        onSubmitted: _addTag,
+        onChanged: _updateSuggestions,
+        onTap: () { if (_textController.text.isNotEmpty) _updateSuggestions(_textController.text); },
+        textInputAction: TextInputAction.done,
+        maxLength: 50,
+        buildCounter: (context, {required currentLength, maxLength, required isFocused}) => Text(
+          '$currentLength/$maxLength',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ),
+      if (_isCustomTagMode && _showSuggestions && _suggestions.isNotEmpty) ...[
+        const SizedBox(height: 4),
+        _buildSuggestionsDropdown(context),
       ],
     ],
   );
 
-  bool get _hasSelectedTags {
-    if (_isCustomTagMode) {
-      return widget.selectedCustomTags!.isNotEmpty;
-    } else {
-      return widget.selectedTags!.isNotEmpty;
-    }
-  }
-
-  bool get _hasAvailableTags => widget.availableTags != null && widget.availableTags!.isNotEmpty;
-
-  List<Widget> _buildTagChips() {
-    if (_isCustomTagMode) {
-      return widget.selectedCustomTags!.map((tag) => _buildCustomTagChip(tag)).toList();
-    } else {
-      return widget.selectedTags!.map((tag) => _buildStringTagChip(tag)).toList();
-    }
-  }
+  Widget _buildSuggestionsDropdown(BuildContext context) => Container(
+    decoration: BoxDecoration(
+      color: Theme.of(context).colorScheme.surface,
+      border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+      borderRadius: BorderRadius.circular(8),
+    ),
+    child: Column(
+      children: _suggestions
+          .map((tag) => ListTile(
+                leading: Container(
+                  width: 12, height: 12,
+                  decoration: BoxDecoration(color: tag.displayColor, shape: BoxShape.circle),
+                ),
+                title: Text(tag.name),
+                subtitle: tag.usageCount > 0 ? Text('Used ${tag.usageCount} times') : null,
+                onTap: () => _selectSuggestion(tag),
+                dense: true,
+              ))
+          .toList(),
+    ),
+  );
 
   Widget _buildExistingTagsSection(BuildContext context) {
-    final availableTags = widget.availableTags!;
-    final selectedTagIds = _isCustomTagMode ? widget.selectedCustomTags!.map((tag) => tag.id).toSet() : <int>{};
-
-    // Filter out already selected tags
-    final unselectedTags = availableTags.where((tag) => !selectedTagIds.contains(tag.id)).toList();
-
-    if (unselectedTags.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
+    final available = widget.availableTags!;
+    final selectedIds = _isCustomTagMode ? widget.selectedCustomTags!.map((t) => t.id).toSet() : <int>{};
+    final unselected = available.where((t) => !selectedIds.contains(t.id)).toList();
+    if (unselected.isEmpty) return const SizedBox.shrink();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -325,7 +226,7 @@ class _CustomTagsWidgetState extends State<CustomTagsWidget> {
         Wrap(
           spacing: 6,
           runSpacing: 6,
-          children: unselectedTags.map((tag) => _buildExistingTagChip(context, tag)).toList(),
+          children: unselected.map((t) => _ExistingTagChip(tag: t, onTap: () => _selectSuggestion(t))).toList(),
         ),
       ],
     );
@@ -356,158 +257,14 @@ class _CustomTagsWidgetState extends State<CustomTagsWidget> {
     ],
   );
 
-  Widget _buildExistingTagChip(BuildContext context, CustomTag tag) => InkWell(
-    onTap: () => _selectSuggestion(tag),
-    borderRadius: BorderRadius.circular(16),
-    child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: tag.displayColor.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: tag.displayColor.withValues(alpha: 0.3), width: 1),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 8,
-            height: 8,
-            decoration: BoxDecoration(color: tag.displayColor, shape: BoxShape.circle),
-          ),
-          const SizedBox(width: 6),
-          Text(
-            tag.name,
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: tag.displayColor, fontWeight: FontWeight.w500),
-          ),
-          if (tag.usageCount > 0) ...[
-            const SizedBox(width: 4),
-            Text(
-              '(${tag.usageCount})',
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: tag.displayColor.withValues(alpha: 0.7), fontSize: 10),
-            ),
-          ],
-          const SizedBox(width: 4),
-          Icon(LucideIcons.plus, size: 14, color: tag.displayColor),
-        ],
-      ),
-    ),
-  );
-
-  Widget _buildStringTagChip(String tag) => Chip(
-    label: Text(tag, style: Theme.of(context).textTheme.bodySmall),
-    deleteIcon: widget.enabled ? const Icon(LucideIcons.x, size: 18) : null,
-    onDeleted: widget.enabled ? () => _removeTag(tag) : null,
-    backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-    labelStyle: TextStyle(color: Theme.of(context).colorScheme.onPrimaryContainer),
-    deleteIconColor: Theme.of(context).colorScheme.onPrimaryContainer,
-  );
-
-  Widget _buildCustomTagChip(CustomTag tag) => Chip(
-    label: Text(tag.name, style: Theme.of(context).textTheme.bodySmall),
-    deleteIcon: widget.enabled ? const Icon(LucideIcons.x, size: 18) : null,
-    onDeleted: widget.enabled ? () => _removeTag(tag) : null,
-    backgroundColor: tag.displayColor.withValues(alpha: 0.2),
-    labelStyle: TextStyle(color: tag.displayColor, fontWeight: FontWeight.w500),
-    deleteIconColor: tag.displayColor,
-  );
-}
-
-/// Compact version for displaying custom tags in note cards
-/// Supports both string-based tags (for backward compatibility) and CustomTag objects
-class CompactCustomTagsWidget extends StatelessWidget {
-  // For backward compatibility
-  final List<String>? selectedTags;
-
-  // New CustomTag-based approach
-  final List<CustomTag>? selectedCustomTags;
-
-  final int maxDisplay;
-
-  const CompactCustomTagsWidget({super.key, this.selectedTags, this.selectedCustomTags, this.maxDisplay = 3})
-    : assert(
-        selectedTags != null || selectedCustomTags != null,
-        'Either selectedTags OR selectedCustomTags must be provided',
-      );
-
-  bool get _isCustomTagMode => selectedCustomTags != null;
-
-  @override
-  Widget build(BuildContext context) {
-    final tags = _isCustomTagMode ? selectedCustomTags! : selectedTags!;
-
-    if (tags.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    final displayedTags = tags.take(maxDisplay).toList();
-    final remainingCount = tags.length - maxDisplay;
-
-    return Wrap(
-      spacing: 4,
-      runSpacing: 4,
-      children: [
-        ...displayedTags.map((tag) => _buildCompactChip(context, tag)),
-        if (remainingCount > 0) _buildMoreChip(context, remainingCount),
-      ],
-    );
-  }
-
-  Widget _buildCompactChip(BuildContext context, dynamic tag) {
+  List<Widget> _buildTagChips() {
     if (_isCustomTagMode) {
-      return _buildCustomTagCompactChip(context, tag as CustomTag);
-    } else {
-      return _buildStringCompactChip(context, tag as String);
+      return widget.selectedCustomTags!
+          .map((t) => _CustomTagChip(tag: t, enabled: widget.enabled, onDelete: () => _removeTag(t)))
+          .toList();
     }
+    return widget.selectedTags!
+        .map((t) => _StringTagChip(tag: t, enabled: widget.enabled, onDelete: () => _removeTag(t)))
+        .toList();
   }
-
-  Widget _buildStringCompactChip(BuildContext context, String tag) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-    decoration: BoxDecoration(
-      color: Theme.of(context).colorScheme.secondaryContainer,
-      borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3), width: 0.5),
-    ),
-    child: Text(
-      tag,
-      style: Theme.of(
-        context,
-      ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSecondaryContainer, fontSize: 11),
-    ),
-  );
-
-  Widget _buildCustomTagCompactChip(BuildContext context, CustomTag tag) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-    decoration: BoxDecoration(
-      color: tag.displayColor.withValues(alpha: 0.2),
-      borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: tag.displayColor.withValues(alpha: 0.3), width: 0.5),
-    ),
-    child: Text(
-      tag.name,
-      style: Theme.of(
-        context,
-      ).textTheme.bodySmall?.copyWith(color: tag.displayColor, fontSize: 11, fontWeight: FontWeight.w500),
-    ),
-  );
-
-  Widget _buildMoreChip(BuildContext context, int count) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-    decoration: BoxDecoration(
-      color: Theme.of(context).colorScheme.surfaceContainerHighest,
-      borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3), width: 0.5),
-    ),
-    child: Text(
-      '+$count',
-      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-        color: Theme.of(context).colorScheme.onSurfaceVariant,
-        fontSize: 11,
-        fontWeight: FontWeight.w500,
-      ),
-    ),
-  );
 }
