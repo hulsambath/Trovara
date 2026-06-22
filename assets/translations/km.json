@@ -20,6 +20,13 @@
     "edit": "កែសម្រួល"
   },
   "hello": "សួស្តីពិភពលោក!",
+  "chat": {
+    "tier": {
+      "free_badge": "ក្នុងឧបករណ៍",
+      "pro_badge": "Pro",
+      "upgrade_cta": "ដំឡើងកំណែ ដើម្បីចម្លើយប្រសើរ"
+    }
+  },
   "pro": {
     "paywall": {
       "title": "ដោះសោ Trovara Pro",

@@ -20,6 +20,13 @@
     "edit": "Edit"
   },
   "hello": "Hello World!",
+  "chat": {
+    "tier": {
+      "free_badge": "On-device",
+      "pro_badge": "Pro",
+      "upgrade_cta": "Upgrade for better answers"
+    }
+  },
   "pro": {
     "paywall": {
       "title": "Unlock Trovara Pro",

@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:logger/logger.dart';
 import 'package:trovara/core/base/base_view_model.dart';
 import 'package:trovara/core/di/service_locator.dart';
+import 'package:trovara/core/services/ai/chat_tier.dart';
+import 'package:trovara/core/services/ai/chat_tier_resolver.dart';
 import 'package:trovara/core/services/ai/rag_chat_memory.dart';
 import 'package:trovara/core/services/ai/rag_service.dart';
 import 'package:trovara/core/services/chat/chat_service.dart';
@@ -27,7 +29,11 @@ class ChatViewModel extends BaseViewModel {
   final RagService _ragService;
   final ChatService _chatService;
   final ChatSourceService _chatSourceService;
+  final ChatTierResolver _tierResolver = ServiceLocator().chatTierResolver;
   final Logger _logger = Logger();
+
+  /// Active chat quality tier (drives the tier badge + upgrade nudge).
+  ChatTier get chatTier => _tierResolver.resolveTier();
 
   ChatViewModel({
     RagService? ragService,
