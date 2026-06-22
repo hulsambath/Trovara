@@ -18,9 +18,13 @@ import 'package:trovara/core/repository/interfaces/folder_repository.dart';
 import 'package:trovara/core/repository/interfaces/igraph_repository.dart';
 import 'package:trovara/core/repository/interfaces/iproject_bundle_repository.dart';
 import 'package:trovara/core/repository/interfaces/note_repository.dart';
+import 'package:trovara/core/services/ai/byok_key_store.dart';
+import 'package:trovara/core/services/ai/chat_tier.dart';
+import 'package:trovara/core/services/ai/chat_tier_resolver.dart';
 import 'package:trovara/core/services/ai/document_resolver_service.dart';
 import 'package:trovara/core/services/ai/embedding_service.dart';
 import 'package:trovara/core/services/ai/llm_client.dart';
+import 'package:trovara/core/services/ai/retrieval_depth.dart';
 import 'package:trovara/core/services/ai/multi_query_expansion_service.dart';
 import 'package:trovara/core/services/ai/prompt_builder_service.dart';
 import 'package:trovara/core/services/ai/query_rewrite_service.dart';
@@ -85,6 +89,8 @@ class ServiceLocator {
   ProAccessService? _proAccessService;
   QuizGeneratorService? _quizGeneratorService;
   IBillingService? _billingService;
+  ByokKeyStore? _byokKeyStore;
+  ChatTierResolver? _chatTierResolver;
 
   /// Get the note repository instance
   INoteRepository get noteRepository {
@@ -374,6 +380,32 @@ class ServiceLocator {
     return _billingService!;
   }
 
+  /// Free-tier bring-your-own-key store.
+  ByokKeyStore get byokKeyStore => _byokKeyStore ??= ByokKeyStore();
+
+  /// Single decision point for chat tier + engine.
+  ChatTierResolver get chatTierResolver => _chatTierResolver ??=
+      ChatTierResolver(proAccess: proAccessService, hasByokKey: () => byokKeyStore.hasKey);
+
+  /// Retrieval depth preset for the currently-active chat tier.
+  RetrievalDepth get activeRetrievalDepth => RetrievalDepth.forTier(chatTierResolver.resolveTier());
+
+  /// Build the chat [LlmClient] for a resolved [ChatEngine].
+  LlmClient chatLlmClientForEngine(ChatEngine engine) {
+    switch (engine) {
+      case ChatEngine.premiumCloud:
+        return llmClient;
+      case ChatEngine.byokCloud:
+        return LlmClient(
+          provider: LlmProvider.gemini,
+          apiKey: byokKeyStore.key ?? '',
+          modelName: LlmClient.defaultGeminiModel,
+        );
+      case ChatEngine.onDevice:
+        return LlmClient(provider: LlmProvider.onDevice, apiKey: '');
+    }
+  }
+
   /// Get the quiz generator service instance
   QuizGeneratorService get quizGeneratorService {
     _quizGeneratorService ??= QuizGeneratorService(ragService: ragService, llmClient: llmClient);
@@ -389,6 +421,7 @@ class ServiceLocator {
     await rewriteLlmClient.initialize();
     await chatService.initialize();
     await proAccessService.initialize();
+    await byokKeyStore.load();
   }
 
   /// Dispose all services
@@ -421,5 +454,7 @@ class ServiceLocator {
     _queryRewriteService = null;
     _multiQueryExpansionService = null;
     _ragService = null;
+    _byokKeyStore = null;
+    _chatTierResolver = null;
   }
 }
