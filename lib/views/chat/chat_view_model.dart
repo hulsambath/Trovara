@@ -157,7 +157,11 @@ class ChatViewModel extends BaseViewModel {
     bool isError = false;
 
     try {
-      await for (final chunk in _ragService.queryStream(trimmed, priorTurns: priorTurns)) {
+      await for (final chunk in _ragService.queryStream(
+        trimmed,
+        priorTurns: priorTurns,
+        depth: ServiceLocator().activeRetrievalDepth,
+      )) {
         buffer.write(chunk);
         _updateMessage(aiMessageId, content: buffer.toString());
       }
