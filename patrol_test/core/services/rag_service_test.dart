@@ -617,6 +617,27 @@ void main() {
       expect(expand.calls, equals(1));
     });
 
+    patrolTest('free tier rewrites but skips multi-query expansion', ($) async {
+      final note = _makeNote(id: 1, title: 'Note');
+      noteRepo.seed([note]);
+      embeddingRepo.seed([
+        _makeEmbedding(noteId: 1, chunkText: 'Meditated for 20 minutes', vector: [0.5, 0.5, 0.5]),
+      ]);
+
+      final (:service, :rewrite, :expand, llm: _) = _buildRagService(
+        noteRepo: noteRepo,
+        folderRepo: folderRepo,
+        embeddingRepo: embeddingRepo,
+        queryVector: [0.5, 0.5, 0.5],
+      );
+
+      // Default depth is RetrievalDepth.free (expansionCount: 1) → expansion is skipped.
+      await service.query('meditation?');
+
+      expect(rewrite.calls, equals(1));
+      expect(expand.calls, equals(0));
+    });
+
     patrolTest('passes prior transcript to rewrite and LLM when priorTurns provided', ($) async {
       final note = _makeNote(id: 1, title: 'Note');
       noteRepo.seed([note]);
