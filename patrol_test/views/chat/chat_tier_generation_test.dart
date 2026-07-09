@@ -7,6 +7,7 @@ import '../../core/test_support.dart';
 
 void main() {
   patrolTest('active depth follows pro entitlement', ($) async {
+    // ignore: invalid_use_of_visible_for_testing_member - intended test-only mock setup
     SharedPreferences.setMockInitialValues({});
     final locator = ServiceLocator();
     await locator.byokKeyStore.load();

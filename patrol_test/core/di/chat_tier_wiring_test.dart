@@ -9,6 +9,7 @@ import '../test_support.dart';
 
 void main() {
   patrolTest('free + no key → onDevice engine, free depth', ($) async {
+    // ignore: invalid_use_of_visible_for_testing_member - intended test-only mock setup
     SharedPreferences.setMockInitialValues({});
     final locator = ServiceLocator();
     await locator.byokKeyStore.load();
@@ -21,6 +22,7 @@ void main() {
   });
 
   patrolTest('pro → premiumCloud engine, pro depth', ($) async {
+    // ignore: invalid_use_of_visible_for_testing_member - intended test-only mock setup
     SharedPreferences.setMockInitialValues({});
     final locator = ServiceLocator();
     await locator.byokKeyStore.load();
