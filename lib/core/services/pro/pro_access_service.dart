@@ -21,9 +21,9 @@ class ProAccessService extends ChangeNotifier {
   /// Unlock Pro tier (called after successful in-app purchase)
   Future<void> unlockPro() async {
     try {
-      _isProUnlocked = true;
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(prefsKey, true);
+      _isProUnlocked = true;
       notifyListeners();
       _logger.i('Pro tier unlocked');
     } catch (e) {
