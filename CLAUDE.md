@@ -205,3 +205,23 @@ Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
 Scopes: `notes`, `sync`, `ui`, `tags`, `auth`, `core`, `deps`
 
 The pre-commit hook auto-generates a structured message template. Install hooks via `./scripts/install_hooks.sh`.
+
+## Autonomous Execution Protocol
+
+- On EVERY session start: read ROADMAP.md first. If Status is COMPLETE, stop and report.
+- Work on the first task that is IN_PROGRESS, otherwise the first NOT_STARTED task.
+- If the task has no plan file in plans/, write a detailed plan first (steps + acceptance criteria), named `plans/NN-task-name.md` with a `Status:` line at top.
+- Implement step by step. After each step run verification (analyzer + tests).
+- When a task is fully done and verified:
+  1. Archive the plan to Linear via Linear MCP: title `[Plan] <task name>`, full plan markdown as description, label `implemented-plan`, state Done.
+  2. Only after Linear confirms creation, delete the plan .md file.
+  3. Mark the task [x] in ROADMAP.md with the Linear issue ID.
+  4. Commit with message `complete: <task name>`.
+- If context is getting long, stop CLEANLY: write exact progress notes under the current task in ROADMAP.md, commit everything, then end. Never stop without saving state.
+- NEVER ask the user questions. If blocked, log the blocker under ## Blockers in ROADMAP.md, mark the task BLOCKED, move to the next task.
+- When ALL tasks are [x] and the Definition of Done passes, change the ROADMAP.md status line to `# Roadmap — Status: COMPLETE`.
+
+Verification standard for every task:
+- flutter analyze: zero errors
+- flutter test: all pass
+- Acceptance criteria in the task's plan are met
