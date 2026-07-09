@@ -1,18 +1,20 @@
 import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ProAccessService extends ChangeNotifier {
   static final _logger = Logger();
+
+  static const String prefsKey = 'pro_access_unlocked';
 
   bool _isProUnlocked = false;
 
   bool get isProUnlocked => _isProUnlocked;
 
-  /// Initialize from saved state (SharedPreferences or similar)
+  /// Initialize from saved state (SharedPreferences)
   Future<void> initialize() async {
-    // TODO: Load from SharedPreferences or Firebase
-    // For MVP, default to false
-    _isProUnlocked = false;
+    final prefs = await SharedPreferences.getInstance();
+    _isProUnlocked = prefs.getBool(prefsKey) ?? false;
     notifyListeners();
   }
 
@@ -20,7 +22,8 @@ class ProAccessService extends ChangeNotifier {
   Future<void> unlockPro() async {
     try {
       _isProUnlocked = true;
-      // TODO: Persist to SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(prefsKey, true);
       notifyListeners();
       _logger.i('Pro tier unlocked');
     } catch (e) {
@@ -32,7 +35,8 @@ class ProAccessService extends ChangeNotifier {
   /// Lock Pro tier (for testing/debugging)
   Future<void> lockPro() async {
     _isProUnlocked = false;
-    // TODO: Persist to SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(prefsKey, false);
     notifyListeners();
     _logger.i('Pro tier locked');
   }
