@@ -29,7 +29,7 @@ class Initializer {
       // Import is optional; if the package isn't available this will fail gracefully.
       // The Shorebird updater is lightweight and won't block startup.
       final updater = ShorebirdUpdater();
-      updater.readCurrentPatch().catchError((_) {});
+      updater.readCurrentPatch().catchError((_) => null);
       updater.checkForUpdate().then((status) {
         if (status == UpdateStatus.outdated) {
           // Download and apply update in background.
