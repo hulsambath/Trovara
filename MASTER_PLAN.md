@@ -21,7 +21,7 @@ Ship Trovara v1 to the app store(s) within the 3–7 day launch window tracked i
 5. **Day 5 — Store listing & soft launch**: screenshots, description + ASO, privacy details, submit.
 6. **Days 6–7 — Buffer & response**: store-review feedback, crash monitoring, Shorebird OTA hot-fixes for P0s.
 
-## Scope Freeze (D1-4 — DRAFT, pending owner sign-off)
+## Scope Freeze (D1-4 — APPROVED by Sambath, 2026-07-12)
 
 **In scope for v1** (exactly what exists today — stabilize/polish only):
 - Note CRUD + flutter_quill editor
