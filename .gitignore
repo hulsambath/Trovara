@@ -89,3 +89,6 @@ configs/trovara_prod.json
 ios/Flutter/DartDefines.xcconfig
 # Added by code-review-graph
 .code-review-graph/
+
+# E2E dart-define config (contains OAuth client secret)
+configs/trovara_e2e.json

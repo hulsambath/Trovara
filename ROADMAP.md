@@ -13,12 +13,12 @@ Ship Trovara v1 within the 3–7 day launch window. See MASTER_PLAN.md for full 
 - [ ] D1-4: Lock feature set / freeze scope (STATUS: IN_PROGRESS — draft scope freeze + non-goals written into MASTER_PLAN.md § Scope Freeze on 2026-07-11; needs Sambath's sign-off, then check off here and in Notion)
 
 ### Day 2 — Core-flow QA (real device)
-- [ ] D2-1: QA note create / edit / delete (STATUS: NOT_STARTED)
-- [ ] D2-2: QA editor formatting (STATUS: NOT_STARTED)
-- [ ] D2-3: QA all three import adapters — Obsidian, Notion, Storypad (STATUS: NOT_STARTED)
-- [ ] D2-4: QA AI chat over notes (STATUS: NOT_STARTED)
-- [ ] D2-5: QA Google Drive sync (STATUS: NOT_STARTED)
-- [ ] D2-6: Test large note set + fresh empty install (STATUS: NOT_STARTED)
+- [x] D2-1: QA note create / edit / delete (STATUS: DONE — 2026-07-11, Linear HUL-15. E2E `patrol_test/e2e/note_crud_test.dart` passes on iPhone 17 Pro Max simulator: create via FAB → title → save-on-back → edit → long-press → Delete → confirm → gone. Required repairing the entire Patrol iOS E2E infra (RunnerUITests target, scheme, Podfile, patrol config) which had never worked)
+- [ ] D2-2: QA editor formatting (STATUS: IN_PROGRESS — Quill↔Markdown formatting round-trips are covered by `patrol_test/core/import/converters/` (round_trip_test etc., all green). On-device formatting toolbar interaction not automated: Quill's editor isn't reachable via `enterText`; needs a short manual pass or a keyboard-driven E2E later)
+- [x] D2-3: QA all three import adapters — Obsidian, Notion, Storypad (STATUS: DONE — 2026-07-11. Storypad adapter had ZERO tests (top launch risk "guard against import data loss"); added 29-test suite. All import suites green (121 tests: adapters + converters + round-trip). On-device import UI with a real export file remains a manual spot-check)
+- [ ] D2-4: QA AI chat over notes (STATUS: BLOCKED (manual) — logic layer fully tested (rag_service, llm_client, chat view models — green) and the keyless UI state ("Chat is not available") verified in the E2E smoke test. Live chat QA needs a build with a real API key (`--dart-define-from-file=configs/trovara_staging.json`, keys present) and a human judging response quality)
+- [ ] D2-5: QA Google Drive sync (STATUS: BLOCKED (manual) — requires interactive Google sign-in on-device; cannot automate. Silent-restore path exercised at startup in every E2E run without crashing)
+- [ ] D2-6: Test large note set + fresh empty install (STATUS: IN_PROGRESS — fresh empty install verified: app uninstalled from simulator, reinstalled by E2E run, first-run empty state + smoke pass. Large note set (hundreds of notes → list scroll + search) still to do; belongs with Day 4 performance pass)
 
 ### Day 3 — Differentiation polish
 - [ ] D3-1: First-run moment showing import + "ask your notes" (STATUS: NOT_STARTED)

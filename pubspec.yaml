@@ -83,3 +83,8 @@ flutter:
 
 patrol:
   flavor: staging
+  app_name: Trovara Staging
+  ios:
+    bundle_id: com.trovara.app.staging
+  android:
+    package_name: com.trovara.app.staging

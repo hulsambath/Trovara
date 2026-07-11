@@ -40,10 +40,20 @@ target 'Runner' do
   target 'RunnerTests' do
     inherit! :search_paths
   end
+  target 'RunnerUITests' do
+    inherit! :complete
+  end
 end
 
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
+    # patrol's AutomatorServer imports XCTest, which is outside the default
+    # search paths when pods are linked statically.
+    if target.name == 'patrol'
+      target.build_configurations.each do |config|
+        config.build_settings['ENABLE_TESTING_SEARCH_PATHS'] = 'YES'
+      end
+    end
   end
 end
