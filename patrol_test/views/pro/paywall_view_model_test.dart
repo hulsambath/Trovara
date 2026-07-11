@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovara/core/services/billing/i_billing_service.dart';
 import 'package:trovara/core/services/pro/pro_access_service.dart';
 import 'package:trovara/views/pro/paywall_view_model.dart';
@@ -24,6 +25,8 @@ void main() {
   late PaywallViewModel vm;
 
   setUp(() {
+    // ignore: invalid_use_of_visible_for_testing_member - intended test-only mock setup
+    SharedPreferences.setMockInitialValues({});
     billing = _FakeBilling();
     proAccess = ProAccessService();
     vm = PaywallViewModel(billing: billing, proAccess: proAccess);

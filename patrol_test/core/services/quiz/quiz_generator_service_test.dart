@@ -20,14 +20,12 @@ class StubRagService implements RagService {
       int searchTopK = RagService.defaultSearchTopK,
       double minScore = RagService.defaultMinScore,
       int maxNotes = RagService.defaultMaxNotes,
-      RetrievalDepth depth = RetrievalDepth.free}) async {
-    return RagResult(
+      RetrievalDepth depth = RetrievalDepth.free}) async => RagResult(
       answer: nextAnswer ?? 'Test context',
       sourceNoteTitles: nextSourceTitles,
       prompt: 'Debug prompt',
       matchedChunks: 2,
     );
-  }
 
   @override
   Stream<String> queryStream(String userQuestion,
@@ -60,9 +58,7 @@ class StubLlmClient implements LlmClient {
   String? nextResponse;
 
   @override
-  Future<String> generate(String prompt) async {
-    return nextResponse ?? '[]';
-  }
+  Future<String> generate(String prompt) async => nextResponse ?? '[]';
 
   @override
   Stream<String> generateStream(String prompt) async* {
@@ -73,9 +69,7 @@ class StubLlmClient implements LlmClient {
   Future<String> generateWithMessages(
       {required String systemPrompt,
       required List<LlmChatMessage> history,
-      required String userMessage}) async {
-    return nextResponse ?? '[]';
-  }
+      required String userMessage}) async => nextResponse ?? '[]';
 
   @override
   Stream<String> generateStreamWithMessages(

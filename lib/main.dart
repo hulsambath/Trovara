@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:trovara/core/services/crash/crash_reporting_service.dart';
 import 'package:trovara/app.dart' deferred as app show App;
 import 'package:trovara/app_scope.dart' deferred as app_scope show AppScope;
 import 'package:trovara/initializer.dart' deferred as initializer show Initializer;
@@ -52,5 +53,6 @@ void main({FirebaseOptions? firebaseOptions}) async {
   }, (error, stack) {
     debugPrint('Uncaught error: $error');
     debugPrint('Stack trace: $stack');
+    CrashReportingService.recordError(error, stack, fatal: true);
   });
 }

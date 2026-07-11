@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovara/core/services/ai/chat_tier.dart';
 import 'package:trovara/core/services/ai/chat_tier_resolver.dart';
 import 'package:trovara/core/services/pro/pro_access_service.dart';
@@ -23,6 +24,8 @@ void main() {
   });
 
   patrolTest('pro resolves to pro/premiumCloud regardless of BYOK', ($) async {
+    // ignore: invalid_use_of_visible_for_testing_member - intended test-only mock setup
+    SharedPreferences.setMockInitialValues({});
     final pro = ProAccessService();
     await pro.unlockPro();
     final resolver = ChatTierResolver(proAccess: pro, hasByokKey: () => false);

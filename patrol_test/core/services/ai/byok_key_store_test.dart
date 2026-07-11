@@ -6,6 +6,7 @@ import '../../test_support.dart';
 
 void main() {
   patrolTest('starts empty, stores and reports a key', ($) async {
+    // ignore: invalid_use_of_visible_for_testing_member - intended test-only mock setup
     SharedPreferences.setMockInitialValues({});
     final store = ByokKeyStore();
     await store.load();
@@ -17,6 +18,7 @@ void main() {
   });
 
   patrolTest('clear removes the key', ($) async {
+    // ignore: invalid_use_of_visible_for_testing_member - intended test-only mock setup
     SharedPreferences.setMockInitialValues({ByokKeyStore.prefsKey: 'k'});
     final store = ByokKeyStore();
     await store.load();
@@ -28,6 +30,7 @@ void main() {
   });
 
   patrolTest('setting an empty value clears the key', ($) async {
+    // ignore: invalid_use_of_visible_for_testing_member - intended test-only mock setup
     SharedPreferences.setMockInitialValues({});
     final store = ByokKeyStore();
     await store.load();

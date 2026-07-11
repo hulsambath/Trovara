@@ -62,8 +62,7 @@ class QuizGeneratorService {
   }
 
   /// Build the prompt for the LLM to generate quiz questions
-  String _buildQuizPrompt(String context, int count) {
-    return '''You are an expert test designer. Generate exactly $count multiple-choice quiz questions based on this text:
+  String _buildQuizPrompt(String context, int count) => '''You are an expert test designer. Generate exactly $count multiple-choice quiz questions based on this text:
 
 <context>
 $context
@@ -81,7 +80,6 @@ Requirements:
    - explanation (string)
 
 Output ONLY the valid JSON array, no markdown formatting, no code blocks.''';
-  }
 
   /// Parse the LLM's JSON response into QuizQuestion objects
   List<QuizQuestion> _parseQuestionResponse(String response, List<int> sourceNoteIds) {
