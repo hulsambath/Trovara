@@ -212,6 +212,7 @@ class _MockNoteService implements NoteService {
   @override
   List<Note> searchNotes(String query) => searchResults;
 
+  @override
   Note? getNote(int id) => notesById[id];
 
   @override

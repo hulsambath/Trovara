@@ -10,9 +10,9 @@ class _NotesContent extends StatelessWidget {
     body: _buildBody(context),
     floatingActionButton: FloatingActionButton(
       key: const ValueKey('notes-create-fab'),
-      child: const Icon(LucideIcons.plus),
       onPressed: () => viewModel.createNewNote(context),
       tooltip: 'Create new note',
+      child: const Icon(LucideIcons.plus),
     ),
   );
 

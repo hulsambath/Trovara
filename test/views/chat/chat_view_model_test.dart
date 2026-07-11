@@ -318,8 +318,8 @@ class _FakeRagService extends RagService {
     lastPriorTurns = priorTurns;
     if (_onGetSourceNotes != null) return _onGetSourceNotes(userQuestion);
     return Future.value([
-      Note(id: 1, title: 'Note A', contentJson: '[{\"insert\":\"\\n\"}]'),
-      Note(id: 2, title: 'Note B', contentJson: '[{\"insert\":\"\\n\"}]'),
+      Note(id: 1, title: 'Note A', contentJson: '[{"insert":"\\n"}]'),
+      Note(id: 2, title: 'Note B', contentJson: '[{"insert":"\\n"}]'),
     ]);
   }
 }
