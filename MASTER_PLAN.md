@@ -21,6 +21,25 @@ Ship Trovara v1 to the app store(s) within the 3–7 day launch window tracked i
 5. **Day 5 — Store listing & soft launch**: screenshots, description + ASO, privacy details, submit.
 6. **Days 6–7 — Buffer & response**: store-review feedback, crash monitoring, Shorebird OTA hot-fixes for P0s.
 
+## Scope Freeze (D1-4 — DRAFT, pending owner sign-off)
+
+**In scope for v1** (exactly what exists today — stabilize/polish only):
+- Note CRUD + flutter_quill editor
+- Import adapters: Obsidian, Notion, Storypad
+- AI chat over notes (RAG pipeline, Gemini→OpenAI→OpenRouter fallback)
+- Google Drive sync (notes + chat)
+- Khmer + English localization
+- Shorebird OTA for post-launch hot-fixes
+
+**Non-goals for v1** (do not build, even if easy):
+- No new import sources, LLM providers, or note features
+- No collaboration, sharing, web, or desktop
+- No Sentry (Crashlytics only), no analytics beyond crash reporting
+- No paywall/monetization changes beyond the existing Pro unlock
+- UI changes limited to Day 3's list: first-run moment, empty states, import messaging
+
+Any P2 bug or idea that isn't a crasher on the five critical flows goes to the post-launch backlog, not this window.
+
 ## Definition of Done
 
 - `flutter analyze` clean and `flutter test patrol_test` green.

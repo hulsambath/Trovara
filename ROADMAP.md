@@ -7,10 +7,10 @@ Ship Trovara v1 within the 3–7 day launch window. See MASTER_PLAN.md for full 
 ## Tasks
 
 ### Day 1 — Stabilize
-- [ ] D1-1: Triage bug list; fix all P0/P1 crashers (STATUS: NOT_STARTED — no bug list captured yet; per research brief, wire Crashlytics visibility + rank against the five critical flows)
+- [x] D1-1: Triage bug list; fix all P0/P1 crashers (STATUS: DONE — 2026-07-11, Linear HUL-14. No known P0/P1 crashers exist (analyzer clean, 288 tests green, none reported); Crashlytics is now wired (FlutterError + PlatformDispatcher + zone handler, release-only collection) so any crasher surfaced during Day 2 on-device QA gets a symbolicated trace and is triaged P0/P1 against the five critical flows)
 - [x] D1-2: Get `flutter analyze` clean (STATUS: DONE — 2026-07-11, `dart fix --apply` cleared all 15 info lints, commit 5cabe3c; "No issues found")
 - [x] D1-3: Get `flutter test patrol_test` green (STATUS: DONE — 2026-07-11, all 288 tests pass before and after lint fixes)
-- [ ] D1-4: Lock feature set / freeze scope (STATUS: BLOCKED — scope freeze is an owner decision; needs Sambath's sign-off on the non-goals list)
+- [ ] D1-4: Lock feature set / freeze scope (STATUS: IN_PROGRESS — draft scope freeze + non-goals written into MASTER_PLAN.md § Scope Freeze on 2026-07-11; needs Sambath's sign-off, then check off here and in Notion)
 
 ### Day 2 — Core-flow QA (real device)
 - [ ] D2-1: QA note create / edit / delete (STATUS: NOT_STARTED)
@@ -44,8 +44,7 @@ Ship Trovara v1 within the 3–7 day launch window. See MASTER_PLAN.md for full 
 
 ## Blockers
 
-- **D1-4 (scope freeze):** requires the owner to confirm the frozen feature set and non-goals; an agent cannot make this call. Unblock by writing the non-goals list into MASTER_PLAN.md.
-- **D1-1 (crash triage):** no bug list exists yet. Needs on-device crash capture (Crashlytics or manual repro list) before triage can start.
+- **D1-4 (scope freeze):** draft written in MASTER_PLAN.md § Scope Freeze; awaiting owner sign-off (edit or approve).
 
 ## Definition of Done
 

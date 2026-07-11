@@ -5,6 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:trovara/core/di/service_locator.dart';
+import 'package:trovara/core/services/crash/crash_reporting_service.dart';
 import 'package:trovara/core/storage/theme_mode_storage.dart';
 import 'package:shorebird_code_push/shorebird_code_push.dart';
 
@@ -17,6 +18,7 @@ class Initializer {
 
     if (firebaseOptions != null) {
       await Firebase.initializeApp(options: firebaseOptions);
+      await CrashReportingService.initialize();
     }
     await ThemeModeStorage.instance.initialize();
     await ServiceLocator().initialize();
