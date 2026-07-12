@@ -1,0 +1,86 @@
+name: Shorebird Patch (OTA hotfix)
+
+# Manually dispatched: pushes the current commit as an over-the-air patch to an
+# existing Shorebird release. Users get the fix on next app launch — no store
+# review. Use for P0/P1 hotfixes only; scope-visible changes go through a full
+# release.
+#
+# Uses the same repository secrets as release-prod.yml.
+
+on:
+  workflow_dispatch:
+    inputs:
+      release-version:
+        description: "Release to patch (e.g. 1.0.0+7). Leave empty for latest."
+        required: false
+        type: string
+
+concurrency:
+  group: shorebird-patch
+  cancel-in-progress: false
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.41.4"
+          channel: stable
+          cache: true
+
+      - name: Set up Shorebird
+        uses: shorebirdtech/setup-shorebird@v1
+        with:
+          cache: true
+
+      - name: Restore signing credentials
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PROPERTIES: ${{ secrets.ANDROID_KEYSTORE_PROPERTIES }}
+        run: |
+          set -euo pipefail
+          CRED_DIR="${GITHUB_WORKSPACE}/../credentials/android/trovara/prod"
+          mkdir -p "${CRED_DIR}"
+          printf '%s' "${KEYSTORE_BASE64}" | base64 -d > "${CRED_DIR}/upload.jks"
+          printf '%s' "${KEYSTORE_PROPERTIES}" > "${CRED_DIR}/keystore.properties"
+
+      - name: Restore build-time configs
+        env:
+          PROD_CONFIG: ${{ secrets.TROVARA_PROD_CONFIG_JSON }}
+          FIREBASE_OPTIONS: ${{ secrets.FIREBASE_OPTIONS_PROD_DART }}
+        run: |
+          set -euo pipefail
+          printf '%s' "${PROD_CONFIG}" > configs/trovara_prod.json
+          bash ./scripts/create_firebase_stub.sh
+          printf '%s' "${FIREBASE_OPTIONS}" > lib/firebase_options/prod.dart
+
+      - name: Flutter pub get
+        run: flutter pub get
+
+      - name: Shorebird patch
+        env:
+          SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
+          RELEASE_VERSION: ${{ github.event.inputs.release-version }}
+        run: |
+          set -euo pipefail
+          ARGS=(patch android --flavor prod --target lib/main_prod.dart)
+          if [[ -n "${RELEASE_VERSION}" ]]; then
+            ARGS+=(--release-version "${RELEASE_VERSION}")
+          fi
+          shorebird "${ARGS[@]}" -- --dart-define-from-file=configs/trovara_prod.json
