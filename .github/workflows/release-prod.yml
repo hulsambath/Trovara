@@ -86,6 +86,7 @@ jobs:
           FIREBASE_OPTIONS: ${{ secrets.FIREBASE_OPTIONS_PROD_DART }}
         run: |
           set -euo pipefail
+          mkdir -p configs
           printf '%s' "${PROD_CONFIG}" > configs/trovara_prod.json
           # stub only writes staging.dart (imported by main_staging.dart, must compile)
           bash ./scripts/create_firebase_stub.sh

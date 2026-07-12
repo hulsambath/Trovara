@@ -66,6 +66,7 @@ jobs:
           FIREBASE_OPTIONS: ${{ secrets.FIREBASE_OPTIONS_PROD_DART }}
         run: |
           set -euo pipefail
+          mkdir -p configs
           printf '%s' "${PROD_CONFIG}" > configs/trovara_prod.json
           bash ./scripts/create_firebase_stub.sh
           printf '%s' "${FIREBASE_OPTIONS}" > lib/firebase_options/prod.dart
