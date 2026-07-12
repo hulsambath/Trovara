@@ -84,10 +84,12 @@ jobs:
         env:
           PROD_CONFIG: ${{ secrets.TROVARA_PROD_CONFIG_JSON }}
           FIREBASE_OPTIONS: ${{ secrets.FIREBASE_OPTIONS_PROD_DART }}
+          GOOGLE_SERVICES: ${{ secrets.GOOGLE_SERVICES_PROD_JSON }}
         run: |
           set -euo pipefail
-          mkdir -p configs
+          mkdir -p configs android/app/src/prod
           printf '%s' "${PROD_CONFIG}" > configs/trovara_prod.json
+          printf '%s' "${GOOGLE_SERVICES}" > android/app/src/prod/google-services.json
           # stub only writes staging.dart (imported by main_staging.dart, must compile)
           bash ./scripts/create_firebase_stub.sh
           printf '%s' "${FIREBASE_OPTIONS}" > lib/firebase_options/prod.dart

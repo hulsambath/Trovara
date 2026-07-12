@@ -32,6 +32,7 @@ base64 -i "${CRED_DIR}/upload.jks" | gh secret set ANDROID_KEYSTORE_BASE64
 gh secret set ANDROID_KEYSTORE_PROPERTIES < "${CRED_DIR}/keystore.properties"
 gh secret set TROVARA_PROD_CONFIG_JSON < configs/trovara_prod.json
 gh secret set FIREBASE_OPTIONS_PROD_DART < lib/firebase_options/prod.dart
+gh secret set GOOGLE_SERVICES_PROD_JSON < android/app/src/prod/google-services.json
 
 if [[ -n "${PLAY_SERVICE_ACCOUNT_JSON_FILE:-}" ]]; then
   [[ -f "${PLAY_SERVICE_ACCOUNT_JSON_FILE}" ]] || fail "PLAY_SERVICE_ACCOUNT_JSON_FILE not found: ${PLAY_SERVICE_ACCOUNT_JSON_FILE}"
