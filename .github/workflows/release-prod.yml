@@ -105,6 +105,7 @@ jobs:
           shorebird release android \
             --flavor prod \
             --target lib/main_prod.dart \
+            --flutter-version=3.41.4 \
             -- --dart-define-from-file=configs/trovara_prod.json
 
       - name: Upload AAB artifact
