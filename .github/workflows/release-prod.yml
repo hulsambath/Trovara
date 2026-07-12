@@ -92,6 +92,9 @@ jobs:
           bash ./scripts/create_firebase_stub.sh
           printf '%s' "${FIREBASE_OPTIONS}" > lib/firebase_options/prod.dart
 
+      - name: Accept Android SDK licenses
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+
       - name: Flutter pub get
         run: flutter pub get
 
